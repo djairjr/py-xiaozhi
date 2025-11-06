@@ -4,9 +4,7 @@ from .base import Plugin
 
 
 class PluginManager:
-    """
-    轻量插件管理器：统一setup/start/stop/shutdown广播；错误隔离。
-    """
+    """Lightweight plug-in manager: unified setup/start/stop/shutdown broadcast; error isolation."""
 
     def __init__(self) -> None:
         self._plugins: List[Plugin] = []
@@ -24,9 +22,7 @@ class PluginManager:
                     pass
 
     def get_plugin(self, name: str) -> Plugin | None:
-        """
-        根据插件名获取插件实例。返回 None 表示未注册。
-        """
+        """Get the plug-in instance based on the plug-in name. Returning None means not registered."""
         try:
             return self._by_name.get(name)
         except Exception:
@@ -37,7 +33,7 @@ class PluginManager:
             try:
                 await p.setup(app)
             except Exception:
-                # 出错不阻断其它插件
+                # Does not block other plug-ins when errors occur
                 pass
 
     async def start_all(self) -> None:
@@ -76,7 +72,7 @@ class PluginManager:
                 pass
 
     async def stop_all(self) -> None:
-        # 逆序更稳妥
+        # Reverse order is safer
         for p in reversed(self._plugins):
             try:
                 await p.stop()

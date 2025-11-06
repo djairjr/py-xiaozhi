@@ -1,74 +1,74 @@
-# py-xiaozhi 文档
+# py-xiaozhi documentation
 
-这是 py-xiaozhi 项目的文档网站，基于 VitePress 构建。
+This is the documentation website for the py-xiaozhi project, built on VitePress.
 
-## 功能
+## Function
 
-- 项目指南：提供项目的详细使用说明和开发文档
-- 赞助商页面：展示并感谢项目的所有赞助者
-- 贡献指南：说明如何为项目贡献代码
-- 贡献者名单：展示所有为项目做出贡献的开发者
-- 响应式设计：适配桌面和移动设备
+- Project Guide: Provide detailed usage instructions and development documents for the project
+- Sponsor page: showcase and thank all sponsors of the project
+- Contribution Guide: explains how to contribute code to the project
+- Contributors list: Shows all developers who have contributed to the project
+- Responsive design: adapts to desktop and mobile devices
 
-## 本地开发
+## Local development
 
 ```bash
-# 安装依赖
+# Install dependencies
 pnpm install
 
-# 启动开发服务器
+# Start development server
 pnpm docs:dev
 
-# 构建静态文件
+# Build static files
 pnpm docs:build
 
-# 预览构建结果
+# Preview build results
 pnpm docs:preview
 ```
 
-## 目录结构
+## Directory structure
 
 ```
 documents/
-├── docs/                  # 文档源文件
-│   ├── .vitepress/        # VitePress 配置
-│   ├── guide/             # 指南文档
-│   ├── sponsors/          # 赞助商页面
-│   ├── contributing.md    # 贡献指南
-│   ├── contributors.md    # 贡献者名单
-│   └── index.md           # 首页
-├── package.json           # 项目配置
-└── README.md              # 项目说明
+├── docs/ # Document source file
+│ ├── .vitepress/ # VitePress configuration
+│ ├── guide/ # guide document
+│ ├── sponsors/ # Sponsor page
+│ ├── contributing.md # Contribution Guide
+│ ├── contributors.md # Contributors list
+│ └── index.md # Home page
+├── package.json #Project configuration
+└── README.md # Project description
 ```
 
-## 赞助商页面
+## Sponsor Page
 
-赞助商页面通过以下方式实现：
+Sponsor pages are implemented in the following ways:
 
 1. `/sponsors/` 目录包含了赞助商相关的内容
-2. `data.json` 文件存储赞助商数据
-3. 使用 Vue 组件在客户端动态渲染赞助商列表
-4. 提供成为赞助者的详细说明和支付方式
+2. `data.json` file stores sponsor data
+3. Use Vue components to dynamically render the sponsor list on the client side
+4. Provide detailed instructions and payment methods for becoming a sponsor
 
-## 贡献指南
+## Contribution Guidelines
 
-贡献指南页面提供了以下内容：
+The Contribution Guidelines page provides the following:
 
-1. 开发环境准备指南
-2. 代码贡献流程说明
-3. 编码规范和提交规范
-4. Pull Request 创建和审核流程
-5. 文档贡献指南
+1. Development environment preparation guide
+2. Code contribution process description
+3. Coding specifications and submission specifications
+4. Pull Request creation and review process
+5. Document Contribution Guidelines
 
-## 贡献者名单
+## List of contributors
 
-贡献者名单页面展示了所有为项目做出贡献的开发者，包括：
+The contributor list page displays all developers who have contributed to the project, including:
 
-1. 核心开发团队成员
-2. 代码贡献者
-3. 文档贡献者
-4. 测试和反馈提供者
+1. Core development team members
+2. Code contributors
+3. Documentation contributors
+4. Testing and feedback providers
 
-## 部署
+## Deployment
 
-文档网站通过 GitHub Actions 自动部署到 GitHub Pages。 
+Documentation sites are automatically deployed to GitHub Pages via GitHub Actions.

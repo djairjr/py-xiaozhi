@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""音乐缓存扫描器 扫描cache/music目录中的音乐文件，提取元数据，生成本地歌单.
+"""Music cache scanner scans music files in the cache/music directory, extracts metadata, and generates local playlists.
 
-依赖安装: pip install mutagen
-"""
+Dependency installation: pip install mutagen"""
 
 import hashlib
 import json
@@ -16,93 +15,87 @@ try:
     from mutagen import File as MutagenFile
     from mutagen.id3 import ID3NoHeaderError
 except ImportError:
-    print("错误: 需要安装 mutagen 库")
-    print("请运行: pip install mutagen")
+    print("Error: mutagen library needs to be installed")
+    print("Please run: pip install mutagen")
     sys.exit(1)
 
-# 项目根目录
+# Project root directory
 PROJECT_ROOT = Path(__file__).parent.parent
 
 
 class MusicMetadata:
-    """
-    音乐元数据类.
-    """
+    """Music metadata class."""
 
     def __init__(self, file_path: Path):
         self.file_path = file_path
         self.filename = file_path.name
-        self.file_id = file_path.stem  # 文件名去掉扩展名，即歌曲ID
+        self.file_id = file_path.stem  # Remove the extension from the file name, which is the song ID
         self.file_size = file_path.stat().st_size
         self.creation_time = datetime.fromtimestamp(file_path.stat().st_ctime)
         self.modification_time = datetime.fromtimestamp(file_path.stat().st_mtime)
 
-        # 从文件提取的元数据
+        # Metadata extracted from files
         self.title = None
         self.artist = None
         self.album = None
         self.genre = None
         self.year = None
-        self.duration = None  # 秒数
+        self.duration = None  # seconds
         self.bitrate = None
         self.sample_rate = None
 
-        # 文件哈希（用于去重）
+        # File hash (for deduplication)
         self.file_hash = self._calculate_hash()
 
     def _calculate_hash(self) -> str:
-        """
-        计算文件MD5哈希值（仅前1MB避免大文件计算过慢）
-        """
+        """Calculate file MD5 hash value (only first 1MB to avoid slow calculation for large files)"""
         try:
             hash_md5 = hashlib.md5()
             with open(self.file_path, "rb") as f:
-                # 只读取前1MB计算哈希
+                # Only read the first 1MB to calculate the hash
                 chunk = f.read(1024 * 1024)
                 hash_md5.update(chunk)
-            return hash_md5.hexdigest()[:16]  # 取前16位
+            return hash_md5.hexdigest()[:16]  # Take the first 16 digits
         except Exception:
             return "unknown"
 
     def extract_metadata(self) -> bool:
-        """
-        提取音乐文件元数据.
-        """
+        """Extract music file metadata."""
         try:
             audio_file = MutagenFile(self.file_path)
             if audio_file is None:
                 return False
 
-            # 基本信息
+            # Basic information
             if hasattr(audio_file, "info"):
                 self.duration = getattr(audio_file.info, "length", None)
                 self.bitrate = getattr(audio_file.info, "bitrate", None)
                 self.sample_rate = getattr(audio_file.info, "sample_rate", None)
 
-            # ID3标签信息
+            # ID3 tag information
             tags = audio_file.tags if audio_file.tags else {}
 
-            # 标题
+            # title
             self.title = self._get_tag_value(tags, ["TIT2", "TITLE", "\xa9nam"])
 
-            # 艺术家
+            # artist
             self.artist = self._get_tag_value(tags, ["TPE1", "ARTIST", "\xa9ART"])
 
-            # 专辑
+            # album
             self.album = self._get_tag_value(tags, ["TALB", "ALBUM", "\xa9alb"])
 
-            # 流派
+            # school
             self.genre = self._get_tag_value(tags, ["TCON", "GENRE", "\xa9gen"])
 
-            # 年份
+            # years
             year_raw = self._get_tag_value(tags, ["TDRC", "DATE", "YEAR", "\xa9day"])
             if year_raw:
-                # 提取年份数字
+                # Extract year number
                 year_str = str(year_raw)
                 if year_str.isdigit():
                     self.year = int(year_str)
                 else:
-                    # 尝试从日期字符串中提取年份
+                    # Trying to extract the year from a date string
                     import re
 
                     year_match = re.search(r"(\d{4})", year_str)
@@ -112,16 +105,14 @@ class MusicMetadata:
             return True
 
         except ID3NoHeaderError:
-            # 没有ID3标签，不是错误
+            # No ID3 tag, not an error
             return True
         except Exception as e:
-            print(f"提取元数据失败 {self.filename}: {e}")
+            print(f"Failed to extract metadata {self.filename}: {e}")
             return False
 
     def _get_tag_value(self, tags: dict, tag_names: List[str]) -> Optional[str]:
-        """
-        从多个可能的标签名中获取值.
-        """
+        """Get values ​​from multiple possible tag names."""
         for tag_name in tag_names:
             if tag_name in tags:
                 value = tags[tag_name]
@@ -132,20 +123,16 @@ class MusicMetadata:
         return None
 
     def format_duration(self) -> str:
-        """
-        格式化播放时长.
-        """
+        """Format playback duration."""
         if self.duration is None:
-            return "未知"
+            return "unknown"
 
         minutes = int(self.duration) // 60
         seconds = int(self.duration) % 60
         return f"{minutes:02d}:{seconds:02d}"
 
     def format_file_size(self) -> str:
-        """
-        格式化文件大小.
-        """
+        """Format file size."""
         size = self.file_size
         for unit in ["B", "KB", "MB", "GB"]:
             if size < 1024.0:
@@ -154,9 +141,7 @@ class MusicMetadata:
         return f"{size:.1f} TB"
 
     def to_dict(self) -> Dict:
-        """
-        转换为字典格式.
-        """
+        """Convert to dictionary format."""
         return {
             "file_id": self.file_id,
             "filename": self.filename,
@@ -178,9 +163,7 @@ class MusicMetadata:
 
 
 class MusicCacheScanner:
-    """
-    音乐缓存扫描器.
-    """
+    """Music cache scanner."""
 
     def __init__(self, cache_dir: Path = None):
         self.cache_dir = cache_dir or PROJECT_ROOT / "cache" / "music"
@@ -194,30 +177,28 @@ class MusicCacheScanner:
         }
 
     def scan_cache(self) -> bool:
-        """
-        扫描缓存目录.
-        """
-        print(f"🎵 开始扫描音乐缓存目录: {self.cache_dir}")
+        """Scan cache directories."""
+        print(f"🎵 Start scanning the music cache directory: {self.cache_dir}")
 
         if not self.cache_dir.exists():
-            print(f"❌ 缓存目录不存在: {self.cache_dir}")
+            print(f"❌ The cache directory does not exist: {self.cache_dir}")
             return False
 
-        # 查找所有音乐文件
+        # Find all music files
         music_files = []
         for pattern in ["*.mp3", "*.m4a", "*.flac", "*.wav", "*.ogg"]:
             music_files.extend(self.cache_dir.glob(pattern))
 
         if not music_files:
-            print("📁 缓存目录中没有找到音乐文件")
+            print("📁 No music files found in the cache directory")
             return False
 
         self.scan_stats["total_files"] = len(music_files)
-        print(f"📊 找到 {len(music_files)} 个音乐文件")
+        print(f"📊 Found {len(music_files)} music files")
 
-        # 扫描每个文件
+        # Scan every file
         for i, file_path in enumerate(music_files, 1):
-            print(f"🔍 [{i}/{len(music_files)}] 扫描: {file_path.name}")
+            print(f"🔍 [{i}/{len(music_files)}] Scan: {file_path.name}")
 
             try:
                 metadata = MusicMetadata(file_path)
@@ -226,31 +207,29 @@ class MusicCacheScanner:
                     self.playlist.append(metadata)
                     self.scan_stats["success_count"] += 1
 
-                    # 累计统计
+                    # Cumulative statistics
                     if metadata.duration:
                         self.scan_stats["total_duration"] += metadata.duration
                     self.scan_stats["total_size"] += metadata.file_size
 
-                    # 显示基本信息
-                    display_title = metadata.title or "未知标题"
-                    display_artist = metadata.artist or "未知艺术家"
+                    # Show basic information
+                    display_title = metadata.title or "Unknown title"
+                    display_artist = metadata.artist or "unknown artist"
                     print(
                         f"   ✅ {display_title} - {display_artist} ({metadata.format_duration()})"
                     )
                 else:
                     self.scan_stats["error_count"] += 1
-                    print("   ❌ 元数据提取失败")
+                    print("❌ Metadata extraction failed")
 
             except Exception as e:
                 self.scan_stats["error_count"] += 1
-                print(f"   ❌ 处理失败: {e}")
+                print(f"❌ Processing failed: {e}")
 
         return True
 
     def remove_duplicates(self):
-        """
-        移除重复的音乐文件（基于哈希值）
-        """
+        """Remove duplicate music files (based on hashes)"""
         seen_hashes = set()
         unique_playlist = []
         duplicates = []
@@ -263,16 +242,14 @@ class MusicCacheScanner:
                 unique_playlist.append(metadata)
 
         if duplicates:
-            print(f"🔄 发现 {len(duplicates)} 个重复文件:")
+            print(f"🔄 Found {len(duplicates)} duplicate files:")
             for dup in duplicates:
                 print(f"   - {dup.filename}")
 
         self.playlist = unique_playlist
 
     def sort_playlist(self, sort_by: str = "artist"):
-        """
-        排序歌单.
-        """
+        """Sort playlist."""
         sort_functions = {
             "artist": lambda x: (
                 x.artist or "Unknown",
@@ -288,63 +265,57 @@ class MusicCacheScanner:
 
         if sort_by in sort_functions:
             self.playlist.sort(key=sort_functions[sort_by])
-            print(f"📋 歌单已按 {sort_by} 排序")
+            print(f"📋 The playlist has been sorted by {sort_by}")
 
     def print_statistics(self):
-        """
-        打印扫描统计信息.
-        """
+        """Print scan statistics."""
         stats = self.scan_stats
-        print("\n📊 扫描统计:")
-        print(f"   总文件数: {stats['total_files']}")
-        print(f"   成功处理: {stats['success_count']}")
-        print(f"   处理失败: {stats['error_count']}")
-        print(f"   成功率: {stats['success_count']/stats['total_files']*100:.1f}%")
+        print("\n📊 Scan statistics:")
+        print(f"Total number of files: {stats['total_files']}")
+        print(f"Successful processing: {stats['success_count']}")
+        print(f"Processing failed: {stats['error_count']}")
+        print(f"Success rate: {stats['success_count']/stats['total_files']*100:.1f}%")
 
-        # 总时长
+        # total duration
         total_hours = stats["total_duration"] // 3600
         total_minutes = (stats["total_duration"] % 3600) // 60
-        print(f"   总播放时长: {total_hours}小时{total_minutes}分钟")
+        print(f"Total playing time: {total_hours} hours {total_minutes} minutes")
 
-        # 总大小
+        # total size
         total_size_mb = stats["total_size"] / (1024 * 1024)
-        print(f"   总文件大小: {total_size_mb:.1f} MB")
+        print(f"Total file size: {total_size_mb:.1f} MB")
 
-        # 平均信息
+        # average information
         if stats["success_count"] > 0:
             avg_duration = stats["total_duration"] / stats["success_count"]
             avg_size = stats["total_size"] / stats["success_count"]
-            print(f"   平均时长: {int(avg_duration//60)}:{int(avg_duration%60):02d}")
-            print(f"   平均大小: {avg_size/(1024*1024):.1f} MB")
+            print(f"Average duration: {int(avg_duration//60)}:{int(avg_duration%60):02d}")
+            print(f"Average size: {avg_size/(1024*1024):.1f} MB")
 
     def print_playlist(self, limit: int = None):
-        """
-        打印歌单.
-        """
-        print(f"\n🎵 本地音乐歌单 (共 {len(self.playlist)} 首)")
+        """Print the playlist."""
+        print(f"\n🎵 Local music playlist ({len(self.playlist)} in total)")
         print("=" * 80)
 
         for i, metadata in enumerate(
             self.playlist[:limit] if limit else self.playlist, 1
         ):
-            title = metadata.title or "未知标题"
-            artist = metadata.artist or "未知艺术家"
-            album = metadata.album or "未知专辑"
+            title = metadata.title or "Unknown title"
+            artist = metadata.artist or "unknown artist"
+            album = metadata.album or "unknown album"
             duration = metadata.format_duration()
 
             print(f"{i:3d}. {title}")
-            print(f"     艺术家: {artist}")
-            print(f"     专辑: {album}")
-            print(f"     时长: {duration} | 文件ID: {metadata.file_id}")
+            print(f"Artist: {artist}")
+            print(f"Album: {album}")
+            print(f"Duration: {duration} | File ID: {metadata.file_id}")
             print()
 
         if limit and len(self.playlist) > limit:
-            print(f"... 还有 {len(self.playlist) - limit} 首歌曲")
+            print(f"... and {len(self.playlist) - limit} songs")
 
     def export_playlist(self, output_file: Path = None, format: str = "json"):
-        """
-        导出歌单.
-        """
+        """Export playlist."""
         if not output_file:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             output_file = PROJECT_ROOT / f"local_playlist_{timestamp}.{format}"
@@ -375,22 +346,20 @@ class MusicCacheScanner:
                         f.write(f"#EXTINF:{duration},{artist} - {title}\n")
                         f.write(f"{metadata.file_path}\n")
 
-            print(f"📄 歌单已导出到: {output_file}")
+            print(f"📄 The playlist has been exported to: {output_file}")
             return output_file
 
         except Exception as e:
-            print(f"❌ 导出失败: {e}")
+            print(f"❌ Export failed: {e}")
             return None
 
     def search_songs(self, query: str) -> List[MusicMetadata]:
-        """
-        搜索歌曲.
-        """
+        """Search for songs."""
         query = query.lower()
         results = []
 
         for metadata in self.playlist:
-            # 在标题、艺术家、专辑中搜索
+            # Search within title, artist, album
             searchable_text = " ".join(
                 filter(
                     None,
@@ -409,25 +378,21 @@ class MusicCacheScanner:
         return results
 
     def get_artists(self) -> Dict[str, List[MusicMetadata]]:
-        """
-        按艺术家分组.
-        """
+        """Grouped by artist."""
         artists = {}
         for metadata in self.playlist:
-            artist = metadata.artist or "未知艺术家"
+            artist = metadata.artist or "unknown artist"
             if artist not in artists:
                 artists[artist] = []
             artists[artist].append(metadata)
         return artists
 
     def get_albums(self) -> Dict[str, List[MusicMetadata]]:
-        """
-        按专辑分组.
-        """
+        """Grouped by album."""
         albums = {}
         for metadata in self.playlist:
             album_key = (
-                f"{metadata.album or '未知专辑'} - {metadata.artist or '未知艺术家'}"
+                f"{metadata.album or 'Unknown album'} - {metadata.artist or 'Unknown artist'}"
             )
             if album_key not in albums:
                 albums[album_key] = []
@@ -436,45 +401,43 @@ class MusicCacheScanner:
 
 
 def main():
-    """
-    主函数.
-    """
-    print("🎵 音乐缓存扫描器")
+    """main function."""
+    print("🎵 Music Cache Scanner")
     print("=" * 50)
 
-    # 创建扫描器
+    # Create scanner
     scanner = MusicCacheScanner()
 
-    # 扫描缓存
+    # scan cache
     if not scanner.scan_cache():
         return
 
-    # 移除重复文件
+    # Remove duplicate files
     scanner.remove_duplicates()
 
-    # 排序歌单
+    # Sort playlist
     scanner.sort_playlist("artist")
 
-    # 显示统计信息
+    # Show statistics
     scanner.print_statistics()
 
-    # 显示歌单（限制前20首）
+    # Show playlist (limited to first 20 songs)
     scanner.print_playlist(limit=20)
 
-    # 交互菜单
+    # interactive menu
     while True:
         print("\n" + "=" * 50)
-        print("选择操作:")
-        print("1. 显示完整歌单")
-        print("2. 按艺术家分组显示")
-        print("3. 按专辑分组显示")
-        print("4. 搜索歌曲")
-        print("5. 导出歌单 (JSON)")
-        print("6. 导出歌单 (M3U)")
-        print("7. 重新排序")
-        print("0. 退出")
+        print("Select action:")
+        print("1. Show the complete playlist")
+        print("2. Group display by artist")
+        print("3. Display in groups by album")
+        print("4. Search for songs")
+        print("5. Export playlist (JSON)")
+        print("6. Export playlist (M3U)")
+        print("7. Reorder")
+        print("0. Exit")
 
-        choice = input("\n请选择 (0-7): ").strip()
+        choice = input("\nPlease select (0-7):").strip()
 
         if choice == "0":
             break
@@ -483,43 +446,43 @@ def main():
         elif choice == "2":
             artists = scanner.get_artists()
             for artist, songs in artists.items():
-                print(f"\n🎤 {artist} ({len(songs)} 首)")
+                print(f"\n🎤 {artist} ({len(songs)})")
                 for song in songs:
                     title = song.title or song.filename
                     print(f"   - {title} ({song.format_duration()})")
         elif choice == "3":
             albums = scanner.get_albums()
             for album, songs in albums.items():
-                print(f"\n💿 {album} ({len(songs)} 首)")
+                print(f"\n💿 {album} ({len(songs)})")
                 for song in songs:
                     title = song.title or song.filename
                     print(f"   - {title} ({song.format_duration()})")
         elif choice == "4":
-            query = input("请输入搜索关键词: ").strip()
+            query = input("Please enter search keywords:").strip()
             if query:
                 results = scanner.search_songs(query)
                 if results:
-                    print(f"\n🔍 找到 {len(results)} 首歌曲:")
+                    print(f"\n🔍 Found {len(results)} songs:")
                     for i, song in enumerate(results, 1):
                         title = song.title or song.filename
-                        artist = song.artist or "未知艺术家"
+                        artist = song.artist or "unknown artist"
                         print(f"   {i}. {title} - {artist} ({song.format_duration()})")
                 else:
-                    print("🔍 没有找到匹配的歌曲")
+                    print("🔍 No matching songs found")
         elif choice == "5":
             scanner.export_playlist(format="json")
         elif choice == "6":
             scanner.export_playlist(format="m3u")
         elif choice == "7":
-            print("排序选项:")
-            print("1. 按艺术家")
-            print("2. 按标题")
-            print("3. 按专辑")
-            print("4. 按时长")
-            print("5. 按文件大小")
-            print("6. 按创建时间")
+            print("Sorting options:")
+            print("1. Press artist")
+            print("2. Press title")
+            print("3. Press album")
+            print("4. By duration")
+            print("5. By file size")
+            print("6. Press creation time")
 
-            sort_choice = input("请选择排序方式 (1-6): ").strip()
+            sort_choice = input("Please select sorting method (1-6):").strip()
             sort_map = {
                 "1": "artist",
                 "2": "title",
@@ -531,20 +494,20 @@ def main():
 
             if sort_choice in sort_map:
                 scanner.sort_playlist(sort_map[sort_choice])
-                print("✅ 排序完成")
+                print("✅ Sorting completed")
         else:
-            print("❌ 无效选择")
+            print("❌ Invalid selection")
 
-    print("\n👋 再见!")
+    print("\n👋 Goodbye!")
 
 
 if __name__ == "__main__":
     try:
         main()
     except KeyboardInterrupt:
-        print("\n\n👋 用户中断，退出程序")
+        print("\n\n👋 User interrupts and exits the program")
     except Exception as e:
-        print(f"\n❌ 程序异常: {e}")
+        print(f"\n❌ Program exception: {e}")
         import traceback
 
         traceback.print_exc()

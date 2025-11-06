@@ -1,6 +1,4 @@
-"""
-设置相关模块.
-"""
+"""Set up related modules."""
 
 from .settings_window import SettingsWindow
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# 文件名: camera_scanner.py
+# File name: camera_scanner.py
 
 import json
 import logging
@@ -10,14 +10,14 @@ from pathlib import Path
 
 import cv2
 
-# 导入ConfigManager类
+# Import ConfigManager class
 from src.utils.config_manager import ConfigManager
 
-# 添加项目根目录到系统路径，以便导入src中的模块
+# Add the project root directory to the system path to import modules in src
 project_root = Path(__file__).parent.parent
 sys.path.append(str(project_root))
 
-# 设置日志记录
+# Set up logging
 logging.basicConfig(
     level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
@@ -25,12 +25,10 @@ logger = logging.getLogger("CameraScanner")
 
 
 def get_camera_capabilities(cam):
-    """
-    获取摄像头的参数和能力.
-    """
+    """Get camera parameters and capabilities."""
     capabilities = {}
 
-    # 获取可用的分辨率
+    # Get available resolutions
     standard_resolutions = [
         (640, 480),  # VGA
         (800, 600),  # SVGA
@@ -46,31 +44,31 @@ def get_camera_capabilities(cam):
     original_width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
     original_height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-    # 记录原始分辨率
+    # Record original resolution
     capabilities["default_resolution"] = (original_width, original_height)
 
-    # 测试标准分辨率
+    # Test standard resolution
     for width, height in standard_resolutions:
         cam.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         cam.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
         actual_width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
         actual_height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-        # 如果设置成功（实际分辨率与请求的相同）
+        # If the setup is successful (actual resolution is the same as requested)
         if actual_width == width and actual_height == height:
             supported_resolutions.append((width, height))
 
-    # 恢复原始分辨率
+    # Restore original resolution
     cam.set(cv2.CAP_PROP_FRAME_WIDTH, original_width)
     cam.set(cv2.CAP_PROP_FRAME_HEIGHT, original_height)
 
     capabilities["supported_resolutions"] = supported_resolutions
 
-    # 获取帧率
+    # Get frame rate
     fps = int(cam.get(cv2.CAP_PROP_FPS))
-    capabilities["fps"] = fps if fps > 0 else 30  # 默认为30fps
+    capabilities["fps"] = fps if fps > 0 else 30  # Default is 30fps
 
-    # 获取后端名称
+    # Get backend name
     backend_name = cam.getBackendName()
     capabilities["backend"] = backend_name
 
@@ -78,88 +76,86 @@ def get_camera_capabilities(cam):
 
 
 def detect_cameras():
-    """
-    检测并列出所有可用摄像头.
-    """
-    print("\n===== 摄像头设备检测 =====\n")
+    """Detects and lists all available cameras."""
+    print("\n====== Camera device detection =====\n")
 
-    # 获取ConfigManager实例
+    # Get ConfigManager instance
     config_manager = ConfigManager.get_instance()
 
-    # 获取当前相机配置
+    # Get current camera configuration
     current_camera_config = config_manager.get_config("CAMERA", {})
-    logger.info(f"当前相机配置: {current_camera_config}")
+    logger.info(f"Current camera configuration: {current_camera_config}")
 
-    # 显示当前配置
+    # Show current configuration
     if current_camera_config:
-        print("当前摄像头配置:")
-        print(f"  - 索引: {current_camera_config.get('camera_index', '未设置')}")
+        print("Current camera configuration:")
+        print(f"- Index: {current_camera_config.get('camera_index', 'not set')}")
         print(
-            f"  - 分辨率: {current_camera_config.get('frame_width', '未设置')}x{current_camera_config.get('frame_height', '未设置')}"
+            f"- Resolution: {current_camera_config.get('frame_width', 'Not set')}x{current_camera_config.get('frame_height', 'Not set')}"
         )
         print(
-            f"  - 分辨率: {current_camera_config.get('frame_width', '未设置')}x{current_camera_config.get('frame_height', '未设置')}"
+            f"- Resolution: {current_camera_config.get('frame_width', 'Not set')}x{current_camera_config.get('frame_height', 'Not set')}"
         )
-        print(f"  - 帧率: {current_camera_config.get('fps', '未设置')}")
-        print(f"  - VL模型: {current_camera_config.get('models', '未设置')}")
+        print(f"- Frame rate: {current_camera_config.get('fps', 'not set')}")
+        print(f"- VL model: {current_camera_config.get('models', 'not set')}")
         print("")
 
-    # 存储找到的设备
+    # Store found devices
     camera_devices = []
 
-    # 尝试打开多个摄像头索引
-    max_cameras_to_check = 10  # 最多检查10个摄像头索引
+    # Try opening multiple camera indexes
+    max_cameras_to_check = 10  # Check up to 10 camera indexes
 
     for i in range(max_cameras_to_check):
         try:
-            # 尝试打开摄像头
+            # Try turning on the camera
             cap = cv2.VideoCapture(i)
 
             if cap.isOpened():
-                # 获取摄像头信息
+                # Get camera information
                 device_name = f"Camera {i}"
                 try:
-                    # 在某些系统上可能可以获取设备名称
+                    # On some systems it may be possible to get the device name
                     device_name = cap.getBackendName() + f" Camera {i}"
                 except Exception as e:
-                    logger.warning(f"获取设备{i}名称失败: {e}")
+                    logger.warning(f"Failed to get device {i} name: {e}")
 
-                # 读取一帧以确保摄像头正常工作
+                # Read a frame to ensure the camera is working properly
                 ret, frame = cap.read()
                 if not ret:
-                    print(f"设备 {i}: 打开成功但无法读取画面，跳过")
+                    print(f"Device {i}: Opened successfully but could not read the screen, skipped")
                     cap.release()
                     continue
 
-                # 获取摄像头能力
+                # Get camera capabilities
                 capabilities = get_camera_capabilities(cap)
 
-                # 打印设备信息
+                # Print device information
                 width, height = capabilities["default_resolution"]
                 resolutions_str = ", ".join(
                     [f"{w}x{h}" for w, h in capabilities["supported_resolutions"]]
                 )
 
-                print(f"设备 {i}: {device_name}")
-                print(f"  - 默认分辨率: {width}x{height}")
-                print(f"  - 支持分辨率: {resolutions_str}")
-                print(f"  - 帧率: {capabilities['fps']}")
-                print(f"  - 后端: {capabilities['backend']}")
+                print(f"Device {i}: {device_name}")
+                print(f"- Default resolution: {width}x{height}")
+                print(f"- Supported resolutions: {resolutions_str}")
+                print(f"- Frame rate: {capabilities['fps']}")
+                print(f"- Backend: {capabilities['backend']}")
 
-                # 标记当前配置使用的摄像头
+                # Mark the camera used by the current configuration
                 current_index = current_camera_config.get("camera_index")
                 if current_index == i:
-                    print("当前配置使用的摄像头")
+                    print("The camera used by the current configuration")
 
-                # 添加到设备列表
+                # Add to device list
                 camera_devices.append(
                     {"index": i, "name": device_name, "capabilities": capabilities}
                 )
 
-                # 测试摄像头功能
-                print(f"正在测试设备 {i} 的摄像头功能...")
+                # Test camera functionality
+                print(f"Testing camera functionality on device {i}...")
                 try:
-                    # 快速测试 - 读取几帧
+                    # Quick test - read a few frames
                     test_frames = 0
                     start_time = time.time()
 
@@ -171,19 +167,19 @@ def detect_cameras():
                             break
 
                     if test_frames >= 5:
-                        print(f"  ✓ 摄像头功能正常 (测试读取 {test_frames} 帧)")
+                        print(f"✓ The camera functions normally (test reads {test_frames} frames)")
                     else:
-                        print(f"  ⚠ 摄像头功能可能异常 (仅读取 {test_frames} 帧)")
+                        print(f"⚠ The camera function may be abnormal (only {test_frames} frames are read)")
 
                 except Exception as e:
-                    print(f"  ✗ 摄像头功能测试失败: {e}")
+                    print(f"✗ Camera function test failed: {e}")
 
-                # 询问是否显示预览
-                print(f"是否显示设备 {i} 的预览画面？(y/n，默认n): ", end="")
+                # Ask whether to show preview
+                print(f"Show preview for device {i}? (y/n, default n):", end="")
                 show_preview = input().strip().lower()
 
                 if show_preview == "y":
-                    print(f"正在显示设备 {i} 的预览画面，按 'q' 键或等待3秒继续...")
+                    print(f"Showing preview of device {i}, press 'q' key or wait 3 seconds to continue...")
                     preview_start = time.time()
 
                     while time.time() - preview_start < 3:
@@ -198,7 +194,7 @@ def detect_cameras():
                 cap.release()
 
             else:
-                # 如果连续两个索引无法打开摄像头，则认为没有更多摄像头了
+                # If the camera cannot be opened for two consecutive indexes, it is considered that there are no more cameras.
                 consecutive_failures = 0
                 for j in range(i, i + 2):
                     temp_cap = cv2.VideoCapture(j)
@@ -210,25 +206,25 @@ def detect_cameras():
                     break
 
         except Exception as e:
-            print(f"检测设备 {i} 时出错: {e}")
+            print(f"Error detecting device {i}: {e}")
 
-    # 总结找到的设备
-    print("\n===== 设备总结 =====\n")
+    # Summarize found devices
+    print("\n====== Equipment Summary =====\n")
 
     if not camera_devices:
-        print("未找到可用的摄像头设备！")
+        print("No available camera device found!")
         return None
 
-    print(f"找到 {len(camera_devices)} 个摄像头设备:")
+    print(f"Find {len(camera_devices)} camera devices:")
     for device in camera_devices:
         width, height = device["capabilities"]["default_resolution"]
-        print(f"  - 设备 {device['index']}: {device['name']}")
-        print(f"    分辨率: {width}x{height}")
+        print(f"- Device {device['index']}: {device['name']}")
+        print(f"Resolution: {width}x{height}")
 
-    # 推荐最佳设备
-    print("\n===== 推荐设备 =====\n")
+    # Recommend the best equipment
+    print("\n====== Recommended equipment =====\n")
 
-    # 首选高清摄像头，其次是分辨率最高的
+    # HD cameras are preferred, followed by those with the highest resolution
     recommended_camera = None
     highest_resolution = 0
 
@@ -236,7 +232,7 @@ def detect_cameras():
         width, height = device["capabilities"]["default_resolution"]
         resolution = width * height
 
-        # 如果是HD或以上分辨率
+        # If it is HD or above resolution
         if width >= 1280 and height >= 720:
             if resolution > highest_resolution:
                 highest_resolution = resolution
@@ -245,25 +241,25 @@ def detect_cameras():
             highest_resolution = resolution
             recommended_camera = device
 
-    # 打印推荐设备
+    # Recommended equipment for printing
     if recommended_camera:
         r_width, r_height = recommended_camera["capabilities"]["default_resolution"]
         print(
-            f"推荐摄像头: 设备 {recommended_camera['index']} "
+            f"Recommended camera: Device {recommended_camera['index']}"
             f"({recommended_camera['name']})"
         )
-        print(f"  - 分辨率: {r_width}x{r_height}")
+        print(f"- Resolution: {r_width}x{r_height}")
         print(f"  - 帧率: {recommended_camera['capabilities']['fps']}")
 
-    # 从现有配置中获取VL API信息
+    # Get VL API information from existing configuration
     vl_url = current_camera_config.get(
         "Loacl_VL_url", "https://open.bigmodel.cn/api/paas/v4/"
     )
-    vl_api_key = current_camera_config.get("VLapi_key", "你自己的key")
+    vl_api_key = current_camera_config.get("VLapi_key", "your own key")
     model = current_camera_config.get("models", "glm-4v-plus")
 
-    # 生成配置文件示例
-    print("\n===== 配置文件示例 =====\n")
+    # Generate configuration file example
+    print("\n====== Configuration file example =====\n")
 
     if recommended_camera:
         new_camera_config = {
@@ -276,10 +272,10 @@ def detect_cameras():
             "models": model,  # 保留原有值
         }
 
-        print("推荐的摄像头配置:")
+        print("Recommended camera configuration:")
         print(json.dumps(new_camera_config, indent=2, ensure_ascii=False))
 
-        # 比较配置变化
+        # Compare configuration changes
         print("\n===== 配置变化对比 =====\n")
         current_index = current_camera_config.get("camera_index")
         current_width = current_camera_config.get("frame_width")
@@ -289,49 +285,49 @@ def detect_cameras():
         changes = []
         if current_index != recommended_camera["index"]:
             changes.append(
-                f"摄像头索引: {current_index} → {recommended_camera['index']}"
+                f"Camera index: {current_index} → {recommended_camera['index']}"
             )
         if current_width != r_width or current_height != r_height:
             changes.append(
-                f"分辨率: {current_width}x{current_height} → {r_width}x{r_height}"
+                f"Resolution: {current_width}x{current_height} → {r_width}x{r_height}"
             )
         if current_fps != recommended_camera["capabilities"]["fps"]:
             changes.append(
-                f"帧率: {current_fps} → {recommended_camera['capabilities']['fps']}"
+                f"Frame rate: {current_fps} → {recommended_camera['capabilities']['fps']}"
             )
 
         if changes:
-            print("检测到以下配置变化:")
+            print("The following configuration changes were detected:")
             for change in changes:
                 print(f"  - {change}")
         else:
-            print("推荐配置与当前配置相同，无需更新")
+            print("The recommended configuration is the same as the current configuration and does not need to be updated")
 
-        # 询问是否更新配置文件
+        # Ask whether to update the configuration file
         if changes:
-            print("\n是否要更新配置文件中的摄像头配置？(y/n): ", end="")
+            print("\nDo you want to update the camera configuration in the configuration file? (y/n):", end="")
             choice = input().strip().lower()
 
             if choice == "y":
                 try:
-                    # 使用ConfigManager更新配置
+                    # Update configuration using ConfigManager
                     success = config_manager.update_config("CAMERA", new_camera_config)
 
                     if success:
-                        print("\n✓ 摄像头配置已成功更新到config.json!")
-                        print("\n===== 最新配置 =====\n")
+                        print("\n✓ The camera configuration has been successfully updated to config.json!")
+                        print("\n====== Latest configuration =====\n")
                         updated_config = config_manager.get_config("CAMERA", {})
                         print(json.dumps(updated_config, indent=2, ensure_ascii=False))
                     else:
-                        print("\n✗ 更新摄像头配置失败!")
+                        print("\n✗ Failed to update camera configuration!")
 
                 except Exception as e:
-                    logger.error(f"更新配置时出错: {e}")
-                    print(f"\n✗ 更新配置时出错: {e}")
+                    logger.error(f"Error updating configuration: {e}")
+                    print(f"\n✗ Error while updating configuration: {e}")
             else:
-                print("\n配置未更新")
+                print("\nConfiguration not updated")
     else:
-        print("未找到推荐的摄像头配置")
+        print("Recommended camera configuration not found")
 
     return camera_devices
 
@@ -340,9 +336,9 @@ if __name__ == "__main__":
     try:
         cameras = detect_cameras()
         if cameras:
-            print("\n检测到 {len(cameras)} 个摄像头设备！")
+            print("\n{len(cameras)} camera devices detected!")
         else:
-            print("\n未检测到可用的摄像头设备！")
+            print("\nNo available camera device detected!")
     except Exception:
-        logger.error("检测过程中出错: {e}")
-        print("检测过程中出错: {e}")
+        logger.error("An error occurred during detection: {e}")
+        print("An error occurred during detection: {e}")

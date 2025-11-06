@@ -1,6 +1,4 @@
-"""
-系统选项设置组件.
-"""
+"""System option settings component."""
 
 from .system_options_widget import SystemOptionsWidget
 

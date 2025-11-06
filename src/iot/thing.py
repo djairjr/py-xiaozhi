@@ -8,9 +8,9 @@ class ValueType:
     NUMBER = "number"
     STRING = "string"
     FLOAT = "float"
-    ARRAY = "array"  # 新增
-    OBJECT = "object"  # 新增
-    LIST = "array"  # LIST 作为 ARRAY 的别名
+    ARRAY = "array"  # New
+    OBJECT = "object"  # New
+    LIST = "array"  # LIST as an alias for ARRAY
 
 
 class Property:
@@ -22,13 +22,11 @@ class Property:
         if not inspect.iscoroutinefunction(getter):
             raise TypeError(f"Property getter for '{name}' must be an async function.")
 
-        self.type = ValueType.STRING  # 默认类型
+        self.type = ValueType.STRING  # Default type
         self._type_determined = False
 
     def _determine_type(self, value: Any):
-        """
-        根据值确定属性类型.
-        """
+        """Determine the attribute type based on the value."""
         if isinstance(value, bool):
             self.type = ValueType.BOOLEAN
         elif isinstance(value, int):
@@ -42,17 +40,15 @@ class Property:
         elif isinstance(value, dict):
             self.type = ValueType.OBJECT
         else:
-            raise TypeError(f"不支持的属性类型: {type(value)}")
+            raise TypeError(f"Unsupported attribute type: {type(value)}")
 
     def get_descriptor_json(self) -> Dict:
         return {"description": self.description, "type": self.type}
 
     async def get_state_value(self):
-        """
-        获取属性值.
-        """
+        """Get the attribute value."""
         value = await self.getter()
-        # 如果是第一次调用 getter，确定类型
+        # If this is the first time the getter is called, determine the type
         if not self._type_determined:
             self._determine_type(value)
             self._type_determined = True
@@ -90,7 +86,7 @@ class Method:
         self.parameters = {param.name: param for param in parameters}
         self.callback = callback
 
-        # 强制要求回调函数必须是异步函数
+        # It is mandatory that the callback function must be an asynchronous function
         if not inspect.iscoroutinefunction(callback):
             raise TypeError(f"Method callback for '{name}' must be an async function.")
 
@@ -104,25 +100,23 @@ class Method:
         }
 
     async def invoke(self, params: Dict[str, Any]) -> Any:
-        """
-        调用方法.
-        """
-        # 设置参数值，处理复杂类型
+        """Call method."""
+        # Set parameter values ​​and handle complex types
         for name, value in params.items():
             if name in self.parameters:
                 param = self.parameters[name]
-                # 如果参数类型是STRING，但值是dict或list，转换为JSON字符串（类似C++版本）
+                # If the parameter type is STRING but the value is a dict or list, convert it to a JSON string (similar to the C++ version)
                 if param.type == ValueType.STRING and isinstance(value, (dict, list)):
                     param.set_value(json.dumps(value, ensure_ascii=False))
                 else:
                     param.set_value(value)
 
-        # 检查必需参数
+        # Check required parameters
         for name, param in self.parameters.items():
             if param.required and param.get_value() is None:
-                raise ValueError(f"缺少必需参数: {name}")
+                raise ValueError(f"Missing required parameter: {name}")
 
-        # 调用异步回调函数
+        # Call an asynchronous callback function
         return await self.callback(self.parameters)
 
 
@@ -160,9 +154,7 @@ class Thing:
         }
 
     async def get_state_json(self) -> Dict:
-        """
-        获取设备状态.
-        """
+        """Get device status."""
         state = {}
         for name, prop in self.properties.items():
             state[name] = await prop.get_state_value()
@@ -173,12 +165,10 @@ class Thing:
         }
 
     async def invoke(self, command: Dict) -> Any:
-        """
-        调用方法.
-        """
+        """Call method."""
         method_name = command.get("method")
         if method_name not in self.methods:
-            raise ValueError(f"方法不存在: {method_name}")
+            raise ValueError(f"Method does not exist: {method_name}")
 
         parameters = command.get("parameters", {})
         return await self.methods[method_name].invoke(parameters)

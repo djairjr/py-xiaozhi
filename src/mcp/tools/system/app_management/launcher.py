@@ -1,7 +1,6 @@
-"""统一的应用程序启动器.
+"""Unified application launcher.
 
-根据系统自动选择对应的启动器实现
-"""
+Automatically select the corresponding launcher implementation based on the system"""
 
 import asyncio
 import platform
@@ -15,82 +14,79 @@ logger = get_logger(__name__)
 
 
 async def launch_application(args: Dict[str, Any]) -> bool:
-    """启动应用程序.
+    """Start the application.
 
     Args:
-        args: 包含应用程序名称的参数字典
-            - app_name: 应用程序名称
+        args: Dictionary of arguments containing application names
+            - app_name: application name
 
     Returns:
-        bool: 启动是否成功
-    """
+        bool: whether the startup was successful"""
     try:
         app_name = args["app_name"]
-        logger.info(f"[AppLauncher] 尝试启动应用程序: {app_name}")
+        logger.info(f"[AppLauncher] Trying to launch application: {app_name}")
 
-        # 首先尝试通过扫描找到精确匹配的应用程序
+        # First try to find an exact matching app by scanning
         matched_app = await _find_matching_application(app_name)
         if matched_app:
             logger.info(
-                f"[AppLauncher] 找到匹配的应用程序: {matched_app.get('display_name', matched_app.get('name', ''))}"
+                f"[AppLauncher] Find matching application: {matched_app.get('display_name', matched_app.get('name', ''))}"
             )
-            # 根据应用程序类型使用不同的启动方法
+            # Use different launch methods based on application type
             success = await _launch_matched_app(matched_app, app_name)
         else:
-            # 如果没有找到匹配，使用原来的方法
-            logger.info(f"[AppLauncher] 未找到精确匹配，使用原始名称: {app_name}")
+            # If no match is found, use the original method
+            logger.info(f"[AppLauncher] No exact match found, using original name: {app_name}")
             success = await _launch_by_name(app_name)
 
         if success:
-            logger.info(f"[AppLauncher] 成功启动应用程序: {app_name}")
+            logger.info(f"[AppLauncher] Successfully launched application: {app_name}")
         else:
-            logger.warning(f"[AppLauncher] 启动应用程序失败: {app_name}")
+            logger.warning(f"[AppLauncher] Failed to launch application: {app_name}")
 
         return success
 
     except KeyError:
-        logger.error("[AppLauncher] 缺少app_name参数")
+        logger.error("[AppLauncher] Missing app_name parameter")
         return False
     except Exception as e:
-        logger.error(f"[AppLauncher] 启动应用程序失败: {e}", exc_info=True)
+        logger.error(f"[AppLauncher] Failed to launch application: {e}", exc_info=True)
         return False
 
 
 async def _find_matching_application(app_name: str) -> Optional[Dict[str, Any]]:
-    """通过扫描找到匹配的应用程序.
+    """Scan to find matching apps.
 
     Args:
-        app_name: 要查找的应用程序名称
+        app_name: The name of the application to look for
 
     Returns:
-        匹配的应用程序信息，如果没找到则返回None
-    """
+        Matching application information, returns None if not found"""
     try:
-        # 使用统一的匹配逻辑
+        # Use unified matching logic
         matched_app = await find_best_matching_app(app_name, "installed")
 
         if matched_app:
             logger.info(
-                f"[AppLauncher] 通过统一匹配找到应用: {matched_app.get('display_name', matched_app.get('name', ''))}"
+                f"[AppLauncher] Find apps through unified matching: {matched_app.get('display_name', matched_app.get('name', ''))}"
             )
 
         return matched_app
 
     except Exception as e:
-        logger.warning(f"[AppLauncher] 查找匹配应用程序时出错: {e}")
+        logger.warning(f"[AppLauncher] Error finding matching application: {e}")
         return None
 
 
 async def _launch_matched_app(matched_app: Dict[str, Any], original_name: str) -> bool:
-    """启动匹配到的应用程序.
+    """Launch the matched application.
 
     Args:
-        matched_app: 匹配的应用程序信息
-        original_name: 原始应用程序名称
+        matched_app: matched application information
+        original_name: original application name
 
     Returns:
-        bool: 启动是否成功
-    """
+        bool: whether the startup was successful"""
     try:
         app_type = matched_app.get("type", "unknown")
         app_path = matched_app.get("path", matched_app.get("name", original_name))
@@ -98,35 +94,34 @@ async def _launch_matched_app(matched_app: Dict[str, Any], original_name: str) -
         system = platform.system()
 
         if system == "Windows":
-            # Windows系统特殊处理
+            # Special handling for Windows systems
             if app_type == "uwp":
-                # UWP应用使用特殊的启动方法
+                # UWP apps use special launch method
                 from .windows.launcher import launch_uwp_app_by_path
 
                 return await asyncio.to_thread(launch_uwp_app_by_path, app_path)
             elif app_type == "shortcut" and app_path.endswith(".lnk"):
-                # 快捷方式文件
+                # shortcut file
                 from .windows.launcher import launch_shortcut
 
                 return await asyncio.to_thread(launch_shortcut, app_path)
 
-        # 常规应用程序启动
+        # Regular application launch
         return await _launch_by_name(app_path)
 
     except Exception as e:
-        logger.error(f"[AppLauncher] 启动匹配应用失败: {e}")
+        logger.error(f"[AppLauncher] Failed to launch matching app: {e}")
         return False
 
 
 async def _launch_by_name(app_name: str) -> bool:
-    """根据名称启动应用程序.
+    """Launch the application based on its name.
 
     Args:
-        app_name: 应用程序名称或路径
+        app_name: application name or path
 
     Returns:
-        bool: 启动是否成功
-    """
+        bool: whether the startup was successful"""
     try:
         system = platform.system()
 
@@ -143,20 +138,19 @@ async def _launch_by_name(app_name: str) -> bool:
 
             return await asyncio.to_thread(launch_application, app_name)
         else:
-            logger.error(f"[AppLauncher] 不支持的操作系统: {system}")
+            logger.error(f"[AppLauncher] Unsupported operating system: {system}")
             return False
 
     except Exception as e:
-        logger.error(f"[AppLauncher] 启动应用程序失败: {e}")
+        logger.error(f"[AppLauncher] Failed to launch application: {e}")
         return False
 
 
 def get_system_launcher():
-    """根据当前系统获取对应的启动器模块.
+    """Get the corresponding launcher module according to the current system.
 
     Returns:
-        对应系统的启动器模块
-    """
+        Launcher module corresponding to the system"""
     system = platform.system()
 
     if system == "Darwin":  # macOS
@@ -172,5 +166,5 @@ def get_system_launcher():
 
         return launcher
     else:
-        logger.warning(f"[AppLauncher] 不支持的系统: {system}")
+        logger.warning(f"[AppLauncher] Unsupported system: {system}")
         return None

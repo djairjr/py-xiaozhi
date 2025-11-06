@@ -12,110 +12,91 @@ logger = get_logger(__name__)
 
 
 class DeviceActivator:
-    """设备激活管理器 - 全异步版本"""
+    """Device Activation Manager - fully asynchronous version"""
 
     def __init__(self, config_manager):
-        """
-        初始化设备激活器.
-        """
+        """Initialize the device activator."""
         self.logger = get_logger(__name__)
         self.config_manager = config_manager
-        # 使用device_fingerprint实例来管理设备身份
+        # Use device_fingerprint instances to manage device identities
         self.device_fingerprint = DeviceFingerprint.get_instance()
-        # 确保设备身份信息已创建
+        # Make sure the device identity is created
         self._ensure_device_identity()
 
-        # 当前激活任务
+        # Currently active tasks
         self._activation_task: Optional[asyncio.Task] = None
 
     def _ensure_device_identity(self):
-        """
-        确保设备身份信息已创建.
-        """
+        """Make sure the device identity has been created."""
         (
             serial_number,
             hmac_key,
             is_activated,
         ) = self.device_fingerprint.ensure_device_identity()
         self.logger.info(
-            f"设备身份信息: 序列号: {serial_number}, 激活状态: {'已激活' if is_activated else '未激活'}"
+            f"Device identity information: Serial number: {serial_number}, activation status: {'activated' if is_activated else 'not activated'}"
         )
 
     def cancel_activation(self):
-        """
-        取消激活流程.
-        """
+        """Deactivation process."""
         if self._activation_task and not self._activation_task.done():
-            self.logger.info("正在取消激活任务")
+            self.logger.info("Deactivating task")
             self._activation_task.cancel()
 
     def has_serial_number(self) -> bool:
-        """
-        检查是否有序列号.
-        """
+        """Check if there is a serial number."""
         return self.device_fingerprint.has_serial_number()
 
     def get_serial_number(self) -> str:
-        """
-        获取序列号.
-        """
+        """Get the serial number."""
         return self.device_fingerprint.get_serial_number()
 
     def get_hmac_key(self) -> str:
-        """
-        获取HMAC密钥.
-        """
+        """Get the HMAC key."""
         return self.device_fingerprint.get_hmac_key()
 
     def set_activation_status(self, status: bool) -> bool:
-        """
-        设置激活状态.
-        """
+        """Set activation status."""
         return self.device_fingerprint.set_activation_status(status)
 
     def is_activated(self) -> bool:
-        """
-        检查设备是否已激活.
-        """
+        """Check if the device is activated."""
         return self.device_fingerprint.is_activated()
 
     def generate_hmac(self, challenge: str) -> str:
-        """
-        使用HMAC密钥生成签名.
-        """
+        """Generate signature using HMAC key."""
         return self.device_fingerprint.generate_hmac(challenge)
 
     async def process_activation(self, activation_data: dict) -> bool:
-        """异步处理激活流程.
+        """Handle activation process asynchronously.
 
         Args:
-            activation_data: 包含激活信息的字典，至少应该包含challenge和code
+            activation_data: dictionary containing activation information, which should at least contain challenge and code
 
         Returns:
-            bool: 激活是否成功
-        """
+            bool: whether activation was successful"""
         try:
-            # 记录当前任务
+            # Record current tasks
             self._activation_task = asyncio.current_task()
 
-            # 检查是否有激活挑战和验证码
+            # Check for activation challenge and verification code
             if not activation_data.get("challenge"):
-                self.logger.error("激活数据中缺少challenge字段")
+                self.logger.error("Challenge field is missing in activation data")
                 return False
 
             if not activation_data.get("code"):
-                self.logger.error("激活数据中缺少code字段")
+                self.logger.error("Code field is missing in activation data")
                 return False
 
             challenge = activation_data["challenge"]
             code = activation_data["code"]
-            message = activation_data.get("message", "请在xiaozhi.me输入验证码")
+            message = activation_data.get("message", "Please enter the verification code at xiaozhi.me")
 
-            # 检查序列号
+            # Check serial number
             if not self.has_serial_number():
-                self.logger.error("设备没有序列号，无法进行激活")
+                self.logger.error("The device does not have a serial number and cannot be activated.")
 
-                # 使用device_fingerprint生成序列号和HMAC密钥
+                # Use device_fingerprint to generate serial numbers and HMAC keys
                 (
                     serial_number,
                     hmac_key,
@@ -123,63 +104,62 @@ class DeviceActivator:
                 ) = self.device_fingerprint.ensure_device_identity()
 
                 if serial_number and hmac_key:
-                    self.logger.info("已自动创建设备序列号和HMAC密钥")
+                    self.logger.info("Device serial number and HMAC key automatically created")
                 else:
-                    self.logger.error("创建序列号或HMAC密钥失败")
+                    self.logger.error("Failed to create serial number or HMAC key")
                     return False
 
-            # 显示激活信息给用户
-            self.logger.info(f"激活提示: {message}")
-            self.logger.info(f"验证码: {code}")
+            # Show activation information to user
+            self.logger.info(f"Activation prompt: {message}")
+            self.logger.info(f"Verification code: {code}")
 
-            # 构建验证码提示文本并打印
-            text = f".请登录到控制面板添加设备，输入验证码：{' '.join(code)}..."
+            # Construct the verification code prompt text and print it
+            text = f".Please log in to the control panel to add a device and enter the verification code: {' '.join(code)}..."
             print("\n==================")
             print(text)
             print("==================\n")
             handle_verification_code(text)
 
-            # 使用语音播放验证码
+            # Use voice to play verification code
             try:
-                # 在非阻塞的线程中播放语音
+                # Play speech in a non-blocking thread
                 from src.utils.common_utils import play_audio_nonblocking
 
                 play_audio_nonblocking(text)
-                self.logger.info("正在播放验证码语音提示")
+                self.logger.info("Verification code voice prompt is playing")
             except Exception as e:
-                self.logger.error(f"播放验证码语音失败: {e}")
+                self.logger.error(f"Failed to play verification code voice: {e}")
 
-            # 尝试激活设备，传递验证码信息
+            # Try to activate the device and pass the verification code information
             return await self.activate(challenge, code)
 
         except asyncio.CancelledError:
-            self.logger.info("激活流程被取消")
+            self.logger.info("Activation process canceled")
             return False
 
     async def activate(self, challenge: str, code: str = None) -> bool:
-        """异步执行激活流程.
+        """Execute the activation process asynchronously.
 
         Args:
-            challenge: 服务器发送的挑战字符串
-            code: 验证码，用于重试时播放
+            challenge: challenge string sent by the server
+            code: Verification code, used to play when retrying
 
         Returns:
-            bool: 激活是否成功
-        """
+            bool: whether activation was successful"""
         try:
-            # 检查序列号
+            # Check serial number
             serial_number = self.get_serial_number()
             if not serial_number:
-                self.logger.error("设备没有序列号，无法完成HMAC验证步骤")
+                self.logger.error("The device does not have a serial number and cannot complete the HMAC verification steps.")
                 return False
 
-            # 计算HMAC签名
+            # Compute HMAC signature
             hmac_signature = self.generate_hmac(challenge)
             if not hmac_signature:
-                self.logger.error("无法生成HMAC签名，激活失败")
+                self.logger.error("Unable to generate HMAC signature, activation failed")
                 return False
 
-            # 包装一层外部payload，符合服务器期望格式
+            # Wrap an external payload in the format expected by the server
             payload = {
                 "Payload": {
                     "algorithm": "hmac-sha256",
@@ -189,22 +169,22 @@ class DeviceActivator:
                 }
             }
 
-            # 获取激活URL
+            # Get activation URL
             ota_url = self.config_manager.get_config(
                 "SYSTEM_OPTIONS.NETWORK.OTA_VERSION_URL"
             )
             if not ota_url:
-                self.logger.error("未找到OTA URL配置")
+                self.logger.error("OTA URL configuration not found")
                 return False
 
-            # 确保URL以斜杠结尾
+            # Make sure the URL ends with a slash
             if not ota_url.endswith("/"):
                 ota_url += "/"
 
             activate_url = f"{ota_url}activate"
-            self.logger.info(f"激活URL: {activate_url}")
+            self.logger.info(f"Activation URL: {activate_url}")
 
-            # 设置请求头
+            # Set request header
             headers = {
                 "Activation-Version": "2",
                 "Device-Id": self.config_manager.get_config("SYSTEM_OPTIONS.DEVICE_ID"),
@@ -212,134 +192,134 @@ class DeviceActivator:
                 "Content-Type": "application/json",
             }
 
-            # 打印调试信息
-            self.logger.debug(f"请求头: {headers}")
+            # Print debugging information
+            self.logger.debug(f"Request headers: {headers}")
             payload_str = json.dumps(payload, indent=2, ensure_ascii=False)
-            self.logger.debug(f"请求负载: {payload_str}")
+            self.logger.debug(f"Request payload: {payload_str}")
 
-            # 重试逻辑
-            max_retries = 60  # 最长等待5分钟
-            retry_interval = 5  # 设置5秒的重试间隔
+            # Retry logic
+            max_retries = 60  # Maximum wait time is 5 minutes
+            retry_interval = 5  # Set retry interval of 5 seconds
 
             error_count = 0
             last_error = None
 
-            # 创建aiohttp会话，设置合理的超时时间
+            # Create an aiohttp session and set a reasonable timeout
             timeout = aiohttp.ClientTimeout(total=10)
 
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 for attempt in range(max_retries):
                     try:
                         self.logger.info(
-                            f"尝试激活 (尝试 {attempt + 1}/{max_retries})..."
+                            f"Attempt to activate (try {attempt + 1}/{max_retries})..."
                         )
 
-                        # 每次重试时播放验证码（从第2次开始）
+                        # Play verification code every time you retry (starting from the 2nd time)
                         if attempt > 0 and code:
                             try:
                                 from src.utils.common_utils import (
                                     play_audio_nonblocking,
                                 )
 
-                                text = f".请登录到控制面板添加设备，输入验证码：{' '.join(code)}..."
+                                text = f".Please log in to the control panel to add a device and enter the verification code: {' '.join(code)}..."
                                 play_audio_nonblocking(text)
-                                self.logger.info(f"重试播放验证码: {code}")
+                                self.logger.info(f"Retry playing verification code: {code}")
                             except Exception as e:
-                                self.logger.error(f"重试播放验证码失败: {e}")
+                                self.logger.error(f"Failed to retry playing verification code: {e}")
 
-                        # 发送激活请求
+                        # Send activation request
                         async with session.post(
                             activate_url, headers=headers, json=payload
                         ) as response:
-                            # 读取响应
+                            # Read response
                             response_text = await response.text()
 
-                            # 打印完整响应
-                            self.logger.warning(f"\n激活响应 (HTTP {response.status}):")
+                            # Print full response
+                            self.logger.warning(f"\nActivation response (HTTP {response.status}):")
                             try:
                                 response_json = json.loads(response_text)
                                 self.logger.warning(json.dumps(response_json, indent=2))
                             except json.JSONDecodeError:
                                 self.logger.warning(response_text)
 
-                            # 检查响应状态码
+                            # Check response status code
                             if response.status == 200:
-                                # 激活成功
-                                self.logger.info("设备激活成功!")
+                                # Activation successful
+                                self.logger.info("Device activation successful!")
                                 self.set_activation_status(True)
                                 return True
 
                             elif response.status == 202:
-                                # 等待用户输入验证码
-                                self.logger.info("等待用户输入验证码，继续等待...")
+                                # Wait for user to enter verification code
+                                self.logger.info("Waiting for the user to enter the verification code, continue waiting...")
 
-                                # 使用可取消的等待
+                                # Use cancelable wait
                                 await asyncio.sleep(retry_interval)
 
                             else:
-                                # 处理其他错误但继续重试
-                                error_msg = "未知错误"
+                                # Handle other errors but keep retrying
+                                error_msg = "unknown error"
                                 try:
                                     error_data = json.loads(response_text)
                                     error_msg = error_data.get(
-                                        "error", f"未知错误 (状态码: {response.status})"
+                                        "error", f"Unknown error (status code: {response.status})"
                                     )
                                 except json.JSONDecodeError:
                                     error_msg = (
-                                        f"服务器返回错误 (状态码: {response.status})"
+                                        f"The server returned an error (status code: {response.status})"
                                     )
 
-                                # 记录错误但不终止流程
+                                # Log errors but do not terminate the process
                                 if error_msg != last_error:
                                     self.logger.warning(
-                                        f"服务器返回: {error_msg}，继续等待验证码激活"
+                                        f"The server returns: {error_msg}, continue to wait for the verification code to be activated."
                                     )
                                     last_error = error_msg
 
-                                # 计数连续相同错误
+                                # Count consecutive identical errors
                                 if "Device not found" in error_msg:
                                     error_count += 1
                                     if error_count >= 5 and error_count % 5 == 0:
                                         self.logger.warning(
-                                            "\n提示: 如果错误持续出现，可能需要在网站上刷新页面获取新验证码\n"
+                                            "\nTip: If the error persists, you may need to refresh the page on the website to obtain a new verification code\n"
                                         )
 
-                                # 使用可取消的等待
+                                # Use cancelable wait
                                 await asyncio.sleep(retry_interval)
 
                     except asyncio.CancelledError:
-                        # 响应取消信号
-                        self.logger.info("激活流程被取消")
+                        # Respond to a cancellation signal
+                        self.logger.info("Activation process canceled")
                         return False
 
                     except aiohttp.ClientError as e:
-                        self.logger.warning(f"网络请求失败: {e}，重试中...")
+                        self.logger.warning(f"Network request failed: {e}, retrying...")
                         await asyncio.sleep(retry_interval)
 
                     except asyncio.TimeoutError as e:
-                        self.logger.warning(f"请求超时: {e}，重试中...")
+                        self.logger.warning(f"Request timeout: {e}, retrying...")
                         await asyncio.sleep(retry_interval)
 
                     except Exception as e:
-                        # 获取异常的详细信息
+                        # Get exception details
                         import traceback
 
                         error_detail = (
-                            str(e) if str(e) else f"{type(e).__name__}: 未知错误"
+                            str(e) if str(e) else f"{type(e).__name__}: Unknown error"
                         )
                         self.logger.warning(
-                            f"激活过程中发生错误: {error_detail}，重试中..."
+                            f"An error occurred during activation: {error_detail}, retrying..."
                         )
-                        # 调试模式下打印完整的异常信息
-                        self.logger.debug(f"完整异常信息: {traceback.format_exc()}")
+                        # Print complete exception information in debug mode
+                        self.logger.debug(f"Complete exception information: {traceback.format_exc()}")
                         await asyncio.sleep(retry_interval)
 
-            # 达到最大重试次数
+            # Maximum number of retries reached
             self.logger.error(
-                f"激活失败，达到最大重试次数 ({max_retries})，最后错误: {last_error}"
+                f"Activation failed, maximum retries ({max_retries}) reached, last error: {last_error}"
             )
             return False
 
         except asyncio.CancelledError:
-            self.logger.info("激活流程被取消")
+            self.logger.info("Activation process canceled")
             return False

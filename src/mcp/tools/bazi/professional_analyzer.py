@@ -1,6 +1,4 @@
-"""
-八字命理专业分析器 使用内置专业数据进行准确的传统命理分析.
-"""
+"""BaZi Numerology Professional Analyzer uses built-in professional data for accurate traditional numerology analysis."""
 
 from typing import Any, Dict, List
 
@@ -19,25 +17,19 @@ from .professional_data import (
 
 
 class ProfessionalAnalyzer:
-    """专业八字分析器 - 使用完整的传统命理数据"""
+    """Professional horoscope analyzer - uses complete traditional numerology data"""
 
     def __init__(self):
-        """
-        初始化分析器.
-        """
+        """Initialize the analyzer."""
 
     def get_ten_gods_analysis(self, day_master: str, other_stem: str) -> str:
-        """
-        获取十神分析.
-        """
+        """Get analysis of Ten Gods."""
         return get_ten_gods_relation(day_master, other_stem)
 
     def analyze_eight_char_structure(
         self, eight_char_data: Dict[str, Any]
     ) -> Dict[str, Any]:
-        """
-        全面分析八字结构.
-        """
+        """Comprehensive analysis of the eight-character structure."""
         year_gan = (
             eight_char_data.get("year", {}).get("heaven_stem", {}).get("name", "")
         )
@@ -59,7 +51,7 @@ class ProfessionalAnalyzer:
             eight_char_data.get("hour", {}).get("earth_branch", {}).get("name", "")
         )
 
-        # 基础信息
+        # Basic information
         gan_list = [year_gan, month_gan, day_gan, hour_gan]
         zhi_list = [year_zhi, month_zhi, day_zhi, hour_zhi]
 
@@ -82,34 +74,32 @@ class ProfessionalAnalyzer:
     def _analyze_ten_gods(
         self, day_master: str, gan_list: List[str], zhi_list: List[str]
     ) -> Dict[str, List[str]]:
-        """
-        分析十神分布.
-        """
+        """Analyze the distribution of the ten gods."""
         ten_gods = {
-            "比肩": [],
-            "劫财": [],
-            "食神": [],
-            "伤官": [],
-            "偏财": [],
-            "正财": [],
-            "七杀": [],
-            "正官": [],
-            "偏印": [],
-            "正印": [],
+            "Comparable": [],
+            "Robbery": [],
+            "god of food": [],
+            "injured officer": [],
+            "Partial wealth": [],
+            "Positive wealth": [],
+            "seven kills": [],
+            "official": [],
+            "partial printing": [],
+            "positive seal": [],
         }
 
-        # 天干十神
+        # Ten Gods of Heaven
         for i, gan in enumerate(gan_list):
             if gan == day_master:
                 continue
 
             ten_god = get_ten_gods_relation(day_master, gan)
-            pillar_names = ["年干", "月干", "日干", "时干"]
+            pillar_names = ["Nianqian", "stem of moon", "Rigan", "Shigan"]
             if ten_god in ten_gods:
                 ten_gods[ten_god].append(f"{pillar_names[i]}{gan}")
 
-        # 地支藏干十神
-        pillar_names = ["年支", "月支", "日支", "时支"]
+        # Earthly Branches, Tibetan Stems and Ten Gods
+        pillar_names = ["annual branch", "monthly branch", "Japanese branch", "time branch"]
         for i, zhi in enumerate(zhi_list):
             cang_gan = ZHI_CANG_GAN.get(zhi, {})
             for gan, strength in cang_gan.items():
@@ -119,17 +109,15 @@ class ProfessionalAnalyzer:
                 ten_god = get_ten_gods_relation(day_master, gan)
                 if ten_god in ten_gods:
                     ten_gods[ten_god].append(
-                        f"{pillar_names[i]}{zhi}藏{gan}({strength})"
+                        f"{pillar_names[i]}{zhi}hidden{gan}({strength})"
                     )
 
         return ten_gods
 
     def _analyze_nayin(self, gan_list: List[str], zhi_list: List[str]) -> List[str]:
-        """
-        分析纳音.
-        """
+        """Analyze the sound."""
         nayin_list = []
-        pillar_names = ["年柱", "月柱", "日柱", "时柱"]
+        pillar_names = ["year pillar", "moon pillar", "sun pillar", "hour column"]
 
         for i, (gan, zhi) in enumerate(zip(gan_list, zhi_list)):
             nayin = get_nayin(gan, zhi)
@@ -138,11 +126,9 @@ class ProfessionalAnalyzer:
         return nayin_list
 
     def _analyze_changsheng(self, day_master: str, zhi_list: List[str]) -> List[str]:
-        """
-        分析长生十二宫.
-        """
+        """Analysis of the Twelve Signs of Immortality."""
         changsheng_list = []
-        pillar_names = ["年支", "月支", "日支", "时支"]
+        pillar_names = ["annual branch", "monthly branch", "Japanese branch", "time branch"]
 
         for i, zhi in enumerate(zhi_list):
             state = get_changsheng_state(day_master, zhi)
@@ -153,31 +139,29 @@ class ProfessionalAnalyzer:
     def _analyze_wuxing_balance(
         self, gan_list: List[str], zhi_list: List[str]
     ) -> Dict[str, Any]:
-        """
-        分析五行平衡.
-        """
+        """Analyze the balance of the five elements."""
         wuxing_count = {element: 0 for element in WUXING}
 
-        # 天干五行
+        # Heavenly stems and five elements
         for gan in gan_list:
             wuxing = GAN_WUXING.get(gan, "")
             if wuxing in wuxing_count:
-                wuxing_count[wuxing] += 2  # 天干力量较强
+                wuxing_count[wuxing] += 2  # Heavenly stems are powerful
 
-        # 地支五行
+        # Earthly Branches and Five Elements
         for zhi in zhi_list:
             wuxing = ZHI_WUXING.get(zhi, "")
             if wuxing in wuxing_count:
                 wuxing_count[wuxing] += 1
 
-            # 地支藏干
+            # Earthly Branches and Tibetan Stems
             cang_gan = ZHI_CANG_GAN.get(zhi, {})
             for gan, strength in cang_gan.items():
                 wuxing = GAN_WUXING.get(gan, "")
                 if wuxing in wuxing_count:
-                    wuxing_count[wuxing] += strength / 10  # 藏干力量较弱
+                    wuxing_count[wuxing] += strength / 10  # Tibetan stems are weak
 
-        # 找出最强和最弱的五行
+        # Find out the strongest and weakest five elements
         max_wuxing = max(wuxing_count, key=wuxing_count.get)
         min_wuxing = min(wuxing_count, key=wuxing_count.get)
 
@@ -189,41 +173,37 @@ class ProfessionalAnalyzer:
         }
 
     def _calculate_balance_score(self, wuxing_count: Dict[str, float]) -> float:
-        """
-        计算五行平衡分数（0-100，100为完全平衡）
-        """
+        """Calculate the Five Elements Balance Score (0-100, 100 is completely balanced)"""
         values = list(wuxing_count.values())
         if not values:
             return 0
 
         average = sum(values) / len(values)
         variance = sum((v - average) ** 2 for v in values) / len(values)
-        # 转换为0-100分数，方差越小分数越高
+        # Convert to 0-100 score, the smaller the variance, the higher the score
         balance_score = max(0, 100 - variance * 10)
         return round(balance_score, 2)
 
     def _analyze_shensha(
         self, gan_list: List[str], zhi_list: List[str]
     ) -> Dict[str, List[str]]:
-        """
-        分析神煞 - 修复版本，正确区分以日干查和以日支查的神煞.
-        """
+        """Analyze Shensha - Fixed version to correctly distinguish between the Shensha that uses daily dry inspection and daily support inspection."""
         shensha = {
-            "天乙贵人": [],
-            "文昌贵人": [],
-            "驿马星": [],
-            "桃花星": [],
-            "华盖星": [],
+            "Tianyi noble man": [],
+            "Wenchang nobleman": [],
+            "Yima": [],
+            "peach blossom star": [],
+            "Huagai Star": [],
         }
 
         day_gan = gan_list[2] if len(gan_list) > 2 else ""
         day_zhi = zhi_list[2] if len(zhi_list) > 2 else ""
-        pillar_names = ["年支", "月支", "日支", "时支"]
+        pillar_names = ["annual branch", "monthly branch", "Japanese branch", "time branch"]
 
-        # 以日干查的神煞
+        # The evil spirit who uses the sun to check
         day_gan_shensha = [
-            ("tianyi", "天乙贵人"),
-            ("wenchang", "文昌贵人"),
+            ("tianyi", "Tianyi noble man"),
+            ("wenchang", "Wenchang nobleman"),
         ]
 
         for shensha_type, shensha_name in day_gan_shensha:
@@ -233,18 +213,18 @@ class ProfessionalAnalyzer:
                     if zhi in shensha_zhi:
                         shensha[shensha_name].append(f"{pillar_names[i]}{zhi}")
 
-        # 以日支查的神煞
+        # The evil spirit who uses the sun to check
         day_zhi_shensha = [
-            ("yima", "驿马星"),
-            ("taohua", "桃花星"),
-            ("huagai", "华盖星"),
+            ("yima", "Yima"),
+            ("taohua", "peach blossom star"),
+            ("huagai", "Huagai Star"),
         ]
 
         for shensha_type, shensha_name in day_zhi_shensha:
             shensha_zhi = get_shensha(day_zhi, shensha_type)
             if shensha_zhi:
                 for i, zhi in enumerate(zhi_list):
-                    if zhi == shensha_zhi:  # 这些神煞返回的是单个地支
+                    if zhi == shensha_zhi:  # These evil spirits return to individual earthly branches
                         shensha[shensha_name].append(f"{pillar_names[i]}{zhi}")
 
         return shensha
@@ -252,17 +232,15 @@ class ProfessionalAnalyzer:
     def _analyze_day_master_strength(
         self, day_master: str, month_zhi: str, zhi_list: List[str]
     ) -> Dict[str, Any]:
-        """
-        分析日主强弱.
-        """
-        # 基础月令力量
+        """Analyze the strength and weakness of the Japanese Lord."""
+        # Basic moon command power
         month_element = ZHI_WUXING.get(month_zhi, "")
         day_element = GAN_WUXING.get(day_master, "")
 
-        # 月令生克关系
+        # The relationship between the moon and the moon
         month_relation = WUXING_RELATIONS.get((day_element, month_element), "")
 
-        # 计算得生得助
+        # Calculate life and help
         same_element_count = 0
         help_element_count = 0
 
@@ -270,33 +248,33 @@ class ProfessionalAnalyzer:
             zhi_element = ZHI_WUXING.get(zhi, "")
             if zhi_element == day_element:
                 same_element_count += 1
-            elif WUXING_RELATIONS.get((zhi_element, day_element)) == "↓":  # 生我
+            elif WUXING_RELATIONS.get((zhi_element, day_element)) == "↓":  # give birth to me
                 help_element_count += 1
 
-        # 简单强弱判断
+        # Simple strength and weakness judgment
         strength_score = 0
-        if month_relation == "↑":  # 我生月令
+        if month_relation == "↑":  # I was born in the moon order
             strength_score -= 30
-        elif month_relation == "↓":  # 月令生我
+        elif month_relation == "↓":  # The moon gave birth to me
             strength_score += 30
-        elif month_relation == "=":  # 同类
+        elif month_relation == "=":  # similar
             strength_score += 20
-        elif month_relation == "←":  # 月令克我
+        elif month_relation == "←":  # Yue Lingke me
             strength_score -= 20
-        elif month_relation == "→":  # 我克月令
+        elif month_relation == "→":  # I Ke Yue Ling
             strength_score -= 10
 
         strength_score += same_element_count * 15
         strength_score += help_element_count * 10
 
         if strength_score >= 30:
-            strength_level = "偏强"
+            strength_level = "Stronger"
         elif strength_score >= 10:
-            strength_level = "中和"
+            strength_level = "Neutralize"
         elif strength_score >= -10:
-            strength_level = "偏弱"
+            strength_level = "Weak"
         else:
-            strength_level = "很弱"
+            strength_level = "very weak"
 
         return {
             "level": strength_level,
@@ -309,9 +287,7 @@ class ProfessionalAnalyzer:
     def _determine_useful_god(
         self, day_master: str, month_zhi: str, gan_list: List[str], zhi_list: List[str]
     ) -> Dict[str, Any]:
-        """
-        确定用神.
-        """
+        """Make sure to use God."""
         day_element = GAN_WUXING.get(day_master, "")
         strength_analysis = self._analyze_day_master_strength(
             day_master, month_zhi, zhi_list
@@ -320,104 +296,100 @@ class ProfessionalAnalyzer:
         useful_gods = []
         avoid_gods = []
 
-        if strength_analysis["level"] in ["偏强", "很强"]:
-            # 身强用克泄耗
+        if strength_analysis["level"] in ["Stronger", "Very strong"]:
+            # Use physical strength to overcome exhaustion
             for element in WUXING:
                 relation = WUXING_RELATIONS.get((day_element, element), "")
-                if relation == "→":  # 我克者为财
-                    useful_gods.append(f"{element}（财星）")
-                elif relation == "↓":  # 我生者为食伤
-                    useful_gods.append(f"{element}（食伤）")
-                elif relation == "←":  # 克我者为官杀
-                    useful_gods.append(f"{element}（官杀）")
+                if relation == "→":  # I conquer those who make money
+                    useful_gods.append(f"{element} (Fortune Star)")
+                elif relation == "↓":  # My living beings are injured by food
+                    useful_gods.append(f"{element}(food injury)")
+                elif relation == "←":  # Those who defeat me will be killed by the officials
+                    useful_gods.append(f"{element}(official killing)")
         else:
-            # 身弱用生扶
+            # If you are weak, use life support
             for element in WUXING:
                 relation = WUXING_RELATIONS.get((element, day_element), "")
-                if relation == "↓":  # 生我者为印
-                    useful_gods.append(f"{element}（印星）")
-                elif relation == "=":  # 同我者为比劫
-                    useful_gods.append(f"{element}（比劫）")
+                if relation == "↓":  # The one who gave birth to me is the seal
+                    useful_gods.append(f"{element}(Seal star)")
+                elif relation == "=":  # Those who are with me are calamities
+                    useful_gods.append(f"{element}(Bijie)")
 
         return {
-            "useful_gods": useful_gods[:3],  # 取前3个
-            "avoid_gods": avoid_gods[:3],  # 取前3个
+            "useful_gods": useful_gods[:3],  # Take the first 3
+            "avoid_gods": avoid_gods[:3],  # Take the first 3
             "strategy": (
-                "扶抑" if strength_analysis["level"] in ["偏弱", "很弱"] else "抑制"
+                "Support and suppress" if strength_analysis["level"] in ["Weak", "very weak"] else "inhibition"
             ),
         }
 
     def get_detailed_fortune_analysis(self, eight_char_data: Dict[str, Any]) -> str:
-        """
-        获取详细的命理分析文本.
-        """
+        """Get detailed numerology analysis text."""
         analysis = self.analyze_eight_char_structure(eight_char_data)
 
         result_lines = []
-        result_lines.append("=== 八字命理详细分析 ===\n")
+        result_lines.append("=== Detailed analysis of numerology ===\n")
 
-        # 日主分析
+        # Japanese master analysis
         result_lines.append(
-            f"【日主】{analysis['day_master']}（{GAN_WUXING.get(analysis['day_master'], '')}）"
+            f"【Day Master】{analysis['day_master']}（{GAN_WUXING.get(analysis['day_master'], '')})"
         )
         result_lines.append(
-            f"【强弱】{analysis['strength']['level']}（得分：{analysis['strength']['score']}）"
+            f"【Strength】{analysis['strength']['level']} (score: {analysis['strength']['score']})"
         )
         result_lines.append("")
 
-        # 十神分析
-        result_lines.append("【十神分布】")
+        # Analysis of the Ten Gods
+        result_lines.append("[Distribution of Ten Gods]")
         for god_name, positions in analysis["ten_gods"].items():
             if positions:
                 result_lines.append(f"  {god_name}：{', '.join(positions)}")
         result_lines.append("")
 
-        # 用神分析
-        result_lines.append("【用神分析】")
-        result_lines.append(f"  策略：{analysis['useful_god']['strategy']}")
+        # Analyze with God
+        result_lines.append("【Analysis with God】")
+        result_lines.append(f"Strategy: {analysis['useful_god']['strategy']}")
         if analysis["useful_god"]["useful_gods"]:
             result_lines.append(
-                f"  用神：{', '.join(analysis['useful_god']['useful_gods'])}"
+                f"Use God: {', '.join(analysis['useful_god']['useful_gods'])}"
             )
         result_lines.append("")
 
-        # 五行平衡
-        result_lines.append("【五行分布】")
+        # Five Elements Balance
+        result_lines.append("[Five Elements Distribution]")
         for element, count in analysis["wuxing_balance"]["distribution"].items():
             result_lines.append(f"  {element}：{count:.1f}")
-        result_lines.append(f"  平衡分：{analysis['wuxing_balance']['balance_score']}")
+        result_lines.append(f"Balance score: {analysis['wuxing_balance']['balance_score']}")
         result_lines.append("")
 
-        # 地支关系
-        result_lines.append("【地支关系】")
+        # Earthly Branches Relationship
+        result_lines.append("[Relationship between Earthly Branches]")
         for relation_type, relations in analysis["zhi_relations"].items():
             if relations:
                 result_lines.append(f"  {relation_type}：{', '.join(relations)}")
         result_lines.append("")
 
-        # 神煞
-        result_lines.append("【神煞分析】")
+        # evil spirit
+        result_lines.append("[Analysis of gods]")
         for shensha_name, positions in analysis["shensha"].items():
             if positions:
                 result_lines.append(f"  {shensha_name}：{', '.join(positions)}")
         result_lines.append("")
 
-        # 纳音
-        result_lines.append("【纳音五行】")
+        # Nayin
+        result_lines.append("【Five elements of Nayin】")
         for nayin in analysis["nayin"]:
             result_lines.append(f"  {nayin}")
 
         return "\n".join(result_lines)
 
 
-# 全局分析器实例
+# Global analyzer instance
 _professional_analyzer = None
 
 
 def get_professional_analyzer() -> ProfessionalAnalyzer:
-    """
-    获取专业分析器单例.
-    """
+    """Get the professional analyzer singleton."""
     global _professional_analyzer
     if _professional_analyzer is None:
         _professional_analyzer = ProfessionalAnalyzer()

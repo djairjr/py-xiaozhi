@@ -1,45 +1,45 @@
 ---
-title: 相关生态
-description: py-xiaozhi项目相关的生态系统和扩展项目
+title: Related ecology
+description: Ecosystem and extension projects related to the py-xiaozhi project
 outline: deep
 ---
 
 <div class="ecosystem-page">
 
-# 相关生态
+# Related ecology
 
 <div class="header-content">
-  <h2>py-xiaozhi项目生态系统 🌱</h2>
-  <p>探索围绕py-xiaozhi构建的相关项目和扩展</p>
+<h2>py-xiaozhi project ecosystem 🌱</h2>
+<p>Explore related projects and extensions built around py-xiaozhi</p>
 </div>
 
-## 生态概览
+## Ecological Overview
 
-本页面将收集和展示py-xiaozhi项目相关的生态系统项目，包括：
+This page will collect and display ecosystem projects related to the py-xiaozhi project, including:
 
-- 官方扩展和插件
-- 社区贡献的项目
-- 兼容的硬件设备
-- 第三方集成方案
-- 示例项目和案例分析
+-Official extensions and plugins
+- Community contributed projects
+- Compatible hardware devices
+- Third-party integration solutions
+- Sample projects and case studies
 
-## 即将推出
+## coming soon
 
-我们计划收集和整理以下内容：
+We plan to collect and organize the following content:
 
-- 各种设备上的安装和运行指南
-- 与智能家居系统的集成方案
-- 定制语音指令和技能的开发教程
-- 基于py-xiaozhi构建的项目案例
-- 社区贡献的扩展功能
+- Installation and operation guides on various devices
+- Integration solutions with smart home systems
+- Development tutorials for custom voice commands and skills
+- Project cases built based on py-xiaozhi
+- Extended functionality contributed by the community
 
-## 参与贡献
+## Participate and contribute
 
-如果您有相关的项目或扩展想要分享，欢迎通过以下方式参与贡献：
+If you have related projects or extensions that you would like to share, please feel free to contribute in the following ways:
 
-1. 在GitHub上提交Pull Request，添加您的项目
-2. 在Issues中建议您希望看到的集成或扩展
-3. 分享您使用py-xiaozhi的经验和案例
+1. Submit a Pull Request on GitHub and add your project
+2. Suggest integrations or extensions you’d like to see in Issues
+3. Share your experience and cases of using py-xiaozhi
 
 </div>
 

@@ -1,6 +1,4 @@
-"""
-Windows系统应用程序管理模块.
-"""
+"""Windows system application management module."""
 
 from . import scanner
 

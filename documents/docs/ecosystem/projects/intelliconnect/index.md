@@ -1,6 +1,6 @@
 ---
 title: IntelliConnect
-description: 基于SpringBoot的智能物联网平台，集成Agent智能体技术的IoT解决方案
+description: An intelligent IoT platform based on SpringBoot, an IoT solution integrating Agent intelligence technology
 ---
 
 # IntelliConnect
@@ -10,7 +10,7 @@ description: 基于SpringBoot的智能物联网平台，集成Agent智能体技�
     <img src="./images/logo.png" alt="IntelliConnect Logo">
   </div>
   <div class="project-badges">
-    <span class="badge platform">跨平台</span>
+<span class="badge platform">Cross-platform</span>
     <span class="badge language">Java/Spring</span>
     <span class="badge status">v0.1</span>
   </div>
@@ -34,76 +34,76 @@ description: 基于SpringBoot的智能物联网平台，集成Agent智能体技�
   <img src="https://img.shields.io/badge/cwl-project1.8-green?style=flat-square" alt="CWL Project" />
 </div>
 
-## 概述
+## Overview
 
-* 本项目基于springboot2.7开发，使用spring security作为安全框架
-* 配备物模型(属性，功能和事件模块)和完善的监控模块
-* 支持多种大模型和先进的Agent智能体技术提供出色的AI智能，可以快速搭建智能物联网应用(首个基于Agent智能体设计的物联网平台)
-* 支持快速构建智能语音应用，支持语音识别和语音合成
-* 支持多种iot协议，使用emqx exhook作为mqtt通讯，可扩展性强
-* 支持OTA空中升级技术
-* 支持微信小程序和微信服务号
-* 支持小智AI硬件
-* 使用常见的mysql和redis数据库，上手简单
-* 支持时序数据库influxdb
+* This project is developed based on springboot2.7 and uses spring security as the security framework
+* Equipped object model (property, function and event module) and complete monitoring module
+* Supports a variety of large models and advanced Agent intelligence technology to provide excellent AI intelligence and can quickly build intelligent IoT applications (the first IoT platform based on Agent intelligence design)
+* Supports rapid construction of intelligent voice applications, speech recognition and speech synthesis
+* Supports multiple IoT protocols, uses emqx exhook as mqtt communication, and has strong scalability
+* Support OTA air upgrade technology
+* Support WeChat mini program and WeChat service account
+* Support Xiaozhi AI hardware
+* Use common mysql and redis databases, easy to get started
+* Support time series database influxdb
 
-## 安装运行
+## Install and run
 
 <div class="notice">
-  <p>推荐使用docker安装，docker-compose.yaml文件在docker目录下，执行 docker-compose up 可初始化mysql,redis,emqx和influxdb环境，安装详情请看官方文档。</p>
+<p>It is recommended to use docker for installation. The docker-compose.yaml file is in the docker directory. Execute docker-compose up to initialize the mysql, redis, emqx and influxdb environments. Please see the official documentation for installation details. </p>
 </div>
 
-* 安装mysql和redis数据库，高性能运行推荐安装时序数据库influxdb
-* 安装EMQX集群,并配置好exhook，本项目使用exhook作为mqtt消息的处理器
-* 安装java17环境
-* 修改配置文件application.yaml(设置ddl-auto为update模式)
+* Install mysql and redis databases. For high-performance operation, it is recommended to install the time series database influxdb.
+* Install the EMQX cluster and configure exhook. This project uses exhook as the processor of mqtt messages
+* Install java17 environment
+* Modify the configuration file application.yaml (set ddl-auto to update mode)
 * java -jar IntelliConnect-1.8-SNAPSHOT.jar
 
 ```bash
-# 克隆仓库
+# Clone repository
 git clone https://github.com/ruanrongman/IntelliConnect
 cd intelliconnect/docker
 
-# 启动所需环境（MySQL, Redis, EMQX, InfluxDB）
+# Start the required environment (MySQL, Redis, EMQX, InfluxDB)
 docker-compose up -d
 ```
 
-## 项目特色
+## Project Features
 
-* 极简主义，层次分明，符合mvc分层结构
-* 完善的物模型抽象，使得iot开发者可以专注于业务本身
-* AI能力丰富，支持Agent智能体技术，快速开发AI智能应用
+* Minimalism, clear layers, in line with mvc hierarchical structure
+* Complete object model abstraction allows IoT developers to focus on the business itself
+* Rich AI capabilities, support Agent intelligent technology, rapid development of AI intelligent applications
 
-## 小智 ESP-32 后端服务(xiaozhi-esp32-server)
+## Xiaozhi ESP-32 backend service (xiaozhi-esp32-server)
 
 <div class="esp32-section">
-  <p>本项目能够为开源智能硬件项目 <a href="https://github.com/78/xiaozhi-esp32" target="_blank">xiaozhi-esp32</a> 提供后端服务。根据 <a href="https://ccnphfhqs21z.feishu.cn/wiki/M0XiwldO9iJwHikpXD5cEx71nKh" target="_blank">小智通信协议</a> 使用 <code>Java</code> 实现。</p>
-  <p>适合希望本地部署的用户，不同于单纯语音交互，本项目重点在于提供更强大的物联网和智能体能力。</p>
+<p>This project can provide back-end services for the open source smart hardware project <a href="https://github.com/78/xiaozhi-esp32" target="_blank">xiaozhi-esp32</a>. Implemented using <code>Java</code> according to <a href="https://ccnphfhqs21z.feishu.cn/wiki/M0XiwldO9iJwHikpXD5cEx71nKh" target="_blank">Xiao Zhi Communication Protocol</a>. </p>
+<p>Suitable for users who want to deploy locally. Different from pure voice interaction, the focus of this project is to provide more powerful Internet of Things and intelligent agent capabilities. </p>
 </div>
 
-## 项目文档和视频演示
+## Project documentation and video demonstrations
 
-* 项目文档和视频演示地址：[https://ruanrongman.github.io/IntelliConnect/](https://ruanrongman.github.io/IntelliConnect/)
-* 技术博客地址：[https://wordpress.rslly.top](https://wordpress.rslly.top)
-* 社区地址：[https://github.com/cwliot](https://github.com/cwliot)
-* 创万联社区公众号：微信直接搜索创万联
+* Project document and video demonstration address: [https://ruanrongman.github.io/IntelliConnect/](https://ruanrongman.github.io/IntelliConnect/)
+*Technical blog address: [https://wordpress.rslly.top](https://wordpress.rslly.top)
+* Community address: [https://github.com/cwliot](https://github.com/cwliot)
+* Chuangwanlian community public account: Search Chuangwanlian directly on WeChat
 
-## 相关项目和社区
+## Related projects and communities
 
-* **创万联(cwl)**: 专注于物联网和人工智能技术的开源社区。
+* **Chuangwanlian(cwl)**: An open source community focusing on Internet of Things and artificial intelligence technology.
 * **Promptulate**: [https://github.com/Undertone0809/promptulate](https://github.com/Undertone0809/promptulate) - A LLM application and Agent development framework.
-* **Rymcu**: [https://github.com/rymcu](https://github.com/rymcu) - 为数百万人服务的开源嵌入式知识学习交流平台
+* **Rymcu**: [https://github.com/rymcu](https://github.com/rymcu) - an open source embedded knowledge learning and exchange platform serving millions of people
 
-## 致谢
+## Acknowledgments
 
 * 感谢项目[xiaozhi-esp32](https://github.com/78/xiaozhi-esp32)提供强大的硬件语音交互。
-* 感谢项目[Concentus: Opus for Everyone](https://github.com/lostromb/concentus)提供opus解码和编码。
-* 感谢项目[TalkX](https://github.com/big-mouth-cn/talkx)提供了opus解码和编码的参考。
-* 感谢项目[py-xiaozhi](https://github.com/huangjunsen0406/py-xiaozhi)方便项目进行小智开发调试。
+* Thanks to the project [Concentus: Opus for Everyone](https://github.com/lostromb/concentus) for providing opus decoding and encoding.
+* Thanks to the project [TalkX](https://github.com/big-mouth-cn/talkx) for providing the reference for opus decoding and encoding.
+* Thanks to the project [py-xiaozhi](https://github.com/huangjunsen0406/py-xiaozhi) for facilitating the development and debugging of the project.
 
-## 贡献
+## contribute
 
-本人正在尝试一些更加完善的抽象模式，支持更多的物联网协议和数据存储形式，如果你有更好的建议，欢迎一起讨论交流。
+I am trying some more complete abstract modes to support more IoT protocols and data storage forms. If you have better suggestions, please feel free to discuss and exchange them.
 
 <style>
 .project-header {

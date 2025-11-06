@@ -16,20 +16,16 @@ logger = get_logger(__name__)
 
 
 class VLCamera(BaseCamera):
-    """
-    智普AI摄像头实现.
-    """
+    """Zhipu AI camera implementation."""
 
     _instance = None
 
     def __init__(self):
-        """
-        初始化智普AI摄像头.
-        """
+        """Initialize the Zhipu AI camera."""
         super().__init__()
         config = ConfigManager.get_instance()
 
-        # 初始化OpenAI客户端
+        # Initialize OpenAI client
         self.client = OpenAI(
             api_key=config.get_config("CAMERA.VLapi_key"),
             base_url=config.get_config(
@@ -42,9 +38,7 @@ class VLCamera(BaseCamera):
 
     @classmethod
     def get_instance(cls):
-        """
-        获取单例实例.
-        """
+        """Get a singleton instance."""
         if cls._instance is None:
             with cls._lock:
                 if cls._instance is None:
@@ -52,23 +46,21 @@ class VLCamera(BaseCamera):
         return cls._instance
 
     def capture(self) -> bool:
-        """
-        捕获图像.
-        """
+        """Capture image."""
         try:
             logger.info("Accessing camera...")
 
-            # 尝试打开摄像头
+            # Try turning on the camera
             cap = cv2.VideoCapture(self.camera_index)
             if not cap.isOpened():
                 logger.error(f"Cannot open camera at index {self.camera_index}")
                 return False
 
-            # 设置摄像头参数
+            # Set camera parameters
             cap.set(cv2.CAP_PROP_FRAME_WIDTH, self.frame_width)
             cap.set(cv2.CAP_PROP_FRAME_HEIGHT, self.frame_height)
 
-            # 读取图像
+            # read image
             ret, frame = cap.read()
             cap.release()
 
@@ -76,14 +68,14 @@ class VLCamera(BaseCamera):
                 logger.error("Failed to capture image")
                 return False
 
-            # 获取原始图像尺寸
+            # Get original image size
             height, width = frame.shape[:2]
 
-            # 计算缩放比例，使最长边为320
+            # Calculate the scaling so that the longest side is 320
             max_dim = max(height, width)
             scale = 320 / max_dim if max_dim > 320 else 1.0
 
-            # 等比例缩放图像
+            # Scale image proportionally
             if scale < 1.0:
                 new_width = int(width * scale)
                 new_height = int(height * scale)
@@ -91,14 +83,14 @@ class VLCamera(BaseCamera):
                     frame, (new_width, new_height), interpolation=cv2.INTER_AREA
                 )
 
-            # 直接将图像编码为JPEG字节流
+            # Directly encode images to JPEG byte streams
             success, jpeg_data = cv2.imencode(".jpg", frame)
 
             if not success:
                 logger.error("Failed to encode image to JPEG")
                 return False
 
-            # 保存字节数据
+            # Save byte data
             self.set_jpeg_data(jpeg_data.tobytes())
             logger.info(
                 f"Image captured successfully (size: {self.jpeg_data['len']} bytes)"
@@ -110,17 +102,15 @@ class VLCamera(BaseCamera):
             return False
 
     def analyze(self, question: str) -> str:
-        """
-        使用智普AI分析图像.
-        """
+        """Use Chipu AI to analyze images."""
         try:
             if not self.jpeg_data["buf"]:
                 return '{"success": false, "message": "Camera buffer is empty"}'
 
-            # 将图像转换为Base64
+            # Convert image to Base64
             image_base64 = base64.b64encode(self.jpeg_data["buf"]).decode("utf-8")
 
-            # 准备消息
+            # Prepare message
             messages = [
                 {"role": "system", "content": "You are a helpful assistant."},
                 {
@@ -137,14 +127,14 @@ class VLCamera(BaseCamera):
                             "text": (
                                 question
                                 if question
-                                else "图中描绘的是什么景象？请详细描述。"
+                                else "What scene is depicted in the picture? Please describe in detail."
                             ),
                         },
                     ],
                 },
             ]
 
-            # 发送请求
+            # Send request
             completion = self.client.chat.completions.create(
                 model=self.model,
                 messages=messages,
@@ -153,13 +143,13 @@ class VLCamera(BaseCamera):
                 stream_options={"include_usage": True},
             )
 
-            # 收集响应
+            # Collect responses
             result = ""
             for chunk in completion:
                 if chunk.choices:
                     result += chunk.choices[0].delta.content or ""
 
-            # 记录响应
+            # Log response
             logger.info(f"VL analysis completed, question={question}")
             return f'{{"success": true, "text": "{result}"}}'
 

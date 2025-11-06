@@ -1,6 +1,4 @@
-"""
-日程管理器 负责日程数据的存储、查询、更新等核心功能.
-"""
+"""The schedule manager is responsible for core functions such as storage, query, and update of schedule data."""
 
 import os
 from typing import List
@@ -14,19 +12,15 @@ logger = get_logger(__name__)
 
 
 class CalendarManager:
-    """
-    日程管理器.
-    """
+    """Schedule manager."""
 
     def __init__(self):
         self.db = get_calendar_database()
-        # 尝试从旧的JSON文件迁移数据
+        # Try migrating data from old JSON file
         self._migrate_from_json_if_exists()
 
     def init_tools(self, add_tool, PropertyList, Property, PropertyType):
-        """
-        初始化并注册所有日程管理工具.
-        """
+        """Initialize and register all schedule management tools."""
         from .tools import (
             create_event,
             delete_event,
@@ -37,14 +31,14 @@ class CalendarManager:
             update_event,
         )
 
-        # 创建日程事件
+        # Create calendar event
         create_event_props = PropertyList(
             [
                 Property("title", PropertyType.STRING),
                 Property("start_time", PropertyType.STRING),
                 Property("end_time", PropertyType.STRING, default_value=""),
                 Property("description", PropertyType.STRING, default_value=""),
-                Property("category", PropertyType.STRING, default_value="默认"),
+                Property("category", PropertyType.STRING, default_value="default"),
                 Property("reminder_minutes", PropertyType.INTEGER, default_value=15),
             ]
         )
@@ -60,9 +54,9 @@ class CalendarManager:
                 "3. Block time for work, personal activities\n"
                 "4. Set up recurring activities (meetings, breaks, etc.)\n"
                 "\nIntelligent Duration Rules:\n"
-                "- '提醒', '休息', '站立' category: 5 minutes\n"
-                "- '会议', '工作' category: 1 hour\n"
-                "- Title contains '提醒', '站立', '休息': 5 minutes\n"
+                "- 'Reminder', 'Break', 'Stand' category: 5 minutes\n"
+                "- 'Meeting', 'Work' category: 1 hour\n"
+                "- Title contains 'reminder', 'stand', 'rest': 5 ​​minutes\n"
                 "- Default: 30 minutes\n"
                 "\nArgs:\n"
                 "  title: Event title (required)\n"
@@ -70,14 +64,14 @@ class CalendarManager:
                 "(required)\n"
                 "  end_time: End time, auto-calculated if not provided\n"
                 "  description: Event description\n"
-                "  category: Event category (默认/工作/个人/会议/提醒)\n"
+                "category: Event category (default/work/personal/meeting/reminder)\n"
                 "  reminder_minutes: Reminder time in minutes before event",
                 create_event_props,
                 create_event,
             )
         )
 
-        # 查询日程
+        # Check schedule
         query_events_props = PropertyList(
             [
                 Property("date_type", PropertyType.STRING, default_value="today"),
@@ -114,7 +108,7 @@ class CalendarManager:
             )
         )
 
-        # 获取即将到来的日程
+        # Get upcoming schedule
         upcoming_events_props = PropertyList(
             [Property("hours", PropertyType.INTEGER, default_value=24)]
         )
@@ -131,7 +125,7 @@ class CalendarManager:
                 "4. Show me events in the next few hours\n"
                 "5. What should I prepare for\n"
                 "\nFeatures:\n"
-                "- Shows time remaining until each event ('2小时30分钟后')\n"
+                "- Shows time remaining until each event ('2 hours and 30 minutes later')\n"
                 "- Sorts events by start time\n"
                 "- Configurable time range (default 24 hours)\n"
                 "- Excludes past events\n"
@@ -142,7 +136,7 @@ class CalendarManager:
             )
         )
 
-        # 更新日程
+        # Update schedule
         update_event_props = PropertyList(
             [
                 Property("event_id", PropertyType.STRING),
@@ -182,7 +176,7 @@ class CalendarManager:
             )
         )
 
-        # 删除日程
+        # Delete schedule
         delete_event_props = PropertyList([Property("event_id", PropertyType.STRING)])
         add_tool(
             (
@@ -202,7 +196,7 @@ class CalendarManager:
             )
         )
 
-        # 批量删除日程
+        # Delete schedules in batches
         delete_batch_props = PropertyList(
             [
                 Property("start_date", PropertyType.STRING, default_value=""),
@@ -249,7 +243,7 @@ class CalendarManager:
             )
         )
 
-        # 获取分类
+        # Get category
         add_tool(
             (
                 "self.calendar.get_categories",
@@ -262,70 +256,60 @@ class CalendarManager:
                 "3. What types of events can be created\n"
                 "4. Available options for event categorization\n"
                 "\nDefault Categories:\n"
-                "- 默认 (Default)\n"
-                "- 工作 (Work)\n"
-                "- 个人 (Personal)\n"
-                "- 会议 (Meeting)\n"
-                "- 提醒 (Reminder)",
+                "-Default\n"
+                "- Work\n"
+                "-Personal\n"
+                "- Meeting\n"
+                "- Reminder",
                 PropertyList(),
                 get_categories,
             )
         )
 
     def _migrate_from_json_if_exists(self):
-        """
-        从旧的JSON文件迁移数据（如果存在）
-        """
-        # 检查项目根目录中的旧JSON文件
+        """Migrate data from old JSON files if they exist"""
+        # Check the old JSON file in the project root directory
         from src.utils.resource_finder import get_project_root, get_user_cache_dir
 
         try:
             project_root = get_project_root()
             json_file = project_root / "cache" / "calendar_data.json"
         except Exception:
-            # 如果无法获取项目根目录，检查用户缓存目录
+            # If the project root directory cannot be obtained, check the user cache directory
             user_cache_dir = get_user_cache_dir(create=False)
             json_file = user_cache_dir / "calendar_data.json"
 
         if os.path.exists(json_file):
-            logger.info("发现旧的JSON数据文件，开始迁移到SQLite...")
+            logger.info("Found the old JSON data file and started migrating to SQLite...")
             if self.db.migrate_from_json(json_file):
-                # 迁移成功后备份原文件
+                # Back up the original files after successful migration
                 backup_file = f"{json_file}.backup"
                 os.rename(json_file, backup_file)
-                logger.info(f"数据迁移完成，原文件已备份为: {backup_file}")
+                logger.info(f"Data migration is completed, the original file has been backed up as: {backup_file}")
             else:
-                logger.warning("数据迁移失败，保留原JSON文件")
+                logger.warning("Data migration failed, original JSON file retained")
 
     def add_event(self, event: CalendarEvent) -> bool:
-        """
-        添加事件.
-        """
+        """Add event."""
         return self.db.add_event(event.to_dict())
 
     def get_events(
         self, start_date: str = None, end_date: str = None, category: str = None
     ) -> List[CalendarEvent]:
-        """
-        获取事件列表.
-        """
+        """Get a list of events."""
         try:
             events_data = self.db.get_events(start_date, end_date, category)
             return [CalendarEvent.from_dict(event_data) for event_data in events_data]
         except Exception as e:
-            logger.error(f"获取日程失败: {e}")
+            logger.error(f"Failed to get schedule: {e}")
             return []
 
     def update_event(self, event_id: str, **kwargs) -> bool:
-        """
-        更新事件.
-        """
+        """Update event."""
         return self.db.update_event(event_id, **kwargs)
 
     def delete_event(self, event_id: str) -> bool:
-        """
-        删除事件.
-        """
+        """Delete event."""
         return self.db.delete_event(event_id)
 
     def delete_events_batch(
@@ -335,26 +319,20 @@ class CalendarManager:
         category: str = None,
         delete_all: bool = False,
     ):
-        """
-        批量删除事件.
-        """
+        """Delete events in batches."""
         return self.db.delete_events_batch(start_date, end_date, category, delete_all)
 
     def get_categories(self) -> List[str]:
-        """
-        获取所有分类.
-        """
+        """Get all categories."""
         return self.db.get_categories()
 
 
-# 全局管理器实例
+# Global manager instance
 _calendar_manager = None
 
 
 def get_calendar_manager() -> CalendarManager:
-    """
-    获取日程管理器单例.
-    """
+    """Get the schedule manager singleton."""
     global _calendar_manager
     if _calendar_manager is None:
         _calendar_manager = CalendarManager()

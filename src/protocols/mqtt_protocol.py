@@ -13,7 +13,7 @@ from src.protocols.protocol import Protocol
 from src.utils.config_manager import ConfigManager
 from src.utils.logging_config import get_logger
 
-# 配置日志
+# Configuration log
 logger = get_logger(__name__)
 
 
@@ -28,17 +28,17 @@ class MqttProtocol(Protocol):
         self.udp_running = False
         self.connected = False
 
-        # 连接状态监控
+        # Connection status monitoring
         self._is_closing = False
         self._reconnect_attempts = 0
-        self._max_reconnect_attempts = 0  # 默认不重连
-        self._auto_reconnect_enabled = False  # 默认关闭自动重连
+        self._max_reconnect_attempts = 0  # Do not reconnect by default
+        self._auto_reconnect_enabled = False  # Automatic reconnection is turned off by default
         self._connection_monitor_task = None
         self._last_activity_time = None
-        self._keep_alive_interval = 60  # MQTT保活间隔（秒）
-        self._connection_timeout = 120  # 连接超时检测（秒）
+        self._keep_alive_interval = 60  # MQTT keepalive interval (seconds)
+        self._connection_timeout = 120  # Connection timeout detection (seconds)
 
-        # MQTT配置
+        # MQTT configuration
         self.endpoint = None
         self.client_id = None
         self.username = None
@@ -46,7 +46,7 @@ class MqttProtocol(Protocol):
         self.publish_topic = None
         self.subscribe_topic = None
 
-        # UDP配置
+        # UDP configuration
         self.udp_server = ""
         self.udp_port = 0
         self.aes_key = None
@@ -54,58 +54,55 @@ class MqttProtocol(Protocol):
         self.local_sequence = 0
         self.remote_sequence = 0
 
-        # 事件
+        # event
         self.server_hello_event = asyncio.Event()
 
     def _parse_endpoint(self, endpoint: str) -> tuple[str, int]:
-        """解析endpoint字符串，提取主机和端口.
+        """Parse the endpoint string and extract the host and port.
 
         Args:
-            endpoint: endpoint字符串，格式可以是:
-                     - "hostname" (使用默认端口8883)
-                     - "hostname:port" (使用指定端口)
+            endpoint: endpoint string, the format can be:
+                     -"hostname"(uses default port 8883)
+                     -"hostname:port"(use specified port)
 
         Returns:
-            tuple: (host, port) 主机名和端口号
-        """
+            tuple: (host, port) host name and port number"""
         if not endpoint:
-            raise ValueError("endpoint不能为空")
+            raise ValueError("endpoint cannot be empty")
 
-        # 检查是否包含端口
+        # Check if port is included
         if ":" in endpoint:
             host, port_str = endpoint.rsplit(":", 1)
             try:
                 port = int(port_str)
                 if port < 1 or port > 65535:
-                    raise ValueError(f"端口号必须在1-65535之间: {port}")
+                    raise ValueError(f"The port number must be between 1-65535: {port}")
             except ValueError as e:
-                raise ValueError(f"无效的端口号: {port_str}") from e
+                raise ValueError(f"Invalid port number: {port_str}") from e
         else:
-            # 没有指定端口，使用默认端口8883
+            # If no port is specified, the default port 8883 is used.
             host = endpoint
             port = 8883
 
         return host, port
 
     async def connect(self):
-        """
-        连接到MQTT服务器.
-        """
+        """Connect to MQTT server."""
         if self._is_closing:
-            logger.warning("连接正在关闭中，取消新的连接尝试")
+            logger.warning("The connection is being closed, cancel new connection attempt")
             return False
 
-        # 重置hello事件
+        # reset hello event
         self.server_hello_event = asyncio.Event()
 
-        # 首先尝试获取MQTT配置
+        # First try to get the MQTT configuration
         try:
-            # 尝试从OTA服务器获取MQTT配置
+            # Try to get MQTT configuration from OTA server
             mqtt_config = self.config.get_config("SYSTEM_OPTIONS.NETWORK.MQTT_INFO")
 
             print(mqtt_config)
 
-            # 更新MQTT配置
+            # Update MQTT configuration
             self.endpoint = mqtt_config.get("endpoint")
             self.client_id = mqtt_config.get("client_id")
             self.username = mqtt_config.get("username")
@@ -113,54 +110,54 @@ class MqttProtocol(Protocol):
             self.publish_topic = mqtt_config.get("publish_topic")
             self.subscribe_topic = mqtt_config.get("subscribe_topic")
 
-            logger.info(f"已从OTA服务器获取MQTT配置: {self.endpoint}")
+            logger.info(f"Obtained MQTT configuration from OTA server: {self.endpoint}")
         except Exception as e:
-            logger.warning(f"从OTA服务器获取MQTT配置失败: {e}")
+            logger.warning(f"Failed to get MQTT configuration from OTA server: {e}")
 
-        # 验证MQTT配置
+        # Verify MQTT configuration
         if (
             not self.endpoint
             or not self.username
             or not self.password
             or not self.publish_topic
         ):
-            logger.error("MQTT配置不完整")
+            logger.error("MQTT configuration is incomplete")
             if self._on_network_error:
-                await self._on_network_error("MQTT配置不完整")
+                await self._on_network_error("MQTT configuration is incomplete")
             return False
 
-        # subscribe_topic 可以为 "null" 字符串，需要特殊处理
+        # subscribe_topic can be a "null" string and requires special handling
         if self.subscribe_topic == "null":
             self.subscribe_topic = None
-            logger.info("订阅主题为null，将不订阅任何主题")
+            logger.info("The subscription topic is null, no topic will be subscribed")
 
-        # 如果已有MQTT客户端，先断开连接
+        # If there is an MQTT client, disconnect first
         if self.mqtt_client:
             try:
                 self.mqtt_client.loop_stop()
                 self.mqtt_client.disconnect()
             except Exception as e:
-                logger.warning(f"断开MQTT客户端连接时出错: {e}")
+                logger.warning(f"Error disconnecting MQTT client: {e}")
 
-        # 解析endpoint，提取主机和端口
+        # Parse the endpoint and extract the host and port
         try:
             host, port = self._parse_endpoint(self.endpoint)
-            use_tls = port == 8883  # 只有使用8883端口时才使用TLS
+            use_tls = port == 8883  # Only use TLS when using port 8883
 
             logger.info(
-                f"解析endpoint: {self.endpoint} -> 主机: {host}, 端口: {port}, 使用TLS: {use_tls}"
+                f"Parse endpoint: {self.endpoint} -> Host: {host}, Port: {port}, Use TLS: {use_tls}"
             )
         except ValueError as e:
-            logger.error(f"解析endpoint失败: {e}")
+            logger.error(f"Failed to parse endpoint: {e}")
             if self._on_network_error:
-                await self._on_network_error(f"解析endpoint失败: {e}")
+                await self._on_network_error(f"Failed to parse endpoint: {e}")
             return False
 
-        # 创建新的MQTT客户端
+        # Create a new MQTT client
         self.mqtt_client = mqtt.Client(client_id=self.client_id)
         self.mqtt_client.username_pw_set(self.username, self.password)
 
-        # 根据端口决定是否配置TLS加密连接
+        # Determine whether to configure a TLS encrypted connection based on the port
         if use_tls:
             try:
                 self.mqtt_client.tls_set(
@@ -170,115 +167,110 @@ class MqttProtocol(Protocol):
                     cert_reqs=mqtt.ssl.CERT_REQUIRED,
                     tls_version=mqtt.ssl.PROTOCOL_TLS,
                 )
-                logger.info("已配置TLS加密连接")
+                logger.info("TLS encrypted connection configured")
             except Exception as e:
-                logger.error(f"TLS配置失败，无法安全连接到MQTT服务器: {e}")
+                logger.error(f"TLS configuration failed, unable to securely connect to MQTT server: {e}")
                 if self._on_network_error:
-                    await self._on_network_error(f"TLS配置失败: {str(e)}")
+                    await self._on_network_error(f"TLS configuration failed: {str(e)}")
                 return False
         else:
-            logger.info("使用非TLS连接")
+            logger.info("Use non-TLS connection")
 
-        # 创建连接Future
+        # Create connectionFuture
         connect_future = self.loop.create_future()
 
         def on_connect_callback(client, userdata, flags, rc, properties=None):
             if rc == 0:
-                logger.info("已连接到MQTT服务器")
+                logger.info("Connected to MQTT server")
                 self._last_activity_time = time.time()
                 self.loop.call_soon_threadsafe(lambda: connect_future.set_result(True))
             else:
-                logger.error(f"连接MQTT服务器失败，返回码: {rc}")
+                logger.error(f"Failed to connect to MQTT server, return code: {rc}")
                 self.loop.call_soon_threadsafe(
                     lambda: connect_future.set_exception(
-                        Exception(f"连接MQTT服务器失败，返回码: {rc}")
+                        Exception(f"Failed to connect to MQTT server, return code: {rc}")
                     )
                 )
 
         def on_message_callback(client, userdata, msg):
             try:
-                self._last_activity_time = time.time()  # 更新活动时间
+                self._last_activity_time = time.time()  # Update event time
                 payload = msg.payload.decode("utf-8")
                 self._handle_mqtt_message(payload)
             except Exception as e:
-                logger.error(f"处理MQTT消息时出错: {e}")
+                logger.error(f"Error while processing MQTT message: {e}")
 
         def on_disconnect_callback(client, userdata, rc):
-            """MQTT断开连接回调.
+            """MQTT disconnect callback.
 
             Args:
-                client: MQTT客户端实例
-                userdata: 用户数据
-                rc: 返回码 (0=正常断开, >0=异常断开)
-            """
+                client: MQTT client instance
+                userdata: user data
+                rc: return code (0=normal disconnection, >0=abnormal disconnection)"""
             try:
                 if rc == 0:
-                    logger.info("MQTT连接正常断开")
+                    logger.info("MQTT connection disconnected normally")
                 else:
-                    logger.warning(f"MQTT连接异常断开，返回码: {rc}")
+                    logger.warning(f"The MQTT connection was disconnected abnormally, return code: {rc}")
 
                 was_connected = self.connected
                 self.connected = False
 
-                # 通知连接状态变化
+                # Notify connection status changes
                 if self._on_connection_state_changed and was_connected:
-                    reason = "正常断开" if rc == 0 else f"异常断开(rc={rc})"
+                    reason = "Normal disconnection" if rc == 0 else f"Abnormal disconnection (rc={rc})"
                     self.loop.call_soon_threadsafe(
                         lambda: self._on_connection_state_changed(False, reason)
                     )
 
-                # 停止UDP接收线程
+                # Stop UDP receive thread
                 self._stop_udp_receiver()
 
-                # 只有在异常断开且启用自动重连时才尝试重连
+                # Only attempt to reconnect after abnormal disconnection and automatic reconnection is enabled
                 if (
                     rc != 0
                     and not self._is_closing
                     and self._auto_reconnect_enabled
                     and self._reconnect_attempts < self._max_reconnect_attempts
                 ):
-                    # 在事件循环中安排重连
+                    # Schedule reconnection in the event loop
                     self.loop.call_soon_threadsafe(
                         lambda: asyncio.create_task(
-                            self._attempt_reconnect(f"MQTT断开(rc={rc})")
+                            self._attempt_reconnect(f"MQTT disconnected (rc={rc})")
                         )
                     )
                 else:
-                    # 通知音频通道关闭
+                    # Notification audio channel closed
                     if self._on_audio_channel_closed:
                         asyncio.run_coroutine_threadsafe(
                             self._on_audio_channel_closed(), self.loop
                         )
 
-                    # 通知网络错误
+                    # Notify network errors
                     if rc != 0 and self._on_network_error:
-                        error_msg = f"MQTT连接断开: {rc}"
+                        error_msg = f"MQTT connection disconnected: {rc}"
                         if (
                             self._auto_reconnect_enabled
                             and self._reconnect_attempts >= self._max_reconnect_attempts
                         ):
-                            error_msg += " (重连失败)"
+                            error_msg += "(Reconnection failed)"
                         self.loop.call_soon_threadsafe(
                             lambda: self._on_network_error(error_msg)
                         )
 
             except Exception as e:
-                logger.error(f"处理MQTT断开连接失败: {e}")
+                logger.error(f"Failed to handle MQTT disconnect: {e}")
 
         def on_publish_callback(client, userdata, mid):
-            """
-            MQTT消息发布回调.
-            """
-            self._last_activity_time = time.time()  # 更新活动时间
+            """MQTT message publishing callback."""
+            self._last_activity_time = time.time()  # Update event time
 
         def on_subscribe_callback(client, userdata, mid, granted_qos):
-            """
-            MQTT订阅回调.
-            """
-            logger.info(f"订阅成功，主题: {self.subscribe_topic}")
-            self._last_activity_time = time.time()  # 更新活动时间
+            """MQTT subscription callback."""
+            logger.info(f"Subscription successful, topic: {self.subscribe_topic}")
+            self._last_activity_time = time.time()  # Update event time
 
-        # 设置回调
+        # Set callback
         self.mqtt_client.on_connect = on_connect_callback
         self.mqtt_client.on_message = on_message_callback
         self.mqtt_client.on_disconnect = on_disconnect_callback
@@ -286,24 +278,24 @@ class MqttProtocol(Protocol):
         self.mqtt_client.on_subscribe = on_subscribe_callback
 
         try:
-            # 连接MQTT服务器，配置保活间隔
-            logger.info(f"正在连接MQTT服务器: {host}:{port}")
+            # Connect to the MQTT server and configure the keep-alive interval
+            logger.info(f"Connecting to MQTT server: {host}:{port}")
             self.mqtt_client.connect_async(
                 host, port, keepalive=self._keep_alive_interval
             )
             self.mqtt_client.loop_start()
 
-            # 等待连接完成
+            # Wait for the connection to complete
             await asyncio.wait_for(connect_future, timeout=10.0)
 
-            # 订阅主题
+            # Subscribe to topics
             if self.subscribe_topic:
                 self.mqtt_client.subscribe(self.subscribe_topic, qos=1)
 
-            # 启动连接监控
+            # Start connection monitoring
             self._start_connection_monitor()
 
-            # 发送hello消息
+            # Send hello message
             hello_message = {
                 "type": "hello",
                 "version": 3,
@@ -319,20 +311,20 @@ class MqttProtocol(Protocol):
                 },
             }
 
-            # 发送消息并等待响应
+            # Send message and wait for response
             if not await self.send_text(json.dumps(hello_message)):
-                logger.error("发送hello消息失败")
+                logger.error("Failed to send hello message")
                 return False
 
             try:
                 await asyncio.wait_for(self.server_hello_event.wait(), timeout=10.0)
             except asyncio.TimeoutError:
-                logger.error("等待服务器hello消息超时")
+                logger.error("Timeout waiting for server hello message")
                 if self._on_network_error:
-                    await self._on_network_error("等待响应超时")
+                    await self._on_network_error("Timeout waiting for response")
                 return False
 
-            # 创建UDP套接字
+            # Create UDP socket
             try:
                 if self.udp_socket:
                     self.udp_socket.close()
@@ -340,7 +332,7 @@ class MqttProtocol(Protocol):
                 self.udp_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 self.udp_socket.settimeout(0.5)
 
-                # 启动UDP接收线程
+                # Start UDP receiving thread
                 if self.udp_thread and self.udp_thread.is_alive():
                     self.udp_running = False
                     self.udp_thread.join(1.0)
@@ -351,56 +343,54 @@ class MqttProtocol(Protocol):
                 self.udp_thread.start()
 
                 self.connected = True
-                self._reconnect_attempts = 0  # 重置重连计数
+                self._reconnect_attempts = 0  # Reset reconnection count
 
-                # 通知连接状态变化
+                # Notify connection status changes
                 if self._on_connection_state_changed:
-                    self._on_connection_state_changed(True, "连接成功")
+                    self._on_connection_state_changed(True, "Connection successful")
 
                 return True
             except Exception as e:
-                logger.error(f"创建UDP套接字失败: {e}")
+                logger.error(f"Failed to create UDP socket: {e}")
                 if self._on_network_error:
-                    await self._on_network_error(f"创建UDP连接失败: {e}")
+                    await self._on_network_error(f"Failed to create UDP connection: {e}")
                 return False
 
         except Exception as e:
-            logger.error(f"连接MQTT服务器失败: {e}")
+            logger.error(f"Failed to connect to MQTT server: {e}")
             if self._on_network_error:
-                await self._on_network_error(f"连接MQTT服务器失败: {e}")
+                await self._on_network_error(f"Failed to connect to MQTT server: {e}")
             return False
 
     def _handle_mqtt_message(self, payload):
-        """
-        处理MQTT消息.
-        """
+        """Handle MQTT messages."""
         try:
             data = json.loads(payload)
             msg_type = data.get("type")
 
             if msg_type == "goodbye":
-                # 处理goodbye消息
+                # Handle goodbye messages
                 session_id = data.get("session_id")
                 if not session_id or session_id == self.session_id:
-                    # 在主事件循环中执行清理
+                    # Perform cleanup in the main event loop
                     asyncio.run_coroutine_threadsafe(self._handle_goodbye(), self.loop)
                 return
 
             elif msg_type == "hello":
-                print("服务链接返回初始化配置", data)
-                # 处理服务器hello响应
+                print("Service link returns initialization configuration", data)
+                # Handling server hello response
                 transport = data.get("transport")
                 if transport != "udp":
-                    logger.error(f"不支持的传输方式: {transport}")
+                    logger.error(f"Unsupported transport: {transport}")
                     return
 
-                # 获取会话ID
+                # Get session ID
                 self.session_id = data.get("session_id", "")
 
-                # 获取UDP配置
+                # Get UDP configuration
                 udp = data.get("udp")
                 if not udp:
-                    logger.error("UDP配置缺失")
+                    logger.error("UDP configuration missing")
                     return
 
                 self.udp_server = udp.get("server")
@@ -408,25 +398,25 @@ class MqttProtocol(Protocol):
                 self.aes_key = udp.get("key")
                 self.aes_nonce = udp.get("nonce")
 
-                # 重置序列号
+                # Reset serial number
                 self.local_sequence = 0
                 self.remote_sequence = 0
 
                 logger.info(
-                    f"收到服务器hello响应，UDP服务器: {self.udp_server}:{self.udp_port}"
+                    f"Received server hello response, UDP server: {self.udp_server}:{self.udp_port}"
                 )
 
-                # 设置hello事件
+                # Set hello event
                 self.loop.call_soon_threadsafe(self.server_hello_event.set)
 
-                # 触发音频通道打开回调
+                # Trigger audio channel open callback
                 if self._on_audio_channel_opened:
                     self.loop.call_soon_threadsafe(
                         lambda: asyncio.create_task(self._on_audio_channel_opened())
                     )
 
             else:
-                # 处理其他JSON消息
+                # Process other JSON messages
                 if self._on_incoming_json:
 
                     def process_json(json_data=data):
@@ -439,17 +429,16 @@ class MqttProtocol(Protocol):
 
                     self.loop.call_soon_threadsafe(process_json)
         except json.JSONDecodeError:
-            logger.error(f"无效的JSON数据: {payload}")
+            logger.error(f"Invalid JSON data: {payload}")
         except Exception as e:
-            logger.error(f"处理MQTT消息时出错: {e}")
+            logger.error(f"Error while processing MQTT message: {e}")
 
     def _udp_receive_thread(self):
-        """UDP接收线程.
+        """UDP receiving thread.
 
-        参考 audio_player.py 的实现方式
-        """
+        Refer to the implementation of audio_player.py"""
         logger.info(
-            f"UDP接收线程已启动，监听来自 {self.udp_server}:{self.udp_port} 的数据"
+            f"The UDP receiving thread has been started, listening for data from {self.udp_server}:{self.udp_port}"
         )
 
         self.udp_running = True
@@ -461,27 +450,27 @@ class MqttProtocol(Protocol):
                 debug_counter += 1
 
                 try:
-                    # 验证数据包
-                    if len(data) < 16:  # 至少需要16字节的nonce
-                        logger.error(f"无效的音频数据包大小: {len(data)}")
+                    # Verify packet
+                    if len(data) < 16:  # Requires at least 16 bytes of nonce
+                        logger.error(f"Invalid audio packet size: {len(data)}")
                         continue
 
-                    # 分离nonce和加密数据
+                    # Separate nonce and encrypted data
                     received_nonce = data[:16]
                     encrypted_audio = data[16:]
 
-                    # 使用AES-CTR解密
+                    # Decrypt using AES-CTR
                     decrypted = self.aes_ctr_decrypt(
                         bytes.fromhex(self.aes_key), received_nonce, encrypted_audio
                     )
 
-                    # 调试信息
+                    # debugging information
                     if debug_counter % 100 == 0:
                         logger.debug(
-                            f"已解密音频数据包 #{debug_counter}, 大小: {len(decrypted)} 字节"
+                            f"Decrypted audio packet #{debug_counter}, size: {len(decrypted)} bytes"bytes"
                         )
 
-                    # 处理解密后的音频数据
+                    # Processing decrypted audio data
                     if self._on_incoming_audio:
 
                         def process_audio(audio_data=decrypted):
@@ -495,26 +484,24 @@ class MqttProtocol(Protocol):
                         self.loop.call_soon_threadsafe(process_audio)
 
                 except Exception as e:
-                    logger.error(f"处理音频数据包错误: {e}")
+                    logger.error(f"Handling audio packet error: {e}")
                     continue
 
             except socket.timeout:
-                # 超时是正常的，继续循环
+                # Timeout is normal, continue looping
                 pass
             except Exception as e:
-                logger.error(f"UDP接收线程错误: {e}")
+                logger.error(f"UDP receive thread error: {e}")
                 if not self.udp_running:
                     break
-                time.sleep(0.1)  # 避免在错误情况下过度消耗CPU
+                time.sleep(0.1)  # Avoid excessive CPU consumption in error situations
 
-        logger.info("UDP接收线程已停止")
+        logger.info("UDP receive thread has stopped")
 
     async def send_text(self, message):
-        """
-        发送文本消息.
-        """
+        """Send a text message."""
         if not self.mqtt_client:
-            logger.error("MQTT客户端未初始化")
+            logger.error("MQTT client not initialized")
             return False
 
         try:
@@ -522,111 +509,104 @@ class MqttProtocol(Protocol):
             result.wait_for_publish()
             return True
         except Exception as e:
-            logger.error(f"发送MQTT消息失败: {e}")
+            logger.error(f"Failed to send MQTT message: {e}")
             if self._on_network_error:
-                await self._on_network_error(f"发送MQTT消息失败: {e}")
+                await self._on_network_error(f"Failed to send MQTT message: {e}")
             return False
 
     async def send_audio(self, audio_data):
-        """发送音频数据.
+        """Send audio data.
 
-        参考 audio_sender.py 的实现方式
-        """
+        Refer to the implementation of audio_sender.py"""
         if not self.udp_socket or not self.udp_server or not self.udp_port:
-            logger.error("UDP通道未初始化")
+            logger.error("UDP channel not initialized")
             return False
 
         try:
-            # 生成新的nonce (类似于 audio_sender.py 中的实现)
-            # 格式: 0x01 (1字节) + 0x00 (3字节) + 长度 (2字节) + 原始nonce (8字节) + 序列号 (8字节)
+            # Generate a new nonce (similar to the implementation in audio_sender.py)
+            # Format: 0x01 (1 byte) + 0x00 (3 bytes) + length (2 bytes) + original nonce (8 bytes) + serial number (8 bytes)
             self.local_sequence = (self.local_sequence + 1) & 0xFFFFFFFF
             new_nonce = (
-                self.aes_nonce[:4]  # 固定前缀
-                + format(len(audio_data), "04x")  # 数据长度
-                + self.aes_nonce[8:24]  # 原始nonce
-                + format(self.local_sequence, "08x")  # 序列号
+                self.aes_nonce[:4]  # fixed prefix
+                + format(len(audio_data), "04x")  # Data length
+                + self.aes_nonce[8:24]  # original nonce
+                + format(self.local_sequence, "08x")  # serial number
             )
 
             encrypt_encoded_data = self.aes_ctr_encrypt(
                 bytes.fromhex(self.aes_key), bytes.fromhex(new_nonce), bytes(audio_data)
             )
 
-            # 拼接nonce和密文
+            # Splicing nonce and ciphertext
             packet = bytes.fromhex(new_nonce) + encrypt_encoded_data
 
-            # 发送数据包
+            # Send packet
             self.udp_socket.sendto(packet, (self.udp_server, self.udp_port))
 
-            # 每发送10个包打印一次日志
+            # Print log every 10 packets sent
             if self.local_sequence % 10 == 0:
                 logger.info(
-                    f"已发送音频数据包，序列号: {self.local_sequence}，目标: "
+                    f"Audio packet sent, sequence number: {self.local_sequence}, destination:"
                     f"{self.udp_server}:{self.udp_port}"
                 )
 
             self.local_sequence += 1
             return True
         except Exception as e:
-            logger.error(f"发送音频数据失败: {e}")
+            logger.error(f"Failed to send audio data: {e}")
             if self._on_network_error:
-                asyncio.create_task(self._on_network_error(f"发送音频数据失败: {e}"))
+                asyncio.create_task(self._on_network_error(f"Failed to send audio data: {e}"))
             return False
 
     async def open_audio_channel(self):
-        """
-        打开音频通道.
-        """
+        """Open the audio channel."""
         if not self.connected:
             return await self.connect()
         return True
 
     async def close_audio_channel(self):
-        """
-        关闭音频通道.
-        """
+        """Close the audio channel."""
         self._is_closing = True
 
         try:
-            # 如果有会话ID，发送goodbye消息
+            # If there is a session ID, send a goodbye message
             if self.session_id:
                 goodbye_msg = {"type": "goodbye", "session_id": self.session_id}
                 await self.send_text(json.dumps(goodbye_msg))
 
-            # 处理goodbye
+            # Dealing with goodbye
             await self._handle_goodbye()
 
         except Exception as e:
-            logger.error(f"关闭音频通道时出错: {e}")
-            # 确保即使出错也调用回调
+            logger.error(f"Error closing audio channel: {e}")
+            # Make sure the callback is called even if an error occurs
             if self._on_audio_channel_closed:
                 await self._on_audio_channel_closed()
         finally:
             self._is_closing = False
 
     def is_audio_channel_opened(self) -> bool:
-        """检查音频通道是否已打开.
+        """Check if the audio channel is open.
 
-        更准确地检查连接状态，包括MQTT和UDP的实际状态
-        """
+        More accurate checking of connection status, including actual status of MQTT and UDP"""
         if not self.connected or self._is_closing:
             return False
 
-        # 检查MQTT连接状态
+        # Check MQTT connection status
         if not self.mqtt_client or not self.mqtt_client.is_connected():
             return False
 
-        # 检查UDP连接状态
+        # Check UDP connection status
         return self.udp_socket is not None and self.udp_running
 
     def aes_ctr_encrypt(self, key, nonce, plaintext):
-        """AES-CTR模式加密函数
+        """AES-CTR mode encryption function
         Args:
-            key: bytes格式的加密密钥
-            nonce: bytes格式的初始向量
-            plaintext: 待加密的原始数据
+            key: encryption key in bytes format
+            nonce: initial vector in bytes format
+            plaintext: original data to be encrypted
         Returns:
-            bytes格式的加密数据
-        """
+            Encrypted data in bytes format"""
         cipher = Cipher(
             algorithms.AES(key), modes.CTR(nonce), backend=default_backend()
         )
@@ -634,14 +614,13 @@ class MqttProtocol(Protocol):
         return encryptor.update(plaintext) + encryptor.finalize()
 
     def aes_ctr_decrypt(self, key, nonce, ciphertext):
-        """AES-CTR模式解密函数
+        """AES-CTR mode decryption function
         Args:
-            key: bytes格式的解密密钥
-            nonce: bytes格式的初始向量（需要与加密时使用的相同）
-            ciphertext: bytes格式的加密数据
+            key: decryption key in bytes format
+            nonce: initial vector in bytes format (needs to be the same as that used for encryption)
+            ciphertext: encrypted data in bytes format
         Returns:
-            bytes格式的解密后的原始数据
-        """
+            Decrypted original data in bytes format"""
         cipher = Cipher(
             algorithms.AES(key), modes.CTR(nonce), backend=default_backend()
         )
@@ -650,36 +629,34 @@ class MqttProtocol(Protocol):
         return plaintext
 
     async def _handle_goodbye(self):
-        """
-        处理goodbye消息.
-        """
+        """Handle goodbye messages."""
         try:
-            # 停止UDP接收线程
+            # Stop UDP receive thread
             if self.udp_thread and self.udp_thread.is_alive():
                 self.udp_running = False
                 self.udp_thread.join(1.0)
                 self.udp_thread = None
-            logger.info("UDP接收线程已停止")
+            logger.info("UDP receive thread has stopped")
 
-            # 关闭UDP套接字
+            # Close UDP socket
             if self.udp_socket:
                 try:
                     self.udp_socket.close()
                 except Exception as e:
-                    logger.error(f"关闭UDP套接字失败: {e}")
+                    logger.error(f"Failed to close UDP socket: {e}")
                 self.udp_socket = None
 
-            # 停止MQTT客户端
+            # Stop MQTT client
             if self.mqtt_client:
                 try:
                     self.mqtt_client.loop_stop()
                     self.mqtt_client.disconnect()
-                    self.mqtt_client.loop_forever()  # 确保断开连接完全完成
+                    self.mqtt_client.loop_forever()  # Make sure the disconnection is complete
                 except Exception as e:
-                    logger.error(f"断开MQTT连接失败: {e}")
+                    logger.error(f"Failed to disconnect MQTT: {e}")
                 self.mqtt_client = None
 
-            # 重置所有状态
+            # reset all status
             self.connected = False
             self.session_id = None
             self.local_sequence = 0
@@ -689,18 +666,16 @@ class MqttProtocol(Protocol):
             self.aes_key = None
             self.aes_nonce = None
 
-            # 调用音频通道关闭回调
+            # Call the audio channel close callback
             if self._on_audio_channel_closed:
                 await self._on_audio_channel_closed()
 
         except Exception as e:
-            logger.error(f"处理goodbye消息时出错: {e}")
+            logger.error(f"Error while processing goodbye message: {e}")
 
     def _stop_udp_receiver(self):
-        """
-        停止UDP接收线程和关闭UDP套接字.
-        """
-        # 关闭UDP接收线程
+        """Stop the UDP receiving thread and close the UDP socket."""
+        # Close UDP receiving thread
         if (
             hasattr(self, "udp_thread")
             and self.udp_thread
@@ -710,35 +685,31 @@ class MqttProtocol(Protocol):
             try:
                 self.udp_thread.join(1.0)
             except RuntimeError:
-                pass  # 处理线程已经终止的情况
+                pass  # Handle the situation when the thread has terminated
 
-        # 关闭UDP套接字
+        # Close UDP socket
         if hasattr(self, "udp_socket") and self.udp_socket:
             try:
                 self.udp_socket.close()
             except Exception as e:
-                logger.error(f"关闭UDP套接字失败: {e}")
+                logger.error(f"Failed to close UDP socket: {e}")
 
     def __del__(self):
-        """
-        析构函数，清理资源.
-        """
-        # 停止UDP接收相关资源
+        """Destructor, clean up resources."""
+        # Stop UDP receiving related resources
         self._stop_udp_receiver()
 
-        # 关闭MQTT客户端
+        # Close MQTT client
         if hasattr(self, "mqtt_client") and self.mqtt_client:
             try:
                 self.mqtt_client.loop_stop()
                 self.mqtt_client.disconnect()
-                self.mqtt_client.loop_forever()  # 确保断开连接完全完成
+                self.mqtt_client.loop_forever()  # Make sure the disconnection is complete
             except Exception as e:
-                logger.error(f"断开MQTT连接失败: {e}")
+                logger.error(f"Failed to disconnect MQTT: {e}")
 
     def _start_connection_monitor(self):
-        """
-        启动连接监控任务.
-        """
+        """Start the connection monitoring task."""
         if (
             self._connection_monitor_task is None
             or self._connection_monitor_task.done()
@@ -748,62 +719,58 @@ class MqttProtocol(Protocol):
             )
 
     async def _connection_monitor(self):
-        """
-        连接健康状态监控.
-        """
+        """Connection health status monitoring."""
         try:
             while self.connected and not self._is_closing:
-                await asyncio.sleep(30)  # 每30秒检查一次
+                await asyncio.sleep(30)  # Check every 30 seconds
 
-                # 检查MQTT连接状态
+                # Check MQTT connection status
                 if self.mqtt_client and not self.mqtt_client.is_connected():
-                    logger.warning("检测到MQTT连接已断开")
-                    await self._handle_connection_loss("MQTT连接检测失败")
+                    logger.warning("MQTT connection detected as disconnected")
+                    await self._handle_connection_loss("MQTT connection detection failed")
                     break
 
-                # 检查最后活动时间（超时检测）
+                # Check last activity time (timeout detection)
                 if self._last_activity_time:
                     time_since_activity = time.time() - self._last_activity_time
                     if time_since_activity > self._connection_timeout:
                         logger.warning(
-                            f"连接超时，最后活动时间: {time_since_activity:.1f}秒前"
+                            f"Connection timed out, last activity time: {time_since_activity:.1f} seconds ago"
                         )
-                        await self._handle_connection_loss("连接超时")
+                        await self._handle_connection_loss("Connection timeout")
                         break
 
         except asyncio.CancelledError:
-            logger.debug("MQTT连接监控任务被取消")
+            logger.debug("The MQTT connection monitoring task was canceled")
         except Exception as e:
-            logger.error(f"MQTT连接监控异常: {e}")
+            logger.error(f"MQTT connection monitoring exception: {e}")
 
     async def _handle_connection_loss(self, reason: str):
-        """
-        处理连接丢失.
-        """
-        logger.warning(f"MQTT连接丢失: {reason}")
+        """Handle connection loss."""
+        logger.warning(f"MQTT connection lost: {reason}")
 
-        # 更新连接状态
+        # Update connection status
         was_connected = self.connected
         self.connected = False
 
-        # 通知连接状态变化
+        # Notify connection status changes
         if self._on_connection_state_changed and was_connected:
             try:
                 self._on_connection_state_changed(False, reason)
             except Exception as e:
-                logger.error(f"调用连接状态变化回调失败: {e}")
+                logger.error(f"Failed to call connection status change callback: {e}")
 
-        # 清理连接
+        # clean connection
         await self._cleanup_connection()
 
-        # 通知音频通道关闭
+        # Notification audio channel closed
         if self._on_audio_channel_closed:
             try:
                 await self._on_audio_channel_closed()
             except Exception as e:
-                logger.error(f"调用音频通道关闭回调失败: {e}")
+                logger.error(f"Failed to call audio channel close callback: {e}")
 
-        # 只有在启用自动重连且未手动关闭时才尝试重连
+        # Only attempt to reconnect if auto-reconnect is enabled and not manually turned off
         if (
             not self._is_closing
             and self._auto_reconnect_enabled
@@ -811,82 +778,78 @@ class MqttProtocol(Protocol):
         ):
             await self._attempt_reconnect(reason)
         else:
-            # 通知网络错误
+            # Notify network errors
             if self._on_network_error:
                 if (
                     self._auto_reconnect_enabled
                     and self._reconnect_attempts >= self._max_reconnect_attempts
                 ):
-                    await self._on_network_error(f"MQTT连接丢失且重连失败: {reason}")
+                    await self._on_network_error(f"MQTT connection lost and reconnection failed: {reason}")
                 else:
-                    await self._on_network_error(f"MQTT连接丢失: {reason}")
+                    await self._on_network_error(f"MQTT connection lost: {reason}")
 
     async def _attempt_reconnect(self, original_reason: str):
-        """
-        尝试自动重连.
-        """
+        """Try to reconnect automatically."""
         self._reconnect_attempts += 1
 
-        # 通知开始重连
+        # Notification to start reconnection
         if self._on_reconnecting:
             try:
                 self._on_reconnecting(
                     self._reconnect_attempts, self._max_reconnect_attempts
                 )
             except Exception as e:
-                logger.error(f"调用重连回调失败: {e}")
+                logger.error(f"Failed to call reconnection callback: {e}")
 
         logger.info(
-            f"尝试MQTT自动重连 ({self._reconnect_attempts}/{self._max_reconnect_attempts})"
+            f"Attempt MQTT automatic reconnection ({self._reconnect_attempts}/{self._max_reconnect_attempts})"
         )
 
-        # 等待一段时间后重连（指数退避）
+        # Wait for a while and then reconnect (exponential backoff)
         await asyncio.sleep(min(self._reconnect_attempts * 2, 30))
 
         try:
             success = await self.connect()
             if success:
-                logger.info("MQTT自动重连成功")
-                # 通知连接状态变化
+                logger.info("MQTT automatic reconnection successful")
+                # Notify connection status changes
                 if self._on_connection_state_changed:
-                    self._on_connection_state_changed(True, "重连成功")
+                    self._on_connection_state_changed(True, "Reconnection successful")
             else:
                 logger.warning(
-                    f"MQTT自动重连失败 ({self._reconnect_attempts}/{self._max_reconnect_attempts})"
+                    f"MQTT automatic reconnect failed ({self._reconnect_attempts}/{self._max_reconnect_attempts})"
                 )
-                # 如果还能重试，不立即报错
+                # If you can try again, don’t report an error immediately.
                 if self._reconnect_attempts >= self._max_reconnect_attempts:
                     if self._on_network_error:
                         await self._on_network_error(
-                            f"MQTT重连失败，已达到最大重连次数: {original_reason}"
+                            f"MQTT reconnection failed, the maximum number of reconnections has been reached: {original_reason}"
                         )
         except Exception as e:
-            logger.error(f"MQTT重连过程中出错: {e}")
+            logger.error(f"An error occurred during MQTT reconnection: {e}")
             if self._reconnect_attempts >= self._max_reconnect_attempts:
                 if self._on_network_error:
-                    await self._on_network_error(f"MQTT重连异常: {str(e)}")
+                    await self._on_network_error(f"MQTT reconnect exception: {str(e)}")
 
     def enable_auto_reconnect(self, enabled: bool = True, max_attempts: int = 5):
-        """启用或禁用自动重连功能.
+        """Enable or disable automatic reconnection.
 
         Args:
-            enabled: 是否启用自动重连
-            max_attempts: 最大重连尝试次数
-        """
+            enabled: Whether to enable automatic reconnection
+            max_attempts: Maximum number of reconnection attempts"""
         self._auto_reconnect_enabled = enabled
         if enabled:
             self._max_reconnect_attempts = max_attempts
-            logger.info(f"启用MQTT自动重连，最大尝试次数: {max_attempts}")
+            logger.info(f"Enable MQTT automatic reconnection, maximum number of attempts: {max_attempts}")
         else:
             self._max_reconnect_attempts = 0
-            logger.info("禁用MQTT自动重连")
+            logger.info("Disable MQTT automatic reconnection")
 
     def get_connection_info(self) -> dict:
-        """获取连接信息.
+        """Get connection information.
 
         Returns:
-            dict: 包含连接状态、重连次数等信息的字典
-        """
+            dict: A dictionary containing information such as connection status, reconnection times, etc."""
         return {
             "connected": self.connected,
             "mqtt_connected": (
@@ -907,12 +870,10 @@ class MqttProtocol(Protocol):
         }
 
     async def _cleanup_connection(self):
-        """
-        清理连接相关资源.
-        """
+        """Clean up connection related resources."""
         self.connected = False
 
-        # 取消连接监控任务
+        # Cancel the connection monitoring task
         if self._connection_monitor_task and not self._connection_monitor_task.done():
             self._connection_monitor_task.cancel()
             try:
@@ -920,16 +881,16 @@ class MqttProtocol(Protocol):
             except asyncio.CancelledError:
                 pass
 
-        # 停止UDP接收线程
+        # Stop UDP receive thread
         self._stop_udp_receiver()
 
-        # 停止MQTT客户端
+        # Stop MQTT client
         if self.mqtt_client:
             try:
                 self.mqtt_client.loop_stop()
                 self.mqtt_client.disconnect()
             except Exception as e:
-                logger.error(f"断开MQTT连接时出错: {e}")
+                logger.error(f"Error while disconnecting MQTT: {e}")
 
-        # 重置时间戳
+        # reset timestamp
         self._last_activity_time = None

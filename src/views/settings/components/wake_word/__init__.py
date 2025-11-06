@@ -1,6 +1,4 @@
-"""
-唤醒词设置组件.
-"""
+"""Wake word setting component."""
 
 from .wake_word_widget import WakeWordWidget
 

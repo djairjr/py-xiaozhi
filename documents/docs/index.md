@@ -4,28 +4,28 @@ layout: home
 
 hero:
   name: "PY-XIAOZHI"
-  tagline: py-xiaozhi 是一个使用 Python 实现的小智语音客户端，旨在通过代码学习和在没有硬件条件下体验 AI 小智的语音功能。
+tagline: py-xiaozhi is a Xiaozhi voice client implemented in Python, designed to learn through code and experience the AI ​​Xiaozhi voice function without hardware conditions.
   actions:
     - theme: brand
-      text: 开始使用
-      link: /guide/文档目录
+text: Get started
+link: /guide/documentation directory
     - theme: alt
-      text: 查看源码
+text: View source code
       link: https://github.com/huangjunsen0406/py-xiaozhi
 
 features:
-  - title: AI语音交互
-    details: 支持语音输入与识别，实现智能人机交互，提供自然流畅的对话体验。采用异步架构设计，支持实时音频处理和低延迟响应。
-  - title: 视觉多模态
-    details: 支持图像识别和处理，提供多模态交互能力，理解图像内容。集成OpenCV摄像头处理，支持实时视觉分析。
-  - title: MCP工具服务器
-    details: 基于JSON-RPC 2.0协议的模块化工具系统，支持日程管理、音乐播放、12306查询、地图服务、菜谱搜索、八字命理等丰富功能，可动态扩展工具插件。
-  - title: IoT 设备集成
-    details: 采用Thing抽象模式设计，支持智能家居设备控制，包括灯光、音量、温度传感器等，集成Home Assistant智能家居平台，可轻松扩展。
-  - title: 高性能音频处理
-    details: 基于Opus编解码的实时音频传输，支持智能重采样技术，5ms音频帧间隔处理，确保低延迟高质量的音频体验。
-  - title: 跨平台支持
-    details: 兼容Windows 10+、macOS 10.15+和Linux系统，支持GUI和CLI双模式运行，自适应不同平台的音频设备和系统接口。
+- title: AI voice interaction
+details: Supports voice input and recognition, realizes intelligent human-computer interaction, and provides a natural and smooth conversation experience. Designed with an asynchronous architecture, it supports real-time audio processing and low-latency response.
+- title: Visual multimodality
+details: Support image recognition and processing, provide multi-modal interaction capabilities, and understand image content. Integrated OpenCV camera processing to support real-time visual analysis.
+- title: MCP Tool Server
+details: A modular tool system based on JSON-RPC 2.0 protocol, supporting rich functions such as schedule management, music playback, 12306 query, map service, recipe search, numerology, etc., and can dynamically expand tool plug-ins.
+- title: IoT device integration
+details: Designed using Thing abstract mode, it supports smart home device control, including lights, volume, temperature sensors, etc., and integrates the Home Assistant smart home platform, which can be easily expanded.
+- title: High performance audio processing
+Details: Real-time audio transmission based on Opus codec, supports intelligent resampling technology, and 5ms audio frame interval processing to ensure a low-latency and high-quality audio experience.
+- title: Cross-platform support
+details: Compatible with Windows 10+, macOS 10.15+ and Linux systems, supports GUI and CLI dual-mode operation, and adapts to audio devices and system interfaces on different platforms.
 ---
 
 <style>

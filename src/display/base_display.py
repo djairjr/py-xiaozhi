@@ -5,9 +5,7 @@ from src.utils.logging_config import get_logger
 
 
 class BaseDisplay(ABC):
-    """
-    显示接口的抽象基类.
-    """
+    """Abstract base class for display interfaces."""
 
     def __init__(self):
         self.logger = get_logger(self.__class__.__name__)
@@ -22,42 +20,28 @@ class BaseDisplay(ABC):
         abort_callback: Optional[Callable] = None,
         send_text_callback: Optional[Callable] = None,
     ):
-        """
-        设置回调函数.
-        """
+        """Set the callback function."""
 
     @abstractmethod
     async def update_button_status(self, text: str):
-        """
-        更新按钮状态.
-        """
+        """Update button state."""
 
     @abstractmethod
     async def update_status(self, status: str, connected: bool):
-        """
-        更新状态文本.
-        """
+        """Update status text."""
 
     @abstractmethod
     async def update_text(self, text: str):
-        """
-        更新TTS文本.
-        """
+        """Update TTS text."""
 
     @abstractmethod
     async def update_emotion(self, emotion_name: str):
-        """
-        更新表情.
-        """
+        """Update emoticons."""
 
     @abstractmethod
     async def start(self):
-        """
-        启动显示.
-        """
+        """Start display."""
 
     @abstractmethod
     async def close(self):
-        """
-        关闭显示.
-        """
+        """Turn off display."""

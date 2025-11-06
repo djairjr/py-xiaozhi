@@ -1,40 +1,40 @@
-# IoT 设备开发指南
+# IoT Device Development Guide
 
-## 概述
+## Overview
 
-py-xiaozhi 项目采用基于 Thing Pattern 的 IoT 设备架构，提供统一的设备抽象和管理接口。所有设备都继承自 Thing 基类，通过 ThingManager 进行集中管理。该架构支持异步操作、类型安全的参数处理和状态管理。
+The py-xiaozhi project adopts an IoT device architecture based on Thing Pattern to provide a unified device abstraction and management interface. All devices inherit from the Thing base class and are centrally managed through ThingManager. The architecture supports asynchronous operations, type-safe parameter handling, and state management.
 
-**重要说明**: 当前项目正在从 IoT 设备模式向 MCP (Model Context Protocol) 工具模式迁移，部分设备功能已迁移到 MCP 工具系统。
+**Important note**: The current project is migrating from the IoT device mode to the MCP (Model Context Protocol) tool mode, and some device functions have been migrated to the MCP tool system.
 
-## 核心架构
+## Core architecture
 
-### 目录结构
+### Directory structure
 
 ```
 src/iot/
-├── thing.py                 # 核心基类和工具类
-│   ├── Thing               # 设备抽象基类
-│   ├── Property            # 设备属性类
-│   ├── Method              # 设备方法类
-│   ├── Parameter           # 方法参数类
-│   └── ValueType           # 参数类型枚举
-├── thing_manager.py        # 设备管理器
-│   └── ThingManager        # 单例设备管理器
-└── things/                 # 设备实现
-    ├── lamp.py            # 灯光设备
-    ├── speaker.py         # 音响设备
-    ├── music_player.py    # 音乐播放器
-    ├── countdown_timer.py # 倒计时器
-    └── CameraVL/          # 摄像头设备
+├── thing.py # Core base class and tool class
+│ ├── Thing # Device abstract base class
+│ ├── Property # Equipment property class
+│ ├── Method # Device method class
+│ ├── Parameter # Method parameter class
+│ └── ValueType # Parameter type enumeration
+├── thing_manager.py # Device Manager
+│ └── ThingManager # Singleton device manager
+└── things/ # Device implementation
+├── lamp.py # lighting equipment
+├── speaker.py # Audio equipment
+├── music_player.py # Music player
+├── countdown_timer.py # Countdown timer
+└── CameraVL/ # Camera equipment
         ├── Camera.py
         └── VL.py
 ```
 
-### 核心组件
+### Core components
 
-#### 1. Thing 基类
+#### 1. Thing base class
 
-Thing 是所有 IoT 设备的抽象基类，提供统一的接口规范：
+Thing is the abstract base class for all IoT devices, providing unified interface specifications:
 
 ```python
 from src.iot.thing import Thing, Parameter, ValueType
@@ -53,48 +53,48 @@ class Thing:
     async def invoke(self, command: dict) -> dict
 ```
 
-**关键要求：**
+**Key Requirements:**
 
-- 所有属性 getter 函数必须是异步的 (`async def`)
-- 所有方法 callback 函数必须是异步的
-- 设备名称必须全局唯一
+- All property getter functions must be asynchronous (`async def`)
+- All method callback functions must be asynchronous
+- Device name must be globally unique
 
-#### 2. Property 属性系统
+#### 2. Property attribute system
 
-Property 用于定义设备的可读状态，支持自动类型推断：
+Property is used to define the readable state of the device and supports automatic type inference:
 
 ```python
 class Property:
     def __init__(self, name: str, description: str, getter: Callable):
-        # 强制要求getter必须是异步函数
+# Force getter to be an asynchronous function
         if not inspect.iscoroutinefunction(getter):
             raise TypeError(f"Property getter for '{name}' must be an async function.")
 ```
 
-**支持的属性类型：**
+**Supported attribute types:**
 
-- `boolean`: 布尔值
-- `number`: 整数
-- `string`: 字符串
-- `float`: 浮点数
-- `array`: 数组
-- `object`: 对象
+- `boolean`: Boolean value
+- `number`: integer
+- `string`: string
+- `float`: floating point number
+- `array`: array
+- `object`: object
 
-#### 3. Method 方法系统
+#### 3. Method method system
 
-Method 用于定义设备的可执行操作：
+Method is used to define the executable operation of the device:
 
 ```python
 class Method:
     def __init__(self, name: str, description: str, parameters: List[Parameter], callback: Callable):
-        # 强制要求回调函数必须是异步函数
+# Force the callback function to be an asynchronous function
         if not inspect.iscoroutinefunction(callback):
             raise TypeError(f"Method callback for '{name}' must be an async function.")
 ```
 
-#### 4. Parameter 参数系统
+#### 4. Parameter parameter system
 
-Parameter 定义方法的参数规范：
+Parameter defines the parameter specification of the method:
 
 ```python
 class Parameter:
@@ -108,18 +108,18 @@ class Parameter:
         return self.value
 ```
 
-**支持的参数类型：**
+**Supported parameter types:**
 
-- `ValueType.BOOLEAN`: 布尔值
-- `ValueType.NUMBER`: 整数
-- `ValueType.STRING`: 字符串
-- `ValueType.FLOAT`: 浮点数
-- `ValueType.ARRAY`: 数组
-- `ValueType.OBJECT`: 对象
+- `ValueType.BOOLEAN`: Boolean value
+- `ValueType.NUMBER`: integer
+- `ValueType.STRING`: string
+- `ValueType.FLOAT`: floating point number
+- `ValueType.ARRAY`: array
+- `ValueType.OBJECT`: object
 
-#### 5. ThingManager 管理器
+#### 5. ThingManager manager
 
-ThingManager 采用单例模式，负责设备的注册、状态管理和方法调用：
+ThingManager adopts singleton mode and is responsible for device registration, status management and method invocation:
 
 ```python
 from src.iot.thing_manager import ThingManager
@@ -137,18 +137,18 @@ class ThingManager:
     async def invoke(self, command: dict) -> dict
 ```
 
-**核心功能：**
+**Core features:**
 
-- 设备注册和管理
-- 状态缓存和增量更新
-- 方法调用分发
-- 设备描述信息查询
+- Device registration and management
+- State caching and incremental updates
+- Method call distribution
+- Device description information query
 
-## 设备实现模式
+## Device implementation mode
 
-### 1. 基础设备 - Lamp
+### 1. Basic equipment - Lamp
 
-最简单的设备实现模式：
+The simplest device implementation mode:
 
 ```python
 import asyncio
@@ -156,31 +156,31 @@ from src.iot.thing import Thing
 
 class Lamp(Thing):
     def __init__(self):
-        super().__init__("Lamp", "一个测试用的灯")
+super().__init__("Lamp", "A test lamp")
         self.power = False
         
-        # 注册属性 - getter必须是异步函数
-        self.add_property("power", "灯是否打开", self.get_power)
+# Register property - getter must be an asynchronous function
+self.add_property("power", "Whether the light is on", self.get_power)
         
-        # 注册方法 - callback必须是异步函数
-        self.add_method("TurnOn", "打开灯", [], self._turn_on)
-        self.add_method("TurnOff", "关闭灯", [], self._turn_off)
+#Registration method - callback must be an asynchronous function
+self.add_method("TurnOn", "Turn on the light", [], self._turn_on)
+self.add_method("TurnOff", "Turn off the light", [], self._turn_off)
     
     async def get_power(self):
         return self.power
     
     async def _turn_on(self, params):
         self.power = True
-        return {"status": "success", "message": "灯已打开"}
+return {"status": "success", "message": "Light is on"}
     
     async def _turn_off(self, params):
         self.power = False
-        return {"status": "success", "message": "灯已关闭"}
+return {"status": "success", "message": "Light is off"}
 ```
 
-### 2. 带参数设备 - Speaker
+### 2. Device with parameters - Speaker
 
-带参数验证的设备实现：
+Device implementation with parameter verification:
 
 ```python
 import asyncio
@@ -189,9 +189,9 @@ from src.utils.volume_controller import VolumeController
 
 class Speaker(Thing):
     def __init__(self):
-        super().__init__("Speaker", "当前 AI 机器人的扬声器")
+super().__init__("Speaker", "The speaker of the current AI robot")
         
-        # 初始化音量控制器
+#Initialize the volume controller
         self.volume_controller = None
         try:
             if VolumeController.check_dependencies():
@@ -202,14 +202,14 @@ class Speaker(Thing):
         except Exception:
             self.volume = 70
         
-        # 注册属性
-        self.add_property("volume", "当前音量值", self.get_volume)
+#Register attributes
+self.add_property("volume", "Current volume value", self.get_volume)
         
-        # 注册带参数的方法
+# Register method with parameters
         self.add_method(
             "SetVolume",
-            "设置音量",
-            [Parameter("volume", "0到100之间的整数", ValueType.NUMBER, True)],
+"Set volume",
+[Parameter("volume", "Integer between 0 and 100", ValueType.NUMBER, True)],
             self._set_volume,
         )
     
@@ -222,26 +222,26 @@ class Speaker(Thing):
         return self.volume
     
     async def _set_volume(self, params):
-        # 从Parameter对象获取值
+# Get the value from the Parameter object
         volume = params["volume"].get_value()
         
-        # 参数验证
+# Parameter validation
         if not (0 <= volume <= 100):
-            raise ValueError("音量必须在0-100之间")
+raise ValueError("Volume must be between 0-100")
         
         self.volume = volume
         try:
             if self.volume_controller:
-                # 异步调用系统API
+# Asynchronously call system API
                 await asyncio.to_thread(self.volume_controller.set_volume, volume)
-            return {"success": True, "message": f"音量已设置为: {volume}"}
+return {"success": True, "message": f"The volume has been set to: {volume}"}
         except Exception as e:
-            return {"success": False, "message": f"设置音量失败: {e}"}
+return {"success": False, "message": f"Failed to set volume: {e}"}
 ```
 
-### 3. 复杂设备 - CountdownTimer
+### 3. Complex device - CountdownTimer
 
-异步任务管理的设备实现：
+Device implementation of asynchronous task management:
 
 ```python
 import asyncio
@@ -253,40 +253,40 @@ from src.iot.thing_manager import ThingManager
 
 class CountdownTimer(Thing):
     def __init__(self):
-        super().__init__("CountdownTimer", "一个用于延迟执行命令的倒计时器")
+super().__init__("CountdownTimer", "A countdown timer used to delay the execution of commands")
         
-        # 任务管理
+# Task management
         self._timers: Dict[int, Task] = {}
         self._next_timer_id = 0
         self._lock = asyncio.Lock()
         
-        # 注册方法
+#Registration method
         self.add_method(
             "StartCountdown",
-            "启动一个倒计时，结束后执行指定命令",
+"Start a countdown and execute the specified command after it ends",
             [
-                Parameter("command", "要执行的IoT命令 (JSON格式字符串)", "string", True),
-                Parameter("delay", "延迟时间（秒），默认为5秒", "integer", False)
+Parameter("command", "IoT command to be executed (JSON format string)", "string", True),
+Parameter("delay", "Delay time (seconds), default is 5 seconds", "integer", False)
             ],
             self._start_countdown,
         )
         
         self.add_method(
             "CancelCountdown",
-            "取消指定的倒计时",
-            [Parameter("timer_id", "要取消的计时器ID", "integer", True)],
+"Cancel the specified countdown",
+[Parameter("timer_id", "Timer ID to be canceled", "integer", True)],
             self._cancel_countdown,
         )
     
     async def _start_countdown(self, params_dict):
-        # 处理必需参数
+# Process required parameters
         command_param = params_dict.get("command")
         command_str = command_param.get_value() if command_param else None
         
         if not command_str:
-            return {"status": "error", "message": "缺少 'command' 参数值"}
+return {"status": "error", "message": "Missing 'command' parameter value"}
         
-        # 处理可选参数
+# Handle optional parameters
         delay_param = params_dict.get("delay")
         delay = (
             delay_param.get_value()
@@ -294,13 +294,13 @@ class CountdownTimer(Thing):
             else 5
         )
         
-        # 验证命令格式
+# Verify command format
         try:
             json.loads(command_str)
         except json.JSONDecodeError:
-            return {"status": "error", "message": "命令格式错误，无法解析JSON"}
+return {"status": "error", "message": "The command format is wrong and JSON cannot be parsed"}
         
-        # 创建异步任务
+# Create an asynchronous task
         async with self._lock:
             timer_id = self._next_timer_id
             self._next_timer_id += 1
@@ -311,20 +311,20 @@ class CountdownTimer(Thing):
         
         return {
             "status": "success",
-            "message": f"倒计时 {timer_id} 已启动，将在 {delay} 秒后执行",
+"message": f"Countdown {timer_id} has been started and will be executed in {delay} seconds",
             "timer_id": timer_id
         }
     
     async def _delayed_execution(self, delay: int, timer_id: int, command_str: str):
         try:
             await asyncio.sleep(delay)
-            # 执行命令
+#Execute command
             command_dict = json.loads(command_str)
             thing_manager = ThingManager.get_instance()
             result = await thing_manager.invoke(command_dict)
-            print(f"倒计时 {timer_id} 执行结果: {result}")
+print(f"Countdown {timer_id} execution result: {result}")
         except asyncio.CancelledError:
-            print(f"倒计时 {timer_id} 被取消")
+print(f"Countdown {timer_id} is canceled")
         finally:
             async with self._lock:
                 self._timers.pop(timer_id, None)
@@ -334,20 +334,20 @@ class CountdownTimer(Thing):
         timer_id = timer_id_param.get_value() if timer_id_param else None
         
         if timer_id is None:
-            return {"status": "error", "message": "缺少 'timer_id' 参数值"}
+return {"status": "error", "message": "Missing 'timer_id' parameter value"}
         
         async with self._lock:
             if timer_id in self._timers:
                 task = self._timers.pop(timer_id)
                 task.cancel()
-                return {"status": "success", "message": f"倒计时 {timer_id} 已取消"}
+return {"status": "success", "message": f"Countdown {timer_id} has been canceled"}
             else:
-                return {"status": "error", "message": "计时器不存在"}
+return {"status": "error", "message": "Timer does not exist"}
 ```
 
-### 4. 多线程设备 - Camera
+### 4. Multi-threaded device - Camera
 
-集成多线程和外部服务的设备实现：
+Device implementation integrating multi-threading and external services:
 
 ```python
 import threading
@@ -358,23 +358,23 @@ from src.iot.things.CameraVL.VL import ImageAnalyzer
 
 class Camera(Thing):
     def __init__(self):
-        super().__init__("Camera", "摄像头管理")
+super().__init__("Camera", "Camera Management")
         self.cap = None
         self.is_running = False
         self.camera_thread = None
         self.result = ""
         
-        # 初始化VL分析器
+#Initialize VL analyzer
         self.VL = ImageAnalyzer.get_instance()
         
-        # 注册属性
-        self.add_property("power", "摄像头是否打开", self.get_power)
-        self.add_property("result", "识别画面的内容", self.get_result)
+#Register attributes
+self.add_property("power", "Is the camera on?", self.get_power)
+self.add_property("result", "Identify the content of the screen", self.get_result)
         
-        # 注册方法
-        self.add_method("start_camera", "打开摄像头", [], self.start_camera)
-        self.add_method("stop_camera", "关闭摄像头", [], self.stop_camera)
-        self.add_method("capture_frame_to_base64", "识别画面", [], self.capture_frame_to_base64)
+#Registration method
+self.add_method("start_camera", "Open camera", [], self.start_camera)
+self.add_method("stop_camera", "Turn off the camera", [], self.stop_camera)
+self.add_method("capture_frame_to_base64", "Recognition screen", [], self.capture_frame_to_base64)
     
     async def get_power(self):
         return self.is_running
@@ -384,32 +384,32 @@ class Camera(Thing):
     
     async def start_camera(self, params):
         if self.camera_thread and self.camera_thread.is_alive():
-            return {"status": "info", "message": "摄像头已在运行"}
+return {"status": "info", "message": "Camera is running"}
         
         self.camera_thread = threading.Thread(target=self._camera_loop, daemon=True)
         self.camera_thread.start()
-        return {"status": "success", "message": "摄像头已启动"}
+return {"status": "success", "message": "Camera has been started"}
     
     async def stop_camera(self, params):
         self.is_running = False
         if self.camera_thread:
             self.camera_thread.join()
             self.camera_thread = None
-        return {"status": "success", "message": "摄像头已停止"}
+return {"status": "success", "message": "Camera has stopped"}
     
     async def capture_frame_to_base64(self, params):
         if not self.cap or not self.cap.isOpened():
-            return {"status": "error", "message": "摄像头未打开"}
+return {"status": "error", "message": "Camera is not turned on"}
         
         ret, frame = self.cap.read()
         if not ret:
-            return {"status": "error", "message": "无法读取画面"}
+return {"status": "error", "message": "Unable to read screen"}
         
-        # 转换为base64
+# Convert to base64
         _, buffer = cv2.imencode('.jpg', frame)
         frame_base64 = base64.b64encode(buffer).decode('utf-8')
         
-        # 使用VL分析器识别画面
+# Use VL analyzer to identify the screen
         self.result = str(self.VL.analyze_image(frame_base64))
         
         return {"status": "success", "result": self.result}
@@ -433,11 +433,11 @@ class Camera(Thing):
         cv2.destroyAllWindows()
 ```
 
-## 设备注册和管理
+## Device registration and management
 
-### 1. 设备注册
+### 1. Device registration
 
-在应用程序启动时注册设备：
+Register the device when the application starts:
 
 ```python
 from src.iot.thing_manager import ThingManager
@@ -445,42 +445,42 @@ from src.iot.things.lamp import Lamp
 from src.iot.things.speaker import Speaker
 
 def initialize_iot_devices():
-    # 获取设备管理器实例
+# Get device manager instance
     manager = ThingManager.get_instance()
     
-    # 注册设备
+# Register device
     manager.add_thing(Lamp())
     manager.add_thing(Speaker())
     
-    print(f"已注册 {len(manager.things)} 个设备")
+print(f"{len(manager.things)} devices have been registered")
 ```
 
-### 2. 设备状态查询
+### 2. Equipment status query
 
 ```python
-# 获取所有设备状态
+# Get all device status
 changed, states = await manager.get_states_json(delta=False)
-print(f"设备状态: {states}")
+print(f"Device status: {states}")
 
-# 获取变化的状态（增量更新）
+# Get the changed status (incremental update)
 changed, delta_states = await manager.get_states_json(delta=True)
 if changed:
-    print(f"状态变化: {delta_states}")
+print(f"State change: {delta_states}")
 ```
 
-### 3. 设备方法调用
+### 3. Device method call
 
 ```python
-# 调用设备方法
+# Call device method
 command = {
     "name": "Lamp",
     "method": "TurnOn",
     "parameters": {}
 }
 result = await manager.invoke(command)
-print(f"执行结果: {result}")
+print(f"Execution result: {result}")
 
-# 带参数的方法调用
+# Method call with parameters
 command = {
     "name": "Speaker",
     "method": "SetVolume",
@@ -489,73 +489,73 @@ command = {
 result = await manager.invoke(command)
 ```
 
-## 开发最佳实践
+## Development Best Practices
 
-### 1. 异步编程
+### 1. Asynchronous programming
 
-**所有属性 getter 和方法 callback 必须是异步函数：**
+**All property getters and method callbacks must be asynchronous functions:**
 
 ```python
-# 正确的异步属性
+# Correct async properties
 async def get_power(self):
     return self.power
 
-# 正确的异步方法
+# Correct asynchronous method
 async def turn_on(self, params):
     self.power = True
     return {"status": "success"}
 
-# 错误：同步函数会抛出异常
+# Error: Synchronous function will throw exception
 def get_power(self):  # TypeError!
     return self.power
 ```
 
-### 2. 参数处理
+### 2. Parameter processing
 
-**正确处理必需和可选参数：**
+**Correct handling of required and optional parameters:**
 
 ```python
 async def my_method(self, params):
-    # 处理必需参数
+# Process required parameters
     required_value = params["required_param"].get_value()
     
-    # 处理可选参数
+# Handle optional parameters
     optional_value = None
     if "optional_param" in params:
         optional_value = params["optional_param"].get_value()
     
-    # 参数验证
+# Parameter validation
     if not isinstance(required_value, str):
-        return {"status": "error", "message": "参数类型错误"}
+return {"status": "error", "message": "Wrong parameter type"}
     
     return {"status": "success", "result": required_value}
 ```
 
-### 3. 错误处理
+### 3. Error handling
 
-**实现适当的错误处理：**
+**Implement proper error handling:**
 
 ```python
 async def risky_operation(self, params):
     try:
-        # 执行可能失败的操作
+# Perform operations that may fail
         result = await self.perform_operation()
         return {"status": "success", "result": result}
     except ValueError as e:
-        return {"status": "error", "message": f"参数错误: {e}"}
+return {"status": "error", "message": f"Parameter error: {e}"}
     except Exception as e:
-        logger.error(f"操作失败: {e}", exc_info=True)
-        return {"status": "error", "message": "操作失败"}
+logger.error(f"Operation failed: {e}", exc_info=True)
+return {"status": "error", "message": "Operation failed"}
 ```
 
-### 4. 资源管理
+### 4. Resource Management
 
-**正确管理设备资源：**
+**Properly manage device resources:**
 
 ```python
 class MyDevice(Thing):
     def __init__(self):
-        super().__init__("MyDevice", "我的设备")
+super().__init__("MyDevice", "My device")
         self.resource = None
         self._lock = asyncio.Lock()
     
@@ -566,58 +566,58 @@ class MyDevice(Thing):
             return {"status": "success"}
     
     async def cleanup(self):
-        """设备清理方法"""
+"""Device cleaning method"""
         if self.resource:
             await self.resource.close()
             self.resource = None
 ```
 
-### 5. 日志记录
+### 5. Logging
 
-**使用统一的日志系统：**
+**Use a unified logging system:**
 
 ```python
 from src.utils.logging_config import get_logger
 
 class MyDevice(Thing):
     def __init__(self):
-        super().__init__("MyDevice", "我的设备")
+super().__init__("MyDevice", "My device")
         self.logger = get_logger(self.__class__.__name__)
     
     async def my_method(self, params):
-        self.logger.info("方法被调用")
+self.logger.info("Method was called")
         try:
             result = await self.perform_operation()
-            self.logger.info(f"操作成功: {result}")
+self.logger.info(f"Operation successful: {result}")
             return {"status": "success", "result": result}
         except Exception as e:
-            self.logger.error(f"操作失败: {e}", exc_info=True)
+self.logger.error(f"Operation failed: {e}", exc_info=True)
             return {"status": "error", "message": str(e)}
 ```
 
-## 迁移说明
+## Migration instructions
 
-**重要提示**: 项目正在从 IoT 设备模式向 MCP (Model Context Protocol) 工具模式迁移：
+**Important note**: The project is migrating from IoT device mode to MCP (Model Context Protocol) tool mode:
 
-1. **倒计时器**: 已迁移到 MCP 工具，提供更好的 AI 集成
-2. **其他设备**: 根据复杂度可能会陆续迁移
-3. **新功能**: 建议考虑直接使用 MCP 工具框架
+1. **Countdown Timer**: Migrated to MCP tool to provide better AI integration
+2. **Other devices**: May be migrated gradually depending on complexity
+3. **New Feature**: It is recommended to consider using the MCP tool framework directly
 
-当前 IoT 架构仍然稳定可用，适合：
+The current IoT architecture is still stable and available, suitable for:
 
-- 简单的设备控制
-- 学习和演示
-- 快速原型开发
+- Simple device control
+- Learn and demonstrate
+- Rapid prototyping
 
-## 注意事项
+## Notes
 
-1. **异步要求**: 所有属性 getter 和方法 callback 必须是异步函数
-2. **参数处理**: 方法参数通过 Parameter 对象传递，需要调用 `get_value()` 获取值
-3. **错误处理**: 实现适当的错误处理和反馈机制
-4. **资源管理**: 正确管理设备资源，避免资源泄漏
-5. **设备名称**: 确保设备名称全局唯一
-6. **返回格式**: 方法返回应包含 `status` 和 `message` 字段
+1. **Asynchronous requirements**: All property getters and method callbacks must be asynchronous functions
+2. **Parameter processing**: Method parameters are passed through Parameter objects, and you need to call `get_value()` to obtain the value.
+3. **Error Handling**: Implement appropriate error handling and feedback mechanisms
+4. **Resource Management**: Manage device resources correctly to avoid resource leakage
+5. **Device Name**: Ensure that the device name is globally unique
+6. **Return format**: The method return should contain the `status` and `message` fields
 
-## 总结
+## Summarize
 
-py-xiaozhi 的 IoT 架构提供了完整的设备抽象和管理框架，支持异步操作、类型安全和状态管理。通过遵循本指南的最佳实践，可以快速开发出稳定可靠的 IoT 设备。随着项目向 MCP 工具模式迁移，建议新功能考虑使用 MCP 工具框架。
+py-xiaozhi's IoT architecture provides a complete device abstraction and management framework, supporting asynchronous operations, type safety and state management. By following the best practices in this guide, you can quickly develop stable and reliable IoT devices. As projects migrate to the MCP tooling model, it is recommended that new features consider using the MCP tooling framework.

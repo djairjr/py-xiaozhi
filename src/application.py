@@ -4,7 +4,7 @@ import threading
 from pathlib import Path
 from typing import Any, Awaitable
 
-# 允许作为脚本直接运行：把项目根目录加入 sys.path（src 的上一级）
+# Allow running directly as a script: add the project root directory to sys.path (the upper level of src)
 try:
     project_root = Path(__file__).resolve().parents[1]
     if str(project_root) not in sys.path:
@@ -44,20 +44,20 @@ class Application:
 
     def __init__(self):
         if Application._instance is not None:
-            logger.error("尝试创建Application的多个实例")
-            raise Exception("Application是单例类，请使用get_instance()获取实例")
+            logger.error("Try to create multiple instances of Application")
+            raise Exception("Application is a singleton class, please use get_instance() to get the instance")
         Application._instance = self
 
-        logger.debug("初始化Application实例")
+        logger.debug("Initialize Application instance")
 
-        # 配置
+        # Configuration
         self.config = ConfigManager.get_instance()
 
-        # 状态
+        # state
         self.running = False
         self.protocol = None
 
-        # 设备状态（仅主程序改写，插件只读）
+        # Device status (only the main program can rewrite, the plug-in can only read)
         self.device_state = DeviceState.IDLE
         try:
             aec_enabled_cfg = bool(self.config.get_config("AEC_OPTIONS.ENABLED", True))
@@ -69,37 +69,37 @@ class Application:
         )
         self.keep_listening = False
 
-        # 统一任务池（替代 _main_tasks/_bg_tasks）
+        # Unified task pool (replaces _main_tasks/_bg_tasks)
         self._tasks: set[asyncio.Task] = set()
 
-        # 关停事件
+        # shutdown event
         self._shutdown_event: asyncio.Event | None = None
 
-        # 事件循环
+        # event loop
         self._main_loop: asyncio.AbstractEventLoop | None = None
 
-        # 并发控制
+        # Concurrency control
         self._state_lock: asyncio.Lock | None = None
         self._connect_lock: asyncio.Lock | None = None
 
-        # 插件
+        # plug-in
         self.plugins = PluginManager()
 
     # -------------------------
-    # 生命周期
+    # life cycle
     # -------------------------
     async def run(self, *, protocol: str = "websocket", mode: str = "gui") -> int:
-        logger.info("启动Application，protocol=%s", protocol)
+        logger.info("Start Application, protocol=%s", protocol)
         try:
             self.running = True
             self._main_loop = asyncio.get_running_loop()
             self._initialize_async_objects()
             self._set_protocol(protocol)
             self._setup_protocol_callbacks()
-            # 插件：setup（延迟导入AudioPlugin，确保上面setup_opus已执行）
+            # Plug-in: setup (delay the import of AudioPlugin, ensure that the above setup_opus has been executed)
             from src.plugins.audio import AudioPlugin
 
-            # 注册音频、UI、MCP、IoT、唤醒词、快捷键与日程插件（UI模式从run参数传入）
+            # Register audio, UI, MCP, IoT, wake words, shortcut keys and schedule plug-ins (UI mode is passed in from the run parameter)
             self.plugins.register(
                 McpPlugin(),
                 IoTPlugin(),
@@ -110,44 +110,42 @@ class Application:
                 ShortcutsPlugin(),
             )
             await self.plugins.setup_all(self)
-            # 启动后广播初始状态，确保 UI 就绪时能看到“待命”
+            # Broadcast the initial state after startup to ensure that "Standby" can be seen when the UI is ready
             try:
                 await self.plugins.notify_device_state_changed(self.device_state)
             except Exception:
                 pass
             # await self.connect_protocol()
-            # 插件：start
+            # Plugin: start
             await self.plugins.start_all()
-            # 等待关停
+            # Waiting for shutdown
             await self._wait_shutdown()
             return 0
 
         except Exception as e:
-            logger.error(f"应用运行失败: {e}", exc_info=True)
+            logger.error(f"Application failed: {e}", exc_info=True)
             return 1
         finally:
             try:
                 await self.shutdown()
             except Exception as e:
-                logger.error(f"关闭应用时出错: {e}")
+                logger.error(f"Error closing app: {e}")
 
     async def connect_protocol(self):
-        """
-        确保协议通道打开并广播一次协议就绪。返回是否已打开。
-        """
-        # 已打开直接返回
+        """Make sure the protocol channel is open and broadcast once that the protocol is ready. Returns whether it is opened."""
+        # Opened and return directly
         try:
             if self.is_audio_channel_opened():
                 return True
             if not self._connect_lock:
-                # 未初始化锁时，直接尝试一次
+                # When the lock is not initialized, try it directly.
                 opened = await asyncio.wait_for(
                     self.protocol.open_audio_channel(), timeout=12.0
                 )
                 if not opened:
-                    logger.error("协议连接失败")
+                    logger.error("Protocol connection failed")
                     return False
-                logger.info("协议连接已建立，按Ctrl+C退出")
+                logger.info("The protocol connection has been established. Press Ctrl+C to exit.")
                 await self.plugins.notify_protocol_connected(self.protocol)
                 return True
 
@@ -158,30 +156,30 @@ class Application:
                     self.protocol.open_audio_channel(), timeout=12.0
                 )
                 if not opened:
-                    logger.error("协议连接失败")
+                    logger.error("Protocol connection failed")
                     return False
-                logger.info("协议连接已建立，按Ctrl+C退出")
+                logger.info("The protocol connection has been established. Press Ctrl+C to exit.")
                 await self.plugins.notify_protocol_connected(self.protocol)
                 return True
         except asyncio.TimeoutError:
-            logger.error("协议连接超时")
+            logger.error("Protocol connection timeout")
             return False
 
     def _initialize_async_objects(self) -> None:
-        logger.debug("初始化异步对象")
+        logger.debug("Initialize an asynchronous object")
         self._shutdown_event = asyncio.Event()
         self._state_lock = asyncio.Lock()
         self._connect_lock = asyncio.Lock()
 
     def _set_protocol(self, protocol_type: str) -> None:
-        logger.debug("设置协议类型: %s", protocol_type)
+        logger.debug("Set protocol type: %s", protocol_type)
         if protocol_type == "mqtt":
             self.protocol = MqttProtocol(asyncio.get_running_loop())
         else:
             self.protocol = WebsocketProtocol()
 
     # -------------------------
-    # 手动聆听（按住说话）
+    # Manual listening (press and hold to talk)
     # -------------------------
     async def start_listening_manual(self) -> None:
         try:
@@ -190,9 +188,9 @@ class Application:
                 return
             self.keep_listening = False
 
-            # 如果说话中发送打断
+            # If interrupt is sent while speaking
             if self.device_state == DeviceState.SPEAKING:
-                logger.info("说话中发送打断")
+                logger.info("Send interruption while speaking")
                 await self.protocol.send_abort_speaking(None)
                 await self.set_device_state(DeviceState.IDLE)
             await self.protocol.send_start_listening(ListeningMode.MANUAL)
@@ -208,7 +206,7 @@ class Application:
             pass
 
     # -------------------------
-    # 自动/实时对话：根据 AEC 与当前配置选择模式，开启保持会话
+    # Automatic/real-time conversation: select mode based on AEC and current configuration, enable persistent session
     # -------------------------
     async def start_auto_conversation(self) -> None:
         try:
@@ -237,14 +235,12 @@ class Application:
         await self._shutdown_event.wait()
 
     # -------------------------
-    # 统一任务管理（精简）
+    # Unified task management (streamlined)
     # -------------------------
     def spawn(self, coro: Awaitable[Any], name: str) -> asyncio.Task:
-        """
-        创建任务并登记，关停时统一取消。
-        """
+        """Create tasks and register them, and cancel them when shutting down."""
         if not self.running or (self._shutdown_event and self._shutdown_event.is_set()):
-            logger.debug(f"跳过任务创建（应用正在关闭）: {name}")
+            logger.debug(f"Skip task creation (app is closing): {name}")
             return None
         task = asyncio.create_task(coro, name=name)
         self._tasks.add(task)
@@ -252,19 +248,18 @@ class Application:
         def _done(t: asyncio.Task):
             self._tasks.discard(t)
             if not t.cancelled() and t.exception():
-                logger.error(f"任务 {name} 异常结束: {t.exception()}", exc_info=True)
+                logger.error(f"Task {name} ended abnormally: {t.exception()}", exc_info=True)
 
         task.add_done_callback(_done)
         return task
 
     def schedule_command_nowait(self, fn, *args, **kwargs) -> None:
-        """简化的“立即调度”：把任意可调用丢回主loop执行。
+        """Simplified "immediate dispatch": throw any callable back to the main loop for execution.
 
-        - 若返回协程，会被自动创建子任务执行（fire-and-forget）。
-        - 若是同步函数，直接在事件循环线程里运行（尽量保持轻量）。
-        """
+        - If you return to the coroutine, a subtask will be automatically created for execution (fire-and-forget).
+        - If it is a synchronous function, run it directly in the event loop thread (try to keep it as lightweight as possible)."""
         if not self._main_loop or self._main_loop.is_closed():
-            logger.warning("主事件循环未就绪，拒绝调度")
+            logger.warning("Main event loop is not ready, refusing to schedule")
             return
 
         def _runner():
@@ -273,37 +268,37 @@ class Application:
                 if asyncio.iscoroutine(res):
                     self.spawn(res, name=f"call:{getattr(fn, '__name__', 'anon')}")
             except Exception as e:
-                logger.error(f"调度的可调用执行失败: {e}", exc_info=True)
+                logger.error(f"Scheduled callable execution failed: {e}", exc_info=True)
 
-        # 确保在事件循环线程里执行
+        # Make sure to execute in the event loop thread
         self._main_loop.call_soon_threadsafe(_runner)
 
     # -------------------------
-    # 协议回调
+    # Protocol callback
     # -------------------------
     def _on_network_error(self, error_message=None):
         if error_message:
             logger.error(error_message)
 
         self.keep_listening = False
-        # 出错即请求关闭
+        # Request to close on error
         # if self._shutdown_event and not self._shutdown_event.is_set():
         #     self._shutdown_event.set()
 
     def _on_incoming_audio(self, data: bytes):
-        logger.debug(f"收到二进制消息，长度: {len(data)}")
-        # 转发给插件
+        logger.debug(f"Received binary message, length: {len(data)}")
+        # Forward to plugin
         self.spawn(self.plugins.notify_incoming_audio(data), "plugin:on_audio")
 
     def _on_incoming_json(self, json_data):
         try:
             msg_type = json_data.get("type") if isinstance(json_data, dict) else None
-            logger.info(f"收到JSON消息: type={msg_type}")
-            # 将 TTS start/stop 映射为设备状态（支持自动/实时，且不污染手动模式）
+            logger.info(f"Received JSON message: type={msg_type}")
+            # Map TTS start/stop to device status (supports automatic/real-time and does not pollute manual mode)
             if msg_type == "tts":
                 state = json_data.get("state")
                 if state == "start":
-                    # 仅当保持会话且实时模式时，TTS开始期间保持LISTENING；否则显示SPEAKING
+                    # LISTENING is maintained during the start of TTS only when the session is maintained and in real-time mode; otherwise SPEAKING is displayed
                     if (
                         self.keep_listening
                         and self.listening_mode == ListeningMode.REALTIME
@@ -319,10 +314,10 @@ class Application:
                         )
                 elif state == "stop":
                     if self.keep_listening:
-                        # 继续对话：根据当前模式重启监听
+                        # Continue the conversation: Restart monitoring according to the current mode
                         async def _restart_listening():
                             try:
-                                # REALTIME 且已在 LISTENING 时无需重复发送
+                                # REALTIME and no need to send again when LISTENING
                                 if not (
                                     self.listening_mode == ListeningMode.REALTIME
                                     and self.device_state == DeviceState.LISTENING
@@ -342,25 +337,23 @@ class Application:
                             self.set_device_state(DeviceState.IDLE),
                             "state:tts_stop_idle",
                         )
-            # 转发给插件
+            # Forward to plugin
             self.spawn(self.plugins.notify_incoming_json(json_data), "plugin:on_json")
         except Exception:
-            logger.info("收到JSON消息")
+            logger.info("Receive JSON message")
 
     async def _on_audio_channel_opened(self):
-        logger.info("协议通道已打开")
-        # 通道打开后进入 LISTENING（：简化为直读直写）
+        logger.info("The protocol channel is open")
+        # After the channel is opened, enter LISTENING (: simplified to direct reading and writing)
         await self.set_device_state(DeviceState.LISTENING)
 
     async def _on_audio_channel_closed(self):
-        logger.info("协议通道已关闭")
-        # 通道关闭回到 IDLE
+        logger.info("The protocol channel is closed")
+        # Channel closes back to IDLE
         await self.set_device_state(DeviceState.IDLE)
 
     async def set_device_state(self, state: DeviceState):
-        """
-        仅供主程序内部调用：设置设备状态。插件请只读获取。
-        """
+        """Only called internally by the main program: Set device status. Please read-only access the plug-in."""
         # print(f"set_device_state: {state}")
         if not self._state_lock:
             self.device_state = state
@@ -372,9 +365,9 @@ class Application:
         async with self._state_lock:
             if self.device_state == state:
                 return
-            logger.info(f"设置设备状态: {state}")
+            logger.info(f"Set device state: {state}")
             self.device_state = state
-        # 锁外广播，避免插件回调引起潜在的长耗时阻塞
+        # Broadcast outside the lock to avoid potential long-term blocking caused by plug-in callbacks
         try:
             await self.plugins.notify_device_state_changed(state)
             if state == DeviceState.LISTENING:
@@ -384,7 +377,7 @@ class Application:
             pass
 
     # -------------------------
-    # 只读访问器（提供给插件使用）
+    # Read-only accessor (for plug-ins)
     # -------------------------
     def get_device_state(self):
         return self.device_state
@@ -419,55 +412,50 @@ class Application:
         }
 
     async def abort_speaking(self, reason):
-        """
-        中止语音输出.
-        """
+        """Stop speech output."""
 
         if self.aborted:
-            logger.debug(f"已经中止，忽略重复的中止请求: {reason}")
+            logger.debug(f"Already aborted, ignore repeated abort requests: {reason}")
             return
 
-        logger.info(f"中止语音输出，原因: {reason}")
+        logger.info(f"Abort speech output, reason: {reason}")
         self.aborted = True
         await self.protocol.send_abort_speaking(reason)
         await self.set_device_state(DeviceState.IDLE)
 
     # -------------------------
-    # UI 辅助：供插件或工具直接调用
+    # UI auxiliary: directly called by plug-ins or tools
     # -------------------------
     def set_chat_message(self, role, message: str) -> None:
-        """将文本更新转发为 UI 可识别的 JSON 消息（复用 UIPlugin 的 on_incoming_json）。
-        role: "assistant" | "user" 影响消息类型映射。
-        """
+        """Forward text updates into a UI-recognizable JSON message (reusing UIPlugin's on_incoming_json).
+        role:"assistant" | "user"Affects message type mapping."""
         try:
             msg_type = "tts" if str(role).lower() == "assistant" else "stt"
         except Exception:
             msg_type = "tts"
         payload = {"type": msg_type, "text": message}
-        # 通过插件事件总线异步派发
+        # Asynchronously dispatched via the plugin event bus
         self.spawn(self.plugins.notify_incoming_json(payload), "ui:text_update")
 
     def set_emotion(self, emotion: str) -> None:
-        """
-        设置情绪表情：通过 UIPlugin 的 on_incoming_json 路由。
-        """
+        """Set emoticons: via UIPlugin’s on_incoming_json route."""
         payload = {"type": "llm", "emotion": emotion}
         self.spawn(self.plugins.notify_incoming_json(payload), "ui:emotion_update")
 
     # -------------------------
-    # 关停
+    # shut down
     # -------------------------
     async def shutdown(self):
         if not self.running:
             return
-        logger.info("正在关闭Application...")
+        logger.info("Closing Application...")
         self.running = False
 
         if self._shutdown_event is not None:
             self._shutdown_event.set()
 
         try:
-            # 取消所有登记任务
+            # Cancel all registration tasks
             if self._tasks:
                 for t in list(self._tasks):
                     if not t.done():
@@ -475,17 +463,17 @@ class Application:
                 await asyncio.gather(*self._tasks, return_exceptions=True)
                 self._tasks.clear()
 
-            # 关闭协议（限时，避免阻塞退出）
+            # Close the protocol (limited time, avoid blocking exit)
             if self.protocol:
                 try:
                     try:
                         self._main_loop.create_task(self.protocol.close_audio_channel())
                     except asyncio.TimeoutError:
-                        logger.warning("关闭协议超时，跳过等待")
+                        logger.warning("Turn off protocol timeout, skip waiting")
                 except Exception as e:
-                    logger.error(f"关闭协议失败: {e}")
+                    logger.error(f"Failed to close protocol: {e}")
 
-            # 插件：stop/shutdown
+            # Plug-in: stop/shutdown
             try:
                 await self.plugins.stop_all()
             except Exception:
@@ -495,6 +483,6 @@ class Application:
             except Exception:
                 pass
 
-            logger.info("Application 关闭完成")
+            logger.info("Application close completed")
         except Exception as e:
-            logger.error(f"关闭应用时出错: {e}", exc_info=True)
+            logger.error(f"Error closing app: {e}", exc_info=True)

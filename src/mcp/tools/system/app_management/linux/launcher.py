@@ -1,7 +1,6 @@
-"""Linux系统应用程序启动器.
+"""Linux system application launcher.
 
-提供Linux平台下的应用程序启动功能
-"""
+Provide application startup function under Linux platform"""
 
 import os
 import subprocess
@@ -12,45 +11,44 @@ logger = get_logger(__name__)
 
 
 def launch_application(app_name: str) -> bool:
-    """在Linux上启动应用程序.
+    """Launch the application on Linux.
 
     Args:
-        app_name: 应用程序名称
+        app_name: application name
 
     Returns:
-        bool: 启动是否成功
-    """
+        bool: whether the startup was successful"""
     try:
-        logger.info(f"[LinuxLauncher] 启动应用程序: {app_name}")
+        logger.info(f"[LinuxLauncher] Launch application: {app_name}")
 
-        # 方法1: 直接使用应用程序名称
+        # Method 1: Use the application name directly
         try:
             subprocess.Popen([app_name])
-            logger.info(f"[LinuxLauncher] 直接启动成功: {app_name}")
+            logger.info(f"[LinuxLauncher] Successfully started directly: {app_name}")
             return True
         except (OSError, subprocess.SubprocessError):
-            logger.debug(f"[LinuxLauncher] 直接启动失败: {app_name}")
+            logger.debug(f"[LinuxLauncher] Direct launch failed: {app_name}")
 
-        # 方法2: 使用which查找应用程序路径
+        # Method 2: Use which to find the application path
         try:
             result = subprocess.run(["which", app_name], capture_output=True, text=True)
             if result.returncode == 0:
                 app_path = result.stdout.strip()
                 subprocess.Popen([app_path])
-                logger.info(f"[LinuxLauncher] 通过which启动成功: {app_name}")
+                logger.info(f"[LinuxLauncher] Successfully launched via which: {app_name}")
                 return True
         except (OSError, subprocess.SubprocessError):
-            logger.debug(f"[LinuxLauncher] which启动失败: {app_name}")
+            logger.debug(f"[LinuxLauncher] which failed to launch: {app_name}")
 
-        # 方法3: 使用xdg-open（适用于桌面环境）
+        # Method 3: Use xdg-open (for desktop environments)
         try:
             subprocess.Popen(["xdg-open", app_name])
-            logger.info(f"[LinuxLauncher] 使用xdg-open启动成功: {app_name}")
+            logger.info(f"[LinuxLauncher] Launched successfully using xdg-open: {app_name}")
             return True
         except (OSError, subprocess.SubprocessError):
-            logger.debug(f"[LinuxLauncher] xdg-open启动失败: {app_name}")
+            logger.debug(f"[LinuxLauncher] xdg-open failed to start: {app_name}")
 
-        # 方法4: 尝试常见的应用程序路径
+        # Method 4: Try common application paths
         common_paths = [
             f"/usr/bin/{app_name}",
             f"/usr/local/bin/{app_name}",
@@ -62,11 +60,11 @@ def launch_application(app_name: str) -> bool:
             if os.path.exists(path):
                 subprocess.Popen([path])
                 logger.info(
-                    f"[LinuxLauncher] 通过常见路径启动成功: {app_name} ({path})"
+                    f"[LinuxLauncher] Launched successfully via common path: {app_name} ({path})"
                 )
                 return True
 
-        # 方法5: 尝试.desktop文件启动
+        # Method 5: Try to launch the .desktop file
         desktop_dirs = [
             "/usr/share/applications",
             "/usr/local/share/applications",
@@ -77,12 +75,12 @@ def launch_application(app_name: str) -> bool:
             desktop_file = os.path.join(desktop_dir, f"{app_name}.desktop")
             if os.path.exists(desktop_file):
                 subprocess.Popen(["gtk-launch", f"{app_name}.desktop"])
-                logger.info(f"[LinuxLauncher] 通过desktop文件启动成功: {app_name}")
+                logger.info(f"[LinuxLauncher] Successfully launched through desktop file: {app_name}")
                 return True
 
-        logger.warning(f"[LinuxLauncher] 所有Linux启动方法都失败了: {app_name}")
+        logger.warning(f"[LinuxLauncher] All Linux launch methods failed: {app_name}")
         return False
 
     except Exception as e:
-        logger.error(f"[LinuxLauncher] Linux启动失败: {e}")
+        logger.error(f"[LinuxLauncher] Linux startup failed: {e}")
         return False

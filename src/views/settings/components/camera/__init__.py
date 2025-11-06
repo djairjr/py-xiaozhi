@@ -1,6 +1,4 @@
-"""
-摄像头设置组件.
-"""
+"""Camera settings component."""
 
 from .camera_widget import CameraWidget
 

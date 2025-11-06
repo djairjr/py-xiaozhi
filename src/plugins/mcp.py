@@ -16,7 +16,7 @@ class McpPlugin(Plugin):
         self.app = app
         self._server = McpServer.get_instance()
 
-        # 通过应用协议发送MCP响应
+        # Send MCP response via application protocol
         async def _send(msg: str):
             try:
                 if not self.app or not getattr(self.app, "protocol", None):
@@ -27,9 +27,9 @@ class McpPlugin(Plugin):
 
         try:
             self._server.set_send_callback(_send)
-            # 注册通用工具（包含 calendar 工具）。提醒服务的运行改由 CalendarPlugin 管理
+            # Register common tools (including the calendar tool). The operation of the reminder service is changed to be managed by CalendarPlugin
             self._server.add_common_tools()
-            # 若音乐播放器存在，将其app引用指向当前应用（example模式下用于UI更新）
+            # If the music player exists, point its app reference to the current application (used for UI updates in example mode)
             try:
                 from src.mcp.tools.music import get_music_player_instance
 
@@ -59,7 +59,7 @@ class McpPlugin(Plugin):
             pass
 
     async def shutdown(self) -> None:
-        # 可选：解除回调引用，帮助GC
+        # Optional: Dereference the callback to help GC
         try:
             if self._server:
                 self._server.set_send_callback(None)  # type: ignore[arg-type]

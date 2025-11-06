@@ -1,4 +1,4 @@
-# 在导入 opuslib 之前处理 opus 动态库
+# Process opus dynamic library before importing opuslib
 import ctypes
 import os
 import platform
@@ -8,34 +8,34 @@ from enum import Enum
 from pathlib import Path
 from typing import List, Tuple, Union, cast
 
-# 获取日志记录器
+# Get logger
 from src.utils.logging_config import get_logger
 
 logger = get_logger(__name__)
 
 
-# 平台常量定义
+# Platform constant definition
 class PLATFORM(Enum):
     WINDOWS = "windows"
     MACOS = "darwin"
     LINUX = "linux"
 
 
-# 架构常量定义
+# Architectural constant definition
 class ARCH(Enum):
     WINDOWS = {"arm": "x64", "intel": "x64"}
     MACOS = {"arm": "arm64", "intel": "x64"}
     LINUX = {"arm": "arm64", "intel": "x64"}
 
 
-# 动态链接库路径常量定义
+# Dynamic link library path constant definition
 class LIB_PATH(Enum):
     WINDOWS = "libs/libopus/win/x64"
     MACOS = "libs/libopus/mac/{arch}"
     LINUX = "libs/libopus/linux/{arch}"
 
 
-# 动态链接库名称常量定义
+# Dynamic link library name constant definition
 class LIB_INFO(Enum):
     WINDOWS = {"name": "opus.dll", "system_name": ["opus"]}
     MACOS = {"name": "libopus.dylib", "system_name": ["libopus.dylib"]}
@@ -76,15 +76,14 @@ def get_lib_path(system: PLATFORM, arch_name: str):
 
 
 def get_lib_name(system: PLATFORM, local: bool = True) -> Union[str, List[str]]:
-    """获取库名称.
+    """Get the library name.
 
     Args:
-        system (PLATFORM): 平台
-        local (bool, optional): 是否获取本地名称(str), 默认为 True. 如果为 False, 则获取系统名称列表(List).
+        system (PLATFORM): platform
+        local (bool, optional): Whether to get the local name (str), the default is True. If it is False, get the system name list (List).
 
     Returns:
-        str | List: 库名称
-    """
+        str | List: library name"""
     key = "name" if local else "system_name"
     if system == PLATFORM.WINDOWS:
         lib_name = LIB_INFO.WINDOWS.value[key]
@@ -96,30 +95,26 @@ def get_lib_name(system: PLATFORM, local: bool = True) -> Union[str, List[str]]:
 
 
 def get_system_info() -> Tuple[str, str]:
-    """
-    获取当前系统信息.
-    """
-    # 标准化系统名称
+    """Get current system information."""
+    # Standardized system name
     system = get_platform()
 
-    # 标准化架构名称
+    # Standardized schema name
     _, arch_name = get_arch(system)
-    logger.info(f"检测到系统: {system}, 架构: {arch_name}")
+    logger.info(f"Detected system: {system}, architecture: {arch_name}")
 
     return system, arch_name
 
 
 def get_search_paths(system: PLATFORM, arch_name: str) -> List[Tuple[Path, str]]:
-    """
-    获取库文件搜索路径列表（使用统一的资源查找器）
-    """
+    """Get a list of library file search paths (using Unified Resource Finder)"""
     from .resource_finder import find_libs_dir, get_project_root
 
     lib_name = cast(str, get_lib_name(system))
 
     search_paths: List[Tuple[Path, str]] = []
 
-    # 映射系统名称到目录名称
+    # Mapping system names to directory names
     system_dir_map = {
         PLATFORM.WINDOWS: "win",
         PLATFORM.MACOS: "mac",
@@ -128,131 +123,125 @@ def get_search_paths(system: PLATFORM, arch_name: str) -> List[Tuple[Path, str]]
 
     system_dir = system_dir_map.get(system)
 
-    # 首先尝试查找特定平台和架构的libs目录
+    # First try to find the libs directory for your specific platform and architecture
     if system_dir:
         specific_libs_dir = find_libs_dir(f"libopus/{system_dir}", arch_name)
         if specific_libs_dir:
             search_paths.append((specific_libs_dir, lib_name))
-            logger.debug(f"找到特定平台架构libs目录: {specific_libs_dir}")
+            logger.debug(f"Find the specific platform architecture libs directory: {specific_libs_dir}")
 
-    # 然后查找特定平台的libs目录
+    # Then look for the libs directory for the specific platform
     if system_dir:
         platform_libs_dir = find_libs_dir(f"libopus/{system_dir}")
         if platform_libs_dir:
             search_paths.append((platform_libs_dir, lib_name))
-            logger.debug(f"找到特定平台libs目录: {platform_libs_dir}")
+            logger.debug(f"Find the platform-specific libs directory: {platform_libs_dir}")
 
-    # 查找通用libs目录
+    # Find common libs directory
     general_libs_dir = find_libs_dir()
     if general_libs_dir:
         search_paths.append((general_libs_dir, lib_name))
-        logger.debug(f"添加通用libs目录: {general_libs_dir}")
+        logger.debug(f"Add general libs directory: {general_libs_dir}")
 
-    # 添加项目根目录作为最后的备选
+    # Add the project root directory as a last resort
     project_root = get_project_root()
     search_paths.append((project_root, lib_name))
 
-    # 打印所有搜索路径，帮助调试
+    # Print all search paths to help debugging
     for dir_path, filename in search_paths:
         full_path = dir_path / filename
-        logger.debug(f"搜索路径: {full_path} (存在: {full_path.exists()})")
+        logger.debug(f"Search path: {full_path} (Exists: {full_path.exists()})")
     return search_paths
 
 
 def find_system_opus() -> str:
-    """
-    从系统路径查找opus库.
-    """
+    """Find the opus library from the system path."""
     system, _ = get_system_info()
     lib_path = ""
 
     try:
-        # 获取系统上opus库的名称
+        # Get the name of the opus library on the system
         lib_names = cast(List[str], get_lib_name(system, False))
 
-        # 尝试加载每个可能的名称
+        # Try loading every possible name
         for lib_name in lib_names:
             try:
-                # 导入ctypes.util以使用find_library函数
+                # Import ctypes.util to use find_library function
                 import ctypes.util
 
                 system_lib_path = ctypes.util.find_library(lib_name)
 
                 if system_lib_path:
                     lib_path = system_lib_path
-                    logger.info(f"在系统路径中找到opus库: {lib_path}")
+                    logger.info(f"Find the opus library in the system path: {lib_path}")
                     break
                 else:
-                    # 直接尝试加载库名
+                    # Directly try to load the library name
                     ctypes.cdll.LoadLibrary(lib_name)
                     lib_path = lib_name
-                    logger.info(f"直接加载系统opus库: {lib_name}")
+                    logger.info(f"Directly load the system opus library: {lib_name}")
                     break
             except Exception as e:
-                logger.debug(f"加载系统库 {lib_name} 失败: {e}")
+                logger.debug(f"Failed to load system library {lib_name}: {e}")
                 continue
 
     except Exception as e:
-        logger.error(f"查找系统opus库失败: {e}")
+        logger.error(f"Failed to find system opus library: {e}")
 
     return lib_path
 
 
 def copy_opus_to_project(system_lib_path):
-    """
-    将系统库复制到项目目录.
-    """
+    """Copy the system libraries to the project directory."""
     from .resource_finder import get_project_root
 
     system, arch_name = get_system_info()
 
     if not system_lib_path:
-        logger.error("无法复制opus库：系统库路径为空")
+        logger.error("Unable to copy opus library: system library path is empty")
         return None
 
     try:
-        # 使用resource_finder获取项目根目录
+        # Use resource_finder to get the project root directory
         project_root = get_project_root()
 
-        # 获取目标目录路径 - 使用实际目录结构
+        # Get target directory path - use actual directory structure
         target_path = get_lib_path(system, arch_name)
         target_dir = project_root / target_path
 
-        # 创建目标目录(如果不存在)
+        # Create the target directory if it does not exist
         target_dir.mkdir(parents=True, exist_ok=True)
 
-        # 确定目标文件名
+        # Determine the target file name
         lib_name = cast(str, get_lib_name(system))
         target_file = target_dir / lib_name
 
-        # 复制文件
+        # Copy files
         shutil.copy2(system_lib_path, target_file)
-        logger.info(f"已将opus库从 {system_lib_path} 复制到 {target_file}")
+        logger.info(f"Copied opus library from {system_lib_path} to {target_file}")
 
         return str(target_file)
 
     except Exception as e:
-        logger.error(f"复制opus库到项目目录失败: {e}")
+        logger.error(f"Failed to copy opus library to project directory: {e}")
         return None
 
 
 def setup_opus() -> bool:
-    """
-    设置opus动态库.
-    """
-    # 检查是否已经由runtime_hook加载
+    """Set up opus dynamic library."""
+    # Check if it has been loaded by runtime_hook
     if hasattr(sys, "_opus_loaded"):
-        logger.info("opus库已由运行时钩子加载")
+        logger.info("opus library has been loaded by runtime hook")
         return True
 
-    # 获取当前系统信息
+    # Get current system information
     system, arch_name = get_system_info()
-    logger.info(f"当前系统: {system}, 架构: {arch_name}")
+    logger.info(f"Current system: {system}, architecture: {arch_name}")
 
-    # 构建搜索路径
+    # Build search path
     search_paths = get_search_paths(system, arch_name)
 
-    # 查找本地库文件
+    # Find local library files
     lib_path = ""
     lib_dir = ""
 
@@ -261,67 +250,65 @@ def setup_opus() -> bool:
         if full_path.exists():
             lib_path = str(full_path)
             lib_dir = str(dir_path)
-            logger.info(f"找到opus库文件: {lib_path}")
+            logger.info(f"Find the opus library file: {lib_path}")
             break
 
-    # 如果本地没找到，尝试从系统查找
+    # If not found locally, try to find it from the system
     if not lib_path:
-        logger.warning("本地未找到opus库文件，尝试从系统路径加载")
+        logger.warning("The opus library file was not found locally. Try loading it from the system path.")
         system_lib_path = find_system_opus()
 
         if system_lib_path:
-            # 首次尝试直接使用系统库
+            # First attempt to use system libraries directly
             try:
                 _ = ctypes.cdll.LoadLibrary(system_lib_path)
-                logger.info(f"已从系统路径加载opus库: {system_lib_path}")
+                logger.info(f"The opus library has been loaded from the system path: {system_lib_path}")
                 sys._opus_loaded = True
                 return True
             except Exception as e:
-                logger.warning(f"加载系统opus库失败: {e}，尝试复制到项目目录")
+                logger.warning(f"Failed to load system opus library: {e}, try to copy to project directory")
 
-            # 如果直接加载失败，尝试复制到项目目录
+            # If direct loading fails, try copying to the project directory
             lib_path = copy_opus_to_project(system_lib_path)
             if lib_path:
                 lib_dir = str(Path(lib_path).parent)
             else:
-                logger.error("无法找到或复制opus库文件")
+                logger.error("Unable to find or copy opus library file")
                 return False
         else:
-            logger.error("在系统中也未找到opus库文件")
+            logger.error("The opus library file was not found in the system.")
             return False
 
-    # Windows平台特殊处理
+    # Special handling for Windows platform
     if system == PLATFORM.WINDOWS and lib_dir:
-        # 添加DLL搜索路径
+        # Add DLL search path
         if hasattr(os, "add_dll_directory"):
             try:
                 os.add_dll_directory(lib_dir)
-                logger.debug(f"已添加DLL搜索路径: {lib_dir}")
+                logger.debug(f"Added DLL search path: {lib_dir}")
             except Exception as e:
-                logger.warning(f"添加DLL搜索路径失败: {e}")
+                logger.warning(f"Failed to add DLL search path: {e}")
 
-        # 设置环境变量
+        # Set environment variables
         os.environ["PATH"] = lib_dir + os.pathsep + os.environ.get("PATH", "")
 
-    # 修补库路径
+    # patch library path
     _patch_find_library("opus", lib_path)
 
-    # 尝试加载库
+    # Try loading the library
     try:
-        # 加载DLL并存储引用以防止垃圾回收
+        # Load DLL and store reference to prevent garbage collection
         _ = ctypes.CDLL(lib_path)
-        logger.info(f"成功加载opus库: {lib_path}")
+        logger.info(f"Successfully loaded opus library: {lib_path}")
         sys._opus_loaded = True
         return True
     except Exception as e:
-        logger.error(f"加载opus库失败: {e}")
+        logger.error(f"Failed to load opus library: {e}")
         return False
 
 
 def _patch_find_library(lib_name: str, lib_path: str):
-    """
-    修补ctypes.util.find_library函数.
-    """
+    """Fix ctypes.util.find_library function."""
     import ctypes.util
 
     original_find_library = ctypes.util.find_library

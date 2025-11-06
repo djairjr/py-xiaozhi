@@ -10,40 +10,37 @@ logger = get_logger(__name__)
 
 
 def get_screenshot_camera_instance():
-    """
-    获取截图摄像头实例.
-    """
+    """Get screenshot camera instance."""
     return ScreenshotCamera.get_instance()
 
 
 def take_screenshot(arguments: dict) -> str:
-    """截取桌面并分析的工具函数.
+    """Utility function to capture desktop and analyze it.
 
     Args:
-        arguments: 包含question、display等参数的字典
-                  display可选值: None(所有显示器), "main"(主屏), "secondary"(副屏), 1,2,3...(具体显示器)
+        arguments: dictionary containing parameters such as question, display, etc.
+                  display optional values: None (all displays),"main"(Home screen),"secondary"(secondary screen), 1,2,3...(specific monitor)
 
     Returns:
-        分析结果的JSON字符串
-    """
+        JSON string of analysis results"""
     camera = get_screenshot_camera_instance()
     logger.info(f"Using screenshot camera implementation: {camera.__class__.__name__}")
 
     question = arguments.get("question", "")
     display_id = arguments.get("display", None)
 
-    # 解析display参数
+    # Parse display parameters
     if display_id:
         if isinstance(display_id, str):
-            if display_id.lower() in ["main", "主屏", "主显示器", "笔记本", "内屏"]:
+            if display_id.lower() in ["main", "Home screen", "main monitor", "notebook", "Inner screen"]:
                 display_id = "main"
             elif display_id.lower() in [
                 "secondary",
-                "副屏",
-                "副显示器",
-                "外接",
-                "外屏",
-                "第二屏",
+                "Secondary screen",
+                "Secondary display",
+                "external",
+                "external screen",
+                "second screen",
             ]:
                 display_id = "secondary"
             else:
@@ -57,12 +54,12 @@ def take_screenshot(arguments: dict) -> str:
 
     logger.info(f"Taking screenshot with question: {question}, display: {display_id}")
 
-    # 截图
+    # screenshot
     success = camera.capture(display_id)
     if not success:
         logger.error("Failed to capture screenshot")
         return '{"success": false, "message": "Failed to capture screenshot"}'
 
-    # 分析截图
+    # Analyze screenshots
     logger.info("Screenshot captured, starting analysis...")
     return camera.analyze(question)

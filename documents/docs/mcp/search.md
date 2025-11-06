@@ -1,161 +1,161 @@
-# 搜索工具 (Search Tools)
+#Search Tools
 
-搜索工具是一个智能网络搜索 MCP 工具集，提供了网络搜索、内容获取、结果缓存等功能，帮助用户快速获取互联网信息。
+The search tool is an intelligent network search MCP tool set that provides network search, content acquisition, result caching and other functions to help users quickly obtain Internet information.
 
-### 常见使用场景
+### Common usage scenarios
 
-**日常信息搜索:**
-- "搜索一下今天的天气"
-- "查询北京到上海的距离"
-- "找一下最新的新闻"
-- "搜索人工智能的最新发展"
+**Daily information search:**
+- "Search for today's weather"
+- "Check the distance between Beijing and Shanghai"
+- "Find the latest news"
+- "Search for the latest developments in artificial intelligence"
 
-**学习研究:**
-- "搜索关于量子计算的资料"
-- "查一下机器学习的基本概念"
-- "找一些Python编程教程"
-- "搜索历史上的今天发生了什么"
+**Learning and Research:**
+- "Search for information about quantum computing"
+- "Check the basic concepts of machine learning"
+- "Find some Python programming tutorials"
+- "Search for what happened today in history"
 
-**购物比价:**
-- "搜索iPhone 15的价格"
-- "查询笔记本电脑推荐"
-- "找一些性价比高的手机"
-- "搜索最新的促销活动"
+**Shopping price comparison:**
+- "Search iPhone 15 price"
+- "Check laptop recommendations"
+- "Find some cost-effective mobile phones"
+- "Search for the latest promotions"
 
-**生活服务:**
-- "搜索附近的餐厅"
-- "查询火车票预订信息"
-- "找一下装修公司"
-- "搜索周末活动推荐"
+**Life Services:**
+- "Search for nearby restaurants"
+- "Check train ticket booking information"
+- "Find a decoration company"
+- "Search for weekend activity recommendations"
 
-**技术问题:**
-- "搜索Python错误解决方案"
-- "查询API接口文档"
-- "找一下软件安装教程"
-- "搜索代码示例"
+**Technical Issues:**
+- "Search for Python error solutions"
+- "Query API interface documentation"
+- "Look for software installation tutorials"
+- "Search code examples"
 
-### 使用提示
+### Usage tips
 
-1. **明确搜索意图**: 清楚描述您要搜索的内容
-2. **使用关键词**: 提供准确的关键词有助于获得更好的结果
-3. **指定数量**: 可以要求返回特定数量的搜索结果
-4. **深入了解**: 可以要求获取特定网页的详细内容
-5. **多次搜索**: 可以基于搜索结果进行进一步的搜索
+1. **Clear search intent**: Clearly describe what you are searching for
+2. **Use Keywords**: Providing accurate keywords helps to get better results
+3. **Specified quantity**: You can request that a specific number of search results be returned
+4. **Deep Understanding**: You can request detailed content of a specific web page
+5. **Multiple searches**: Further searches can be performed based on the search results.
 
-AI 助手会根据您的需求自动调用搜索工具，为您提供准确的网络信息。
+The AI ​​assistant will automatically call the search tool based on your needs to provide you with accurate network information.
 
-## 功能概览
+## Function overview
 
-### 网络搜索功能
-- **必应搜索**: 基于必应搜索引擎的智能搜索
-- **多语言支持**: 支持中文、英文等多种语言搜索
-- **区域设置**: 支持不同地区的搜索结果
-- **结果数量控制**: 可以设置返回结果的数量
+### Network search function
+- **Bing Search**: Intelligent search based on Bing search engine
+- **Multi-language support**: Supports search in multiple languages ​​such as Chinese and English
+- **Regional Settings**: Support search results in different regions
+- **Result Quantity Control**: You can set the number of returned results
 
-### 内容获取功能
-- **网页内容抓取**: 获取搜索结果页面的详细内容
-- **内容长度控制**: 可以限制获取内容的长度
-- **智能提取**: 自动提取网页的主要内容
-- **格式化输出**: 以易读的格式返回内容
+### Content acquisition function
+- **Web content crawl**: Get the detailed content of the search results page
+- **Content length control**: You can limit the length of the obtained content
+- **Smart Extraction**: Automatically extract the main content of the web page
+- **Formatted Output**: Return content in a human-readable format
 
-### 缓存管理功能
-- **搜索结果缓存**: 自动缓存搜索结果
-- **会话管理**: 支持多个搜索会话
-- **缓存查询**: 可以查看历史搜索结果
-- **缓存清理**: 支持清空搜索缓存
+### Cache management function
+- **Search results cache**: Automatically cache search results
+- **Session Management**: Supports multiple search sessions
+- **Cached query**: You can view historical search results
+- **Cache Cleaning**: Support clearing search cache
 
-### 会话管理功能
-- **会话跟踪**: 跟踪搜索会话状态
-- **会话信息**: 提供会话的详细信息
-- **会话切换**: 支持多个搜索会话的切换
-- **会话持久化**: 保存搜索会话数据
+### Session management function
+- **Session Tracking**: Track search session status
+- **Session Information**: Provides session details
+- **Session Switching**: Supports switching of multiple search sessions
+- **Session Persistence**: Save search session data
 
-## 工具列表
+## Tool list
 
-### 1. 搜索工具
+### 1. Search tool
 
-#### search_bing - 必应搜索
-执行必应搜索，获取网络信息。
+#### search_bing - Bing search
+Perform a Bing search to get information about the web.
 
-**参数:**
-- `query` (必需): 搜索关键词
-- `num_results` (可选): 返回结果数量，默认5，最大10
-- `language` (可选): 搜索语言，默认"zh-cn"
-- `region` (可选): 搜索区域，默认"CN"
+**parameter:**
+- `query` (required): search keyword
+- `num_results` (optional): Number of results returned, default 5, maximum 10
+- `language` (optional): search language, default "zh-cn"
+- `region` (optional): search region, default "CN"
 
-**使用场景:**
-- 日常信息搜索
-- 学习研究
-- 新闻查询
-- 技术问题解决
+**Usage scenario:**
+- Daily information search
+- Study and research
+- News inquiry
+- Technical problem solving
 
-### 2. 内容获取工具
+### 2. Content acquisition tool
 
-#### fetch_webpage_content - 获取网页内容
-获取指定搜索结果的网页详细内容。
+#### fetch_webpage_content - Get web page content
+Get the web page details of the specified search results.
 
-**参数:**
-- `result_id` (必需): 搜索结果ID
-- `max_length` (可选): 最大内容长度，默认8000，最大20000
+**parameter:**
+- `result_id` (required): search result ID
+- `max_length` (optional): Maximum content length, default 8000, maximum 20000
 
-**使用场景:**
-- 深入阅读网页内容
-- 获取文章详情
-- 分析网页信息
-- 内容研究
+**Usage scenario:**
+- Read in-depth web content
+- Get article details
+- Analyze web page information
+- Content research
 
-### 3. 缓存管理工具
+### 3. Cache management tool
 
-#### get_search_results - 获取搜索结果缓存
-获取已缓存的搜索结果。
+#### get_search_results - Get search results cache
+Get cached search results.
 
-**参数:**
-- `session_id` (可选): 会话ID
+**parameter:**
+- `session_id` (optional): session ID
 
-**使用场景:**
-- 查看历史搜索结果
-- 回顾搜索记录
-- 会话管理
-- 结果对比
+**Usage scenario:**
+- View historical search results
+- Review search history
+- Session management
+- Compare results
 
-#### clear_search_cache - 清空搜索缓存
-清空所有搜索缓存数据。
+#### clear_search_cache - clear search cache
+Clear all search cache data.
 
-**参数:**
-无
+**parameter:**
+none
 
-**使用场景:**
-- 清理搜索记录
-- 重置搜索状态
-- 释放内存空间
-- 隐私保护
+**Usage scenario:**
+- Clear search history
+- Reset search status
+- Free up memory space
+- Privacy protection
 
-### 4. 会话管理工具
+### 4. Session management tool
 
-#### get_session_info - 获取会话信息
-获取当前搜索会话的详细信息。
+#### get_session_info - Get session information
+Get details of the current search session.
 
-**参数:**
-无
+**parameter:**
+none
 
-**使用场景:**
-- 查看会话状态
-- 会话统计
-- 系统监控
-- 调试信息
+**Usage scenario:**
+- View session status
+- Session statistics
+- System monitoring
+- debugging information
 
-## 使用示例
+## Usage example
 
-### 基础搜索示例
+### Basic search example
 
 ```python
-# 基础搜索
+#Basic search
 result = await mcp_server.call_tool("search_bing", {
-    "query": "人工智能最新发展",
+"query": "Latest developments in artificial intelligence",
     "num_results": 5
 })
 
-# 指定语言和区域的搜索
+#Search for specified language and region
 result = await mcp_server.call_tool("search_bing", {
     "query": "artificial intelligence",
     "num_results": 10,
@@ -163,62 +163,62 @@ result = await mcp_server.call_tool("search_bing", {
     "region": "US"
 })
 
-# 获取网页内容
+# Get web content
 result = await mcp_server.call_tool("fetch_webpage_content", {
     "result_id": "search_result_123",
     "max_length": 10000
 })
 ```
 
-### 缓存管理示例
+### Cache management example
 
 ```python
-# 获取搜索结果缓存
+# Get the search result cache
 result = await mcp_server.call_tool("get_search_results", {})
 
-# 获取特定会话的搜索结果
+# Get search results for a specific session
 result = await mcp_server.call_tool("get_search_results", {
     "session_id": "session_123"
 })
 
-# 清空搜索缓存
+# Clear search cache
 result = await mcp_server.call_tool("clear_search_cache", {})
 ```
 
-### 会话管理示例
+### Session management example
 
 ```python
-# 获取会话信息
+# Get session information
 result = await mcp_server.call_tool("get_session_info", {})
 ```
 
-## 数据结构
+## Data structure
 
-### 搜索结果 (SearchResult)
+### Search Results (SearchResult)
 ```python
 {
     "id": "search_result_123",
-    "title": "人工智能的最新发展趋势",
+"title": "The latest development trends of artificial intelligence",
     "url": "https://example.com/ai-trends",
-    "snippet": "人工智能技术在2025年取得了重大突破...",
+"snippet": "Artificial intelligence technology has achieved major breakthroughs in 2025...",
     "source": "example.com",
     "has_content": true,
     "created_at": "2025-01-15T10:30:00Z"
 }
 ```
 
-### 搜索响应 (SearchResponse)
+### Search Response (SearchResponse)
 ```python
 {
     "success": true,
-    "query": "人工智能最新发展",
+"query": "Latest developments in artificial intelligence",
     "num_results": 5,
     "results": [
         {
             "id": "search_result_123",
-            "title": "人工智能的最新发展趋势",
+"title": "The latest development trends of artificial intelligence",
             "url": "https://example.com/ai-trends",
-            "snippet": "人工智能技术在2025年取得了重大突破...",
+"snippet": "Artificial intelligence technology has achieved major breakthroughs in 2025...",
             "source": "example.com"
         }
     ],
@@ -231,24 +231,24 @@ result = await mcp_server.call_tool("get_session_info", {})
 }
 ```
 
-### 网页内容 (WebpageContent)
+### Webpage Content (WebpageContent)
 ```python
 {
     "success": true,
     "result_id": "search_result_123",
     "result_info": {
         "id": "search_result_123",
-        "title": "人工智能的最新发展趋势",
+"title": "The latest development trends of artificial intelligence",
         "url": "https://example.com/ai-trends",
-        "snippet": "人工智能技术在2025年取得了重大突破...",
+"snippet": "Artificial intelligence technology has achieved major breakthroughs in 2025...",
         "source": "example.com"
     },
-    "content": "人工智能技术在2025年取得了重大突破，包括大语言模型、计算机视觉、自然语言处理等领域...",
+"content": "Artificial intelligence technology has made major breakthroughs in 2025, including large language models, computer vision, natural language processing and other fields...",
     "content_length": 5420
 }
 ```
 
-### 会话信息 (SessionInfo)
+### Session Information (SessionInfo)
 ```python
 {
     "session_id": "session_123",
@@ -261,110 +261,110 @@ result = await mcp_server.call_tool("get_session_info", {})
 }
 ```
 
-## 搜索技巧
+##Search Tips
 
-### 1. 关键词选择
-- 使用具体、准确的关键词
-- 避免过于宽泛的搜索词
-- 可以使用多个关键词组合
-- 尝试不同的表达方式
+### 1. Keyword selection
+- Use specific, accurate keywords
+- Avoid search terms that are too broad
+- Multiple keyword combinations can be used
+- Try different expressions
 
-### 2. 语言和区域设置
-- 中文搜索：language="zh-cn", region="CN"
-- 英文搜索：language="en-us", region="US"
-- 根据内容来源选择合适的语言
-- 区域设置影响搜索结果的相关性
+### 2. Language and regional settings
+- Chinese search: language="zh-cn", region="CN"
+- English search: language="en-us", region="US"
+- Choose the appropriate language based on the content source
+- Locale affects the relevance of search results
 
-### 3. 结果数量控制
-- 一般搜索：5-10个结果
-- 深入研究：10个结果
-- 快速浏览：3-5个结果
-- 避免一次获取过多结果
+### 3. Result quantity control
+- General search: 5-10 results
+- Dive deeper: 10 results
+- Quick Browse: 3-5 results
+- Avoid getting too many results at once
 
-### 4. 内容获取策略
-- 先搜索获得结果列表
-- 选择相关性高的结果获取内容
-- 根据需要调整内容长度
-- 可以获取多个结果的内容进行对比
+### 4. Content Acquisition Strategy
+- Search first to get a list of results
+- Select highly relevant results to obtain content
+- Adjust content length as needed
+- You can obtain the contents of multiple results for comparison
 
-## 最佳实践
+## Best Practices
 
-### 1. 搜索策略
-- 从宽泛到具体，逐步细化搜索
-- 使用多个关键词组合
-- 尝试不同的搜索角度
-- 关注搜索结果的时效性
+### 1. Search strategy
+- Gradually refine your search from broad to specific
+- Use multiple keyword combinations
+- Try different search angles
+- Pay attention to the timeliness of search results
 
-### 2. 内容处理
-- 根据需要获取网页详细内容
-- 合理设置内容长度限制
-- 注意内容的来源和可靠性
-- 可以获取多个来源的内容进行对比
+### 2. Content processing
+- Obtain web page details as needed
+- Set reasonable content length limits
+- Pay attention to the source and reliability of the content
+- Can obtain content from multiple sources for comparison
 
-### 3. 缓存利用
-- 充分利用搜索结果缓存
-- 定期清理不需要的缓存
-- 使用会话管理功能
-- 注意缓存的有效性
+### 3. Cache utilization
+- Take advantage of search result caching
+- Clean unnecessary cache regularly
+- Use session management features
+- Pay attention to cache effectiveness
 
-### 4. 隐私保护
-- 敏感搜索后及时清理缓存
-- 注意搜索内容的隐私性
-- 合理使用会话管理功能
-- 避免搜索敏感信息
+### 4. Privacy protection
+- Clear cache promptly after sensitive searches
+- Pay attention to the privacy of search content
+- Proper use of session management functions
+- Avoid searching for sensitive information
 
-## 支持的搜索类型
+## Supported search types
 
-### 信息搜索
-- 新闻资讯
-- 学术资料
-- 百科知识
-- 技术文档
+### Information search
+- News and information
+- Academic information
+- Encyclopedia knowledge
+- Technical documentation
 
-### 商业搜索
-- 产品信息
-- 价格比较
-- 商家信息
-- 市场分析
+### Business Search
+- Product information
+- price comparison
+- Business information
+- Market analysis
 
-### 生活服务
-- 本地服务
-- 餐饮娱乐
-- 交通出行
-- 生活指南
+### Life services
+- local services
+- Catering and entertainment
+- Transportation
+- Life guide
 
-### 技术支持
-- 编程问题
-- 软件使用
-- 错误解决
-- 技术教程
+### Technical Support
+- Programming questions
+- Software usage
+- Bug fixes
+- Technical tutorials
 
-## 注意事项
+## Notes
 
-1. **网络依赖**: 搜索功能需要稳定的网络连接
-2. **搜索限制**: 遵守搜索引擎的使用规范
-3. **内容准确性**: 搜索结果的准确性依赖于原始来源
-4. **版权问题**: 注意搜索内容的版权和使用限制
-5. **隐私保护**: 注意搜索内容的隐私性
+1. **Network dependency**: The search function requires a stable network connection
+2. **Search Restrictions**: Comply with the usage specifications of search engines
+3. **Content Accuracy**: The accuracy of search results relies on the original source
+4. **Copyright Issues**: Pay attention to the copyright and usage restrictions of the search content
+5. **Privacy Protection**: Pay attention to the privacy of search content
 
-## 故障排除
+## troubleshooting
 
-### 常见问题
-1. **搜索无结果**: 尝试不同的关键词组合
-2. **网页内容获取失败**: 检查网络连接和目标网站状态
-3. **搜索速度慢**: 减少搜索结果数量或内容长度
-4. **缓存问题**: 清理搜索缓存重新搜索
+### FAQ
+1. **No results found**: Try different keyword combinations
+2. **Failed to obtain web content**: Check network connection and target website status
+3. **Slow search speed**: Reduce the number of search results or content length
+4. **Cache problem**: Clear the search cache and search again
 
-### 调试方法
-1. 检查搜索关键词是否正确
-2. 验证网络连接状态
-3. 查看会话信息了解搜索状态
-4. 使用缓存管理功能排查问题
+### Debugging method
+1. Check whether the search keywords are correct
+2. Verify network connection status
+3. View session information to understand search status
+4. Use the cache management function to troubleshoot problems
 
-### 性能优化
-1. 合理设置搜索结果数量
-2. 根据需要获取网页内容
-3. 定期清理搜索缓存
-4. 使用会话管理优化搜索流程
+### Performance optimization
+1. Set the number of search results appropriately
+2. Get web content as needed
+3. Clean search cache regularly
+4. Use session management to optimize the search process
 
-通过搜索工具，您可以快速获取互联网上的各种信息，支持学习、工作和生活的各种需求。
+Through search tools, you can quickly obtain various information on the Internet to support various needs in study, work and life.

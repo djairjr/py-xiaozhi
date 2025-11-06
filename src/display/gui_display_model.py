@@ -1,17 +1,13 @@
 # -*- coding: utf-8 -*-
-"""
-GUI 显示窗口数据模型 - 用于 QML 数据绑定.
-"""
+"""GUI display window data model - for QML data binding."""
 
 from PyQt5.QtCore import QObject, pyqtProperty, pyqtSignal
 
 
 class GuiDisplayModel(QObject):
-    """
-    GUI 主窗口的数据模型，用于 Python 和 QML 之间的数据绑定.
-    """
+    """Data model for the GUI main window, used for data binding between Python and QML."""
 
-    # 属性变化信号
+    # attribute change signal
     statusTextChanged = pyqtSignal()
     emotionPathChanged = pyqtSignal()
     ttsTextChanged = pyqtSignal()
@@ -19,28 +15,28 @@ class GuiDisplayModel(QObject):
     modeTextChanged = pyqtSignal()
     autoModeChanged = pyqtSignal()
 
-    # 用户操作信号
+    # User operation signal
     manualButtonPressed = pyqtSignal()
     manualButtonReleased = pyqtSignal()
     autoButtonClicked = pyqtSignal()
     abortButtonClicked = pyqtSignal()
     modeButtonClicked = pyqtSignal()
-    sendButtonClicked = pyqtSignal(str)  # 携带输入的文本
+    sendButtonClicked = pyqtSignal(str)  # carries the entered text
     settingsButtonClicked = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        # 私有属性
-        self._status_text = "状态: 未连接"
-        self._emotion_path = ""  # 表情资源路径（GIF/图片）或 emoji 字符
-        self._tts_text = "待命"
-        self._button_text = "开始对话"  # 自动模式按钮文本
-        self._mode_text = "手动对话"  # 模式切换按钮文本
-        self._auto_mode = False  # 是否自动模式
+        # private properties
+        self._status_text = "Status: Not connected"
+        self._emotion_path = ""  # Expression resource path (GIF/picture) or emoji character
+        self._tts_text = "Standby"
+        self._button_text = "Start a conversation"  # Auto mode button text
+        self._mode_text = "Manual conversation"  # Mode switch button text
+        self._auto_mode = False  # Whether automatic mode
         self._is_connected = False
 
-    # 状态文本属性
+    # status text attribute
     @pyqtProperty(str, notify=statusTextChanged)
     def statusText(self):
         return self._status_text
@@ -51,7 +47,7 @@ class GuiDisplayModel(QObject):
             self._status_text = value
             self.statusTextChanged.emit()
 
-    # 表情路径属性
+    # Expression path properties
     @pyqtProperty(str, notify=emotionPathChanged)
     def emotionPath(self):
         return self._emotion_path
@@ -62,7 +58,7 @@ class GuiDisplayModel(QObject):
             self._emotion_path = value
             self.emotionPathChanged.emit()
 
-    # TTS 文本属性
+    # TTS text attribute
     @pyqtProperty(str, notify=ttsTextChanged)
     def ttsText(self):
         return self._tts_text
@@ -73,7 +69,7 @@ class GuiDisplayModel(QObject):
             self._tts_text = value
             self.ttsTextChanged.emit()
 
-    # 自动模式按钮文本属性
+    # Auto mode button text property
     @pyqtProperty(str, notify=buttonTextChanged)
     def buttonText(self):
         return self._button_text
@@ -84,7 +80,7 @@ class GuiDisplayModel(QObject):
             self._button_text = value
             self.buttonTextChanged.emit()
 
-    # 模式切换按钮文本属性
+    # Mode switch button text property
     @pyqtProperty(str, notify=modeTextChanged)
     def modeText(self):
         return self._mode_text
@@ -95,7 +91,7 @@ class GuiDisplayModel(QObject):
             self._mode_text = value
             self.modeTextChanged.emit()
 
-    # 自动模式标志属性
+    # Automatic mode flag attribute
     @pyqtProperty(bool, notify=autoModeChanged)
     def autoMode(self):
         return self._auto_mode
@@ -106,44 +102,32 @@ class GuiDisplayModel(QObject):
             self._auto_mode = value
             self.autoModeChanged.emit()
 
-    # 便捷方法
+    # Convenience method
     def update_status(self, status: str, connected: bool):
-        """
-        更新状态文本和连接状态.
-        """
-        self.statusText = f"状态: {status}"
+        """Update status text and connection status."""
+        self.statusText = f"Status: {status}"
         self._is_connected = connected
 
     def update_text(self, text: str):
-        """
-        更新 TTS 文本.
-        """
+        """Update TTS text."""
         self.ttsText = text
 
     def update_emotion(self, emotion_path: str):
-        """
-        更新表情路径.
-        """
+        """Update emoticon paths."""
         self.emotionPath = emotion_path
 
     def update_button_text(self, text: str):
-        """
-        更新自动模式按钮文本.
-        """
+        """Update auto mode button text."""
         self.buttonText = text
 
     def update_mode_text(self, text: str):
-        """
-        更新模式按钮文本.
-        """
+        """Update modal button text."""
         self.modeText = text
 
     def set_auto_mode(self, is_auto: bool):
-        """
-        设置自动模式.
-        """
+        """Set automatic mode."""
         self.autoMode = is_auto
         if is_auto:
-            self.modeText = "自动对话"
+            self.modeText = "automatic conversation"
         else:
-            self.modeText = "手动对话"
+            self.modeText = "Manual conversation"

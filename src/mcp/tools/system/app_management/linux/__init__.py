@@ -1,6 +1,4 @@
-"""
-Linux系统应用程序管理模块.
-"""
+"""Linux system application management module."""
 
 from . import scanner
 

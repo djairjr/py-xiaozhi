@@ -1,840 +1,832 @@
-"""
-八字命理专业数据模块.
-"""
+"""Eight-character numerology professional data module."""
 
 from collections import OrderedDict
 from typing import Dict, List
 
-# ==================== 基础干支数据 ====================
+# ==================== Basic stem and branch data ====================
 
-# 天干
-GAN = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"]
+# Heavenly stem
+GAN = ["First", "Second", "C", "Man", "E", "self", "Geng", "pungent", "the ninth of the ten Heavenly Stems", "Gui"]
 
-# 地支
-ZHI = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"]
+# Earthly Branches
+ZHI = ["son", "ugly", "Yin", "Mao", "Chen", "Si", "noon", "not yet", "state", "unitary", "Xu", "Hai"]
 
-# 生肖
-SHENG_XIAO = ["鼠", "牛", "虎", "兔", "龙", "蛇", "马", "羊", "猴", "鸡", "狗", "猪"]
+# Chinese Zodiac
+SHENG_XIAO = ["mouse", "ox", "Tiger", "rabbit", "dragon", "snake", "horse", "sheep", "monkey", "chicken", "dog", "pig"]
 
-# 数字中文
-NUM_CN = ["零", "一", "二", "三", "四", "五", "六", "七", "八", "九", "十"]
+# Digital Chinese
+NUM_CN = ["zero", "one", "two", "three", "Four", "five", "six", "seven", "eight", "Nine", "ten"]
 
-# ==================== 五行数据 ====================
+# ==================== Five elements of data ====================
 
-# 天干五行
+# Heavenly stems and five elements
 GAN_WUXING = {
-    "甲": "木",
-    "乙": "木",
-    "丙": "火",
-    "丁": "火",
-    "戊": "土",
-    "己": "土",
-    "庚": "金",
-    "辛": "金",
-    "壬": "水",
-    "癸": "水",
+    "First": "Wood",
+    "Second": "Wood",
+    "C": "fire",
+    "Man": "fire",
+    "E": "earth",
+    "self": "earth",
+    "Geng": "gold",
+    "pungent": "gold",
+    "the ninth of the ten Heavenly Stems": "water",
+    "Gui": "water",
 }
 
-# 地支五行
+# Earthly Branches and Five Elements
 ZHI_WUXING = {
-    "子": "水",
-    "丑": "土",
-    "寅": "木",
-    "卯": "木",
-    "辰": "土",
-    "巳": "火",
-    "午": "火",
-    "未": "土",
-    "申": "金",
-    "酉": "金",
-    "戌": "土",
-    "亥": "水",
+    "son": "water",
+    "ugly": "earth",
+    "Yin": "Wood",
+    "Mao": "Wood",
+    "Chen": "earth",
+    "Si": "fire",
+    "noon": "fire",
+    "not yet": "earth",
+    "state": "gold",
+    "unitary": "gold",
+    "Xu": "earth",
+    "Hai": "water",
 }
 
-# 五行分组
+# Five elements grouping
 WUXING_GROUPS = {
-    "金": "庚辛申酉",
-    "木": "甲乙寅卯",
-    "水": "壬癸子亥",
-    "火": "丙丁巳午",
-    "土": "戊己丑辰未戌",
+    "gold": "Geng Xin Shen You",
+    "Wood": "A, Yi, Yin and Mao",
+    "water": "Renguizihai",
+    "fire": "Bingding Siwu",
+    "earth": "Wu Ji Chou Chen Wei Xu",
 }
 
-# 五行列表
-WUXING = ["金", "木", "水", "火", "土"]
+# five-element list
+WUXING = ["gold", "Wood", "water", "fire", "earth"]
 
-# 天干阴阳
+# Heavenly stem yin and yang
 GAN_YINYANG = {
-    "甲": 1,
-    "乙": -1,
-    "丙": 1,
-    "丁": -1,
-    "戊": 1,
-    "己": -1,
-    "庚": 1,
-    "辛": -1,
-    "壬": 1,
-    "癸": -1,
+    "First": 1,
+    "Second": -1,
+    "C": 1,
+    "Man": -1,
+    "E": 1,
+    "self": -1,
+    "Geng": 1,
+    "pungent": -1,
+    "the ninth of the ten Heavenly Stems": 1,
+    "Gui": -1,
 }
 
-# 地支阴阳
+# Earthly Branches Yin and Yang
 ZHI_YINYANG = {
-    "子": 1,
-    "丑": -1,
-    "寅": 1,
-    "卯": -1,
-    "辰": 1,
-    "巳": -1,
-    "午": 1,
-    "未": -1,
-    "申": 1,
-    "酉": -1,
-    "戌": 1,
-    "亥": -1,
+    "son": 1,
+    "ugly": -1,
+    "Yin": 1,
+    "Mao": -1,
+    "Chen": 1,
+    "Si": -1,
+    "noon": 1,
+    "not yet": -1,
+    "state": 1,
+    "unitary": -1,
+    "Xu": 1,
+    "Hai": -1,
 }
 
-# 五行生克关系
+# The relationship between the five elements
 WUXING_RELATIONS = {
-    ("金", "金"): "=",
-    ("金", "木"): "→",
-    ("金", "水"): "↓",
-    ("金", "火"): "←",
-    ("金", "土"): "↑",
-    ("木", "木"): "=",
-    ("木", "土"): "→",
-    ("木", "火"): "↓",
-    ("木", "金"): "←",
-    ("木", "水"): "↑",
-    ("水", "水"): "=",
-    ("水", "火"): "→",
-    ("水", "木"): "↓",
-    ("水", "土"): "←",
-    ("水", "金"): "↑",
-    ("火", "火"): "=",
-    ("火", "金"): "→",
-    ("火", "土"): "↓",
-    ("火", "水"): "←",
-    ("火", "木"): "↑",
-    ("土", "土"): "=",
-    ("土", "水"): "→",
-    ("土", "金"): "↓",
-    ("土", "木"): "←",
-    ("土", "火"): "↑",
+    ("gold", "gold"): "=",
+    ("gold", "Wood"): "→",
+    ("gold", "water"): "↓",
+    ("gold", "fire"): "←",
+    ("gold", "earth"): "↑",
+    ("Wood", "Wood"): "=",
+    ("Wood", "earth"): "→",
+    ("Wood", "fire"): "↓",
+    ("Wood", "gold"): "←",
+    ("Wood", "water"): "↑",
+    ("water", "water"): "=",
+    ("water", "fire"): "→",
+    ("water", "Wood"): "↓",
+    ("water", "earth"): "←",
+    ("water", "gold"): "↑",
+    ("fire", "fire"): "=",
+    ("fire", "gold"): "→",
+    ("fire", "earth"): "↓",
+    ("fire", "water"): "←",
+    ("fire", "Wood"): "↑",
+    ("earth", "earth"): "=",
+    ("earth", "water"): "→",
+    ("earth", "gold"): "↓",
+    ("earth", "Wood"): "←",
+    ("earth", "fire"): "↑",
 }
 
-# ==================== 地支藏干 ====================
+# ==================== Earthly Branches and Tibetan Stems ====================
 
 ZHI_CANG_GAN = {
-    "子": OrderedDict({"癸": 8}),
-    "丑": OrderedDict({"己": 5, "癸": 2, "辛": 1}),
-    "寅": OrderedDict({"甲": 5, "丙": 2, "戊": 1}),
-    "卯": OrderedDict({"乙": 8}),
-    "辰": OrderedDict({"戊": 5, "乙": 2, "癸": 1}),
-    "巳": OrderedDict({"丙": 5, "戊": 2, "庚": 1}),
-    "午": OrderedDict({"丁": 5, "己": 3}),
-    "未": OrderedDict({"己": 5, "丁": 2, "乙": 1}),
-    "申": OrderedDict({"庚": 5, "壬": 2, "戊": 1}),
-    "酉": OrderedDict({"辛": 8}),
-    "戌": OrderedDict({"戊": 5, "辛": 2, "丁": 1}),
-    "亥": OrderedDict({"壬": 5, "甲": 3}),
+    "son": OrderedDict({"Gui": 8}),
+    "ugly": OrderedDict({"self": 5, "Gui": 2, "pungent": 1}),
+    "Yin": OrderedDict({"First": 5, "C": 2, "E": 1}),
+    "Mao": OrderedDict({"Second": 8}),
+    "Chen": OrderedDict({"E": 5, "Second": 2, "Gui": 1}),
+    "Si": OrderedDict({"C": 5, "E": 2, "Geng": 1}),
+    "noon": OrderedDict({"Man": 5, "self": 3}),
+    "not yet": OrderedDict({"self": 5, "Man": 2, "Second": 1}),
+    "state": OrderedDict({"Geng": 5, "the ninth of the ten Heavenly Stems": 2, "E": 1}),
+    "unitary": OrderedDict({"pungent": 8}),
+    "Xu": OrderedDict({"E": 5, "pungent": 2, "Man": 1}),
+    "Hai": OrderedDict({"the ninth of the ten Heavenly Stems": 5, "First": 3}),
 }
 
-# ==================== 六十甲子 ====================
+# ==================== Sixty Years ====================
 
 GANZHI_60 = {
-    1: "甲子",
-    13: "丙子",
-    25: "戊子",
-    37: "庚子",
-    49: "壬子",
-    2: "乙丑",
-    14: "丁丑",
-    26: "己丑",
-    38: "辛丑",
-    50: "癸丑",
-    3: "丙寅",
-    15: "戊寅",
-    27: "庚寅",
-    39: "壬寅",
-    51: "甲寅",
-    4: "丁卯",
-    16: "己卯",
-    28: "辛卯",
-    40: "癸卯",
-    52: "乙卯",
-    5: "戊辰",
-    17: "庚辰",
-    29: "壬辰",
-    41: "甲辰",
-    53: "丙辰",
-    6: "己巳",
-    18: "辛巳",
-    30: "癸巳",
-    42: "乙巳",
-    54: "丁巳",
-    7: "庚午",
-    19: "壬午",
-    31: "甲午",
-    43: "丙午",
-    55: "戊午",
-    8: "辛未",
-    20: "癸未",
-    32: "乙未",
-    44: "丁未",
-    56: "己未",
-    9: "壬申",
-    21: "甲申",
-    33: "丙申",
-    45: "戊申",
-    57: "庚申",
-    10: "癸酉",
-    22: "乙酉",
-    34: "丁酉",
-    46: "己酉",
-    58: "辛酉",
-    11: "甲戌",
-    23: "丙戌",
-    35: "戊戌",
-    47: "庚戌",
-    59: "壬戌",
-    12: "乙亥",
-    24: "丁亥",
-    36: "己亥",
-    48: "辛亥",
-    60: "癸亥",
+    1: "Jiazi",
+    13: "Bingzi",
+    25: "Wuzi",
+    37: "Gengzi",
+    49: "Renzi",
+    2: "Yi Chou",
+    14: "Ding Chou",
+    26: "Ji Chou",
+    38: "Xin Chou",
+    50: "Guichou",
+    3: "Bingyin",
+    15: "Wuyin",
+    27: "Gengyin",
+    39: "Renyin",
+    51: "Jiayin",
+    4: "Ding Mao",
+    16: "Ji Mao",
+    28: "Xin Mao",
+    40: "Guimao",
+    52: "Yimao",
+    5: "Wuchen",
+    17: "Gengchen",
+    29: "Renchen",
+    41: "Jiachen",
+    53: "Bingchen",
+    6: "Jisi",
+    18: "Xin Si",
+    30: "Guisi",
+    42: "Otomi",
+    54: "Ding Si",
+    7: "Geng Wu",
+    19: "Renwu",
+    31: "Jiawu",
+    43: "Bingwu",
+    55: "Wuwu",
+    8: "Xin Wei",
+    20: "Guiwei",
+    32: "Yiwei",
+    44: "Ding Wei",
+    56: "Jiwei",
+    9: "Renshen",
+    21: "Jiashen",
+    33: "Bingshen",
+    45: "Wu Shen",
+    57: "Gengshen",
+    10: "Guiyou",
+    22: "Yiyou",
+    34: "Ding You",
+    46: "Jiyou",
+    58: "Xinyou",
+    11: "Jiaxu",
+    23: "Bingxu",
+    35: "1898",
+    47: "Gengxu",
+    59: "Renxu",
+    12: "Yi Hai",
+    24: "Dinghai",
+    36: "Jihai",
+    48: "1911",
+    60: "Guihai",
 }
 
-# ==================== 十神关系 ====================
+# ==================== Relationship between the Ten Gods ====================
 
-# 完整的十神映射表（100个组合）
+# Complete mapping table of ten gods (100 combinations)
 TEN_GODS_MAP = {
-    # 甲日干
-    ("甲", "甲"): "比肩",
-    ("甲", "乙"): "劫财",
-    ("甲", "丙"): "食神",
-    ("甲", "丁"): "伤官",
-    ("甲", "戊"): "偏财",
-    ("甲", "己"): "正财",
-    ("甲", "庚"): "七杀",
-    ("甲", "辛"): "正官",
-    ("甲", "壬"): "偏印",
-    ("甲", "癸"): "正印",
-    # 乙日干
-    ("乙", "甲"): "劫财",
-    ("乙", "乙"): "比肩",
-    ("乙", "丙"): "伤官",
-    ("乙", "丁"): "食神",
-    ("乙", "戊"): "正财",
-    ("乙", "己"): "偏财",
-    ("乙", "庚"): "正官",
-    ("乙", "辛"): "七杀",
-    ("乙", "壬"): "正印",
-    ("乙", "癸"): "偏印",
-    # 丙日干
-    ("丙", "甲"): "偏印",
-    ("丙", "乙"): "正印",
-    ("丙", "丙"): "比肩",
-    ("丙", "丁"): "劫财",
-    ("丙", "戊"): "食神",
-    ("丙", "己"): "伤官",
-    ("丙", "庚"): "偏财",
-    ("丙", "辛"): "正财",
-    ("丙", "壬"): "七杀",
-    ("丙", "癸"): "正官",
-    # 丁日干
-    ("丁", "甲"): "正印",
-    ("丁", "乙"): "偏印",
-    ("丁", "丙"): "劫财",
-    ("丁", "丁"): "比肩",
-    ("丁", "戊"): "伤官",
-    ("丁", "己"): "食神",
-    ("丁", "庚"): "正财",
-    ("丁", "辛"): "偏财",
-    ("丁", "壬"): "正官",
-    ("丁", "癸"): "七杀",
-    # 戊日干
-    ("戊", "甲"): "七杀",
-    ("戊", "乙"): "正官",
-    ("戊", "丙"): "偏印",
-    ("戊", "丁"): "正印",
-    ("戊", "戊"): "比肩",
-    ("戊", "己"): "劫财",
-    ("戊", "庚"): "食神",
-    ("戊", "辛"): "伤官",
-    ("戊", "壬"): "偏财",
-    ("戊", "癸"): "正财",
-    # 己日干
-    ("己", "甲"): "正官",
-    ("己", "乙"): "七杀",
-    ("己", "丙"): "正印",
-    ("己", "丁"): "偏印",
-    ("己", "戊"): "劫财",
-    ("己", "己"): "比肩",
-    ("己", "庚"): "伤官",
-    ("己", "辛"): "食神",
-    ("己", "壬"): "正财",
-    ("己", "癸"): "偏财",
-    # 庚日干
-    ("庚", "甲"): "偏财",
-    ("庚", "乙"): "正财",
-    ("庚", "丙"): "七杀",
-    ("庚", "丁"): "正官",
-    ("庚", "戊"): "偏印",
-    ("庚", "己"): "正印",
-    ("庚", "庚"): "比肩",
-    ("庚", "辛"): "劫财",
-    ("庚", "壬"): "食神",
-    ("庚", "癸"): "伤官",
-    # 辛日干
-    ("辛", "甲"): "正财",
-    ("辛", "乙"): "偏财",
-    ("辛", "丙"): "正官",
-    ("辛", "丁"): "七杀",
-    ("辛", "戊"): "正印",
-    ("辛", "己"): "偏印",
-    ("辛", "庚"): "劫财",
-    ("辛", "辛"): "比肩",
-    ("辛", "壬"): "伤官",
-    ("辛", "癸"): "食神",
-    # 壬日干
-    ("壬", "甲"): "食神",
-    ("壬", "乙"): "伤官",
-    ("壬", "丙"): "偏财",
-    ("壬", "丁"): "正财",
-    ("壬", "戊"): "七杀",
-    ("壬", "己"): "正官",
-    ("壬", "庚"): "偏印",
-    ("壬", "辛"): "正印",
-    ("壬", "壬"): "比肩",
-    ("壬", "癸"): "劫财",
-    # 癸日干
-    ("癸", "甲"): "伤官",
-    ("癸", "乙"): "食神",
-    ("癸", "丙"): "正财",
-    ("癸", "丁"): "偏财",
-    ("癸", "戊"): "正官",
-    ("癸", "己"): "七杀",
-    ("癸", "庚"): "正印",
-    ("癸", "辛"): "偏印",
-    ("癸", "壬"): "劫财",
-    ("癸", "癸"): "比肩",
+    # Jiarigan
+    ("First", "First"): "Comparable",
+    ("First", "Second"): "Robbery",
+    ("First", "C"): "god of food",
+    ("First", "Man"): "injured officer",
+    ("First", "E"): "Partial wealth",
+    ("First", "self"): "Positive wealth",
+    ("First", "Geng"): "seven kills",
+    ("First", "pungent"): "official",
+    ("First", "the ninth of the ten Heavenly Stems"): "partial printing",
+    ("First", "Gui"): "positive seal",
+    # Yi day dry
+    ("Second", "First"): "Robbery",
+    ("Second", "Second"): "Comparable",
+    ("Second", "C"): "injured officer",
+    ("Second", "Man"): "god of food",
+    ("Second", "E"): "Positive wealth",
+    ("Second", "self"): "Partial wealth",
+    ("Second", "Geng"): "official",
+    ("Second", "pungent"): "seven kills",
+    ("Second", "the ninth of the ten Heavenly Stems"): "positive seal",
+    ("Second", "Gui"): "partial printing",
+    # Bingrigan
+    ("C", "First"): "partial printing",
+    ("C", "Second"): "positive seal",
+    ("C", "C"): "Comparable",
+    ("C", "Man"): "Robbery",
+    ("C", "E"): "god of food",
+    ("C", "self"): "injured officer",
+    ("C", "Geng"): "Partial wealth",
+    ("C", "pungent"): "Positive wealth",
+    ("C", "the ninth of the ten Heavenly Stems"): "seven kills",
+    ("C", "Gui"): "official",
+    # Ding Rigan
+    ("Man", "First"): "positive seal",
+    ("Man", "Second"): "partial printing",
+    ("Man", "C"): "Robbery",
+    ("Man", "Man"): "Comparable",
+    ("Man", "E"): "injured officer",
+    ("Man", "self"): "god of food",
+    ("Man", "Geng"): "Positive wealth",
+    ("Man", "pungent"): "Partial wealth",
+    ("Man", "the ninth of the ten Heavenly Stems"): "official",
+    ("Man", "Gui"): "seven kills",
+    # Wurigan
+    ("E", "First"): "seven kills",
+    ("E", "Second"): "official",
+    ("E", "C"): "partial printing",
+    ("E", "Man"): "positive seal",
+    ("E", "E"): "Comparable",
+    ("E", "self"): "Robbery",
+    ("E", "Geng"): "god of food",
+    ("E", "pungent"): "injured officer",
+    ("E", "the ninth of the ten Heavenly Stems"): "Partial wealth",
+    ("E", "Gui"): "Positive wealth",
+    # Do it every day
+    ("self", "First"): "official",
+    ("self", "Second"): "seven kills",
+    ("self", "C"): "positive seal",
+    ("self", "Man"): "partial printing",
+    ("self", "E"): "Robbery",
+    ("self", "self"): "Comparable",
+    ("self", "Geng"): "injured officer",
+    ("self", "pungent"): "god of food",
+    ("self", "the ninth of the ten Heavenly Stems"): "Positive wealth",
+    ("self", "Gui"): "Partial wealth",
+    # Geng Rigan
+    ("Geng", "First"): "Partial wealth",
+    ("Geng", "Second"): "Positive wealth",
+    ("Geng", "C"): "seven kills",
+    ("Geng", "Man"): "official",
+    ("Geng", "E"): "partial printing",
+    ("Geng", "self"): "positive seal",
+    ("Geng", "Geng"): "Comparable",
+    ("Geng", "pungent"): "Robbery",
+    ("Geng", "the ninth of the ten Heavenly Stems"): "god of food",
+    ("Geng", "Gui"): "injured officer",
+    # Xin Rigan
+    ("pungent", "First"): "Positive wealth",
+    ("pungent", "Second"): "Partial wealth",
+    ("pungent", "C"): "official",
+    ("pungent", "Man"): "seven kills",
+    ("pungent", "E"): "positive seal",
+    ("pungent", "self"): "partial printing",
+    ("pungent", "Geng"): "Robbery",
+    ("pungent", "pungent"): "Comparable",
+    ("pungent", "the ninth of the ten Heavenly Stems"): "injured officer",
+    ("pungent", "Gui"): "god of food",
+    # Ren Rigan
+    ("the ninth of the ten Heavenly Stems", "First"): "god of food",
+    ("the ninth of the ten Heavenly Stems", "Second"): "injured officer",
+    ("the ninth of the ten Heavenly Stems", "C"): "Partial wealth",
+    ("the ninth of the ten Heavenly Stems", "Man"): "Positive wealth",
+    ("the ninth of the ten Heavenly Stems", "E"): "seven kills",
+    ("the ninth of the ten Heavenly Stems", "self"): "official",
+    ("the ninth of the ten Heavenly Stems", "Geng"): "partial printing",
+    ("the ninth of the ten Heavenly Stems", "pungent"): "positive seal",
+    ("the ninth of the ten Heavenly Stems", "the ninth of the ten Heavenly Stems"): "Comparable",
+    ("the ninth of the ten Heavenly Stems", "Gui"): "Robbery",
+    # Guirigan
+    ("Gui", "First"): "injured officer",
+    ("Gui", "Second"): "god of food",
+    ("Gui", "C"): "Positive wealth",
+    ("Gui", "Man"): "Partial wealth",
+    ("Gui", "E"): "official",
+    ("Gui", "self"): "seven kills",
+    ("Gui", "Geng"): "positive seal",
+    ("Gui", "pungent"): "partial printing",
+    ("Gui", "the ninth of the ten Heavenly Stems"): "Robbery",
+    ("Gui", "Gui"): "Comparable",
 }
 
-# ==================== 地支关系 ====================
+# ==================== Relationship between Earthly Branches ====================
 
-# 地支六合
+# Earthly Branches and Liuhe
 ZHI_LIUHE = [
-    ("子", "丑"),
-    ("寅", "亥"),
-    ("卯", "戌"),
-    ("辰", "酉"),
-    ("巳", "申"),
-    ("午", "未"),
+    ("son", "ugly"),
+    ("Yin", "Hai"),
+    ("Mao", "Xu"),
+    ("Chen", "unitary"),
+    ("Si", "state"),
+    ("noon", "not yet"),
 ]
 
-# 地支三合
+# Three Earthly Branches
 ZHI_SANHE = [
-    ["申", "子", "辰"],  # 水局
-    ["巳", "酉", "丑"],  # 金局
-    ["寅", "午", "戌"],  # 火局
-    ["亥", "卯", "未"],  # 木局
+    ["state", "son", "Chen"],  # Water Bureau
+    ["Si", "unitary", "ugly"],  # gold bureau
+    ["Yin", "noon", "Xu"],  # fire station
+    ["Hai", "Mao", "not yet"],  # Muju
 ]
 
-# 地支相冲
+# Earthly Branches Opposing each other
 ZHI_CHONG = [
-    ("子", "午"),
-    ("丑", "未"),
-    ("寅", "申"),
-    ("卯", "酉"),
-    ("辰", "戌"),
-    ("巳", "亥"),
+    ("son", "noon"),
+    ("ugly", "not yet"),
+    ("Yin", "state"),
+    ("Mao", "unitary"),
+    ("Chen", "Xu"),
+    ("Si", "Hai"),
 ]
 
-# 地支相刑
+# Earthly Branches Square
 ZHI_XING = [
-    ["寅", "申", "巳"],  # 无恩之刑
-    ["丑", "戌", "未"],  # 恃势之刑
-    ["子", "卯"],  # 无礼之刑
-    ["辰", "辰"],
-    ["午", "午"],
-    ["酉", "酉"],
-    ["亥", "亥"],  # 自刑
+    ["Yin", "state", "Si"],  # punishment without mercy
+    ["ugly", "Xu", "not yet"],  # Punishment for taking advantage of one's power
+    ["son", "Mao"],  # Punishment for disrespect
+    ["Chen", "Chen"],
+    ["noon", "noon"],
+    ["unitary", "unitary"],
+    ["Hai", "Hai"],  # self-inflicted punishment
 ]
 
-# 地支相害
+# Earthly branches harm each other
 ZHI_HAI = [
-    ("子", "未"),
-    ("丑", "午"),
-    ("寅", "巳"),
-    ("卯", "辰"),
-    ("申", "亥"),
-    ("酉", "戌"),
+    ("son", "not yet"),
+    ("ugly", "noon"),
+    ("Yin", "Si"),
+    ("Mao", "Chen"),
+    ("state", "Hai"),
+    ("unitary", "Xu"),
 ]
 
-# 地支冲合害刑关系
+# The relationship between Earthly Branches and punishment
 ZHI_RELATIONS = {
-    "子": {
-        "冲": "午",
-        "刑": "卯",
-        "被刑": "卯",
-        "合": ("申", "辰"),
-        "会": ("亥", "丑"),
-        "害": "未",
-        "破": "酉",
-        "六": "丑",
-        "暗": "",
+    "son": {
+        "rush": "noon",
+        "punishment": "Mao",
+        "sentenced": "Mao",
+        "combine": ("state", "Chen"),
+        "meeting": ("Hai", "ugly"),
+        "Harmful": "not yet",
+        "break": "unitary",
+        "six": "ugly",
+        "dark": "",
     },
-    "丑": {
-        "冲": "未",
-        "刑": "戌",
-        "被刑": "未",
-        "合": ("巳", "酉"),
-        "会": ("子", "亥"),
-        "害": "午",
-        "破": "辰",
-        "六": "子",
-        "暗": "寅",
+    "ugly": {
+        "rush": "not yet",
+        "punishment": "Xu",
+        "sentenced": "not yet",
+        "combine": ("Si", "unitary"),
+        "meeting": ("son", "Hai"),
+        "Harmful": "noon",
+        "break": "Chen",
+        "six": "son",
+        "dark": "Yin",
     },
-    "寅": {
-        "冲": "申",
-        "刑": "巳",
-        "被刑": "申",
-        "合": ("午", "戌"),
-        "会": ("卯", "辰"),
-        "害": "巳",
-        "破": "亥",
-        "六": "亥",
-        "暗": "丑",
+    "Yin": {
+        "rush": "state",
+        "punishment": "Si",
+        "sentenced": "state",
+        "combine": ("noon", "Xu"),
+        "meeting": ("Mao", "Chen"),
+        "Harmful": "Si",
+        "break": "Hai",
+        "six": "Hai",
+        "dark": "ugly",
     },
-    "卯": {
-        "冲": "酉",
-        "刑": "子",
-        "被刑": "子",
-        "合": ("未", "亥"),
-        "会": ("寅", "辰"),
-        "害": "辰",
-        "破": "午",
-        "六": "戌",
-        "暗": "申",
+    "Mao": {
+        "rush": "unitary",
+        "punishment": "son",
+        "sentenced": "son",
+        "combine": ("not yet", "Hai"),
+        "meeting": ("Yin", "Chen"),
+        "Harmful": "Chen",
+        "break": "noon",
+        "six": "Xu",
+        "dark": "state",
     },
-    "辰": {
-        "冲": "戌",
-        "刑": "辰",
-        "被刑": "辰",
-        "合": ("子", "申"),
-        "会": ("寅", "卯"),
-        "害": "卯",
-        "破": "丑",
-        "六": "酉",
-        "暗": "",
+    "Chen": {
+        "rush": "Xu",
+        "punishment": "Chen",
+        "sentenced": "Chen",
+        "combine": ("son", "state"),
+        "meeting": ("Yin", "Mao"),
+        "Harmful": "Mao",
+        "break": "ugly",
+        "six": "unitary",
+        "dark": "",
     },
-    "巳": {
-        "冲": "亥",
-        "刑": "申",
-        "被刑": "寅",
-        "合": ("酉", "丑"),
-        "会": ("午", "未"),
-        "害": "寅",
-        "破": "申",
-        "六": "申",
-        "暗": "",
+    "Si": {
+        "rush": "Hai",
+        "punishment": "state",
+        "sentenced": "Yin",
+        "combine": ("unitary", "ugly"),
+        "meeting": ("noon", "not yet"),
+        "Harmful": "Yin",
+        "break": "state",
+        "six": "state",
+        "dark": "",
     },
-    "午": {
-        "冲": "子",
-        "刑": "午",
-        "被刑": "午",
-        "合": ("寅", "戌"),
-        "会": ("巳", "未"),
-        "害": "丑",
-        "破": "卯",
-        "六": "未",
-        "暗": "亥",
+    "noon": {
+        "rush": "son",
+        "punishment": "noon",
+        "sentenced": "noon",
+        "combine": ("Yin", "Xu"),
+        "meeting": ("Si", "not yet"),
+        "Harmful": "ugly",
+        "break": "Mao",
+        "six": "not yet",
+        "dark": "Hai",
     },
-    "未": {
-        "冲": "丑",
-        "刑": "丑",
-        "被刑": "戌",
-        "合": ("卯", "亥"),
-        "会": ("巳", "午"),
-        "害": "子",
-        "破": "戌",
-        "六": "午",
-        "暗": "",
+    "not yet": {
+        "rush": "ugly",
+        "punishment": "ugly",
+        "sentenced": "Xu",
+        "combine": ("Mao", "Hai"),
+        "meeting": ("Si", "noon"),
+        "Harmful": "son",
+        "break": "Xu",
+        "six": "noon",
+        "dark": "",
     },
-    "申": {
-        "冲": "寅",
-        "刑": "寅",
-        "被刑": "巳",
-        "合": ("子", "辰"),
-        "会": ("酉", "戌"),
-        "害": "亥",
-        "破": "巳",
-        "六": "巳",
-        "暗": "卯",
+    "state": {
+        "rush": "Yin",
+        "punishment": "Yin",
+        "sentenced": "Si",
+        "combine": ("son", "Chen"),
+        "meeting": ("unitary", "Xu"),
+        "Harmful": "Hai",
+        "break": "Si",
+        "six": "Si",
+        "dark": "Mao",
     },
-    "酉": {
-        "冲": "卯",
-        "刑": "酉",
-        "被刑": "酉",
-        "合": ("巳", "丑"),
-        "会": ("申", "戌"),
-        "害": "戌",
-        "破": "子",
-        "六": "辰",
-        "暗": "",
+    "unitary": {
+        "rush": "Mao",
+        "punishment": "unitary",
+        "sentenced": "unitary",
+        "combine": ("Si", "ugly"),
+        "meeting": ("state", "Xu"),
+        "Harmful": "Xu",
+        "break": "son",
+        "six": "Chen",
+        "dark": "",
     },
-    "戌": {
-        "冲": "辰",
-        "刑": "未",
-        "被刑": "丑",
-        "合": ("午", "寅"),
-        "会": ("申", "酉"),
-        "害": "酉",
-        "破": "未",
-        "六": "卯",
-        "暗": "",
+    "Xu": {
+        "rush": "Chen",
+        "punishment": "not yet",
+        "sentenced": "ugly",
+        "combine": ("noon", "Yin"),
+        "meeting": ("state", "unitary"),
+        "Harmful": "unitary",
+        "break": "not yet",
+        "six": "Mao",
+        "dark": "",
     },
-    "亥": {
-        "冲": "巳",
-        "刑": "亥",
-        "被刑": "亥",
-        "合": ("卯", "未"),
-        "会": ("子", "丑"),
-        "害": "申",
-        "破": "寅",
-        "六": "寅",
-        "暗": "午",
+    "Hai": {
+        "rush": "Si",
+        "punishment": "Hai",
+        "sentenced": "Hai",
+        "combine": ("Mao", "not yet"),
+        "meeting": ("son", "ugly"),
+        "Harmful": "state",
+        "break": "Yin",
+        "six": "Yin",
+        "dark": "noon",
     },
 }
 
-# 三合局
-ZHI_SAN_HE = {"申子辰": "水", "巳酉丑": "金", "寅午戌": "火", "亥卯未": "木"}
+# Triad
+ZHI_SAN_HE = {"Shen Zichen": "water", "Siyou Chou": "gold", "Yinwuxu": "fire", "Haimaowei": "Wood"}
 
-# 六合
+# Liuhe
 ZHI_LIU_HE = {
-    "子丑": "土",
-    "寅亥": "木",
-    "卯戌": "火",
-    "酉辰": "金",
-    "申巳": "水",
-    "未午": "土",
+    "Zi Chou": "earth",
+    "Yinhai": "Wood",
+    "Maoxu": "fire",
+    "Youchen": "gold",
+    "Shen Si": "water",
+    "noon": "earth",
 }
 
-# 三会方
+# Sanhui party
 ZHI_SAN_HUI = {
-    "亥子丑": "水",
-    "寅卯辰": "木",
-    "巳午未": "火",
-    "申酉戌": "金",
+    "Haizi Chou": "water",
+    "Yin Mao Chen": "Wood",
+    "It's noon": "fire",
+    "Shen Youxu": "gold",
 }
 
-# ==================== 纳音五行 ====================
+# ==================== The Five Elements of Nayin ====================
 
 NAYIN_TABLE = {
-    ("甲", "子"): "海中金",
-    ("乙", "丑"): "海中金",
-    ("丙", "寅"): "炉中火",
-    ("丁", "卯"): "炉中火",
-    ("戊", "辰"): "大林木",
-    ("己", "巳"): "大林木",
-    ("庚", "午"): "路旁土",
-    ("辛", "未"): "路旁土",
-    ("壬", "申"): "剑锋金",
-    ("癸", "酉"): "剑锋金",
-    ("甲", "戌"): "山头火",
-    ("乙", "亥"): "山头火",
-    ("丙", "子"): "涧下水",
-    ("丁", "丑"): "涧下水",
-    ("戊", "寅"): "城头土",
-    ("己", "卯"): "城头土",
-    ("庚", "辰"): "白蜡金",
-    ("辛", "巳"): "白蜡金",
-    ("壬", "午"): "杨柳木",
-    ("癸", "未"): "杨柳木",
-    ("甲", "申"): "井泉水",
-    ("乙", "酉"): "井泉水",
-    ("丙", "戌"): "屋上土",
-    ("丁", "亥"): "屋上土",
-    ("戊", "子"): "霹雳火",
-    ("己", "丑"): "霹雳火",
-    ("庚", "寅"): "松柏木",
-    ("辛", "卯"): "松柏木",
-    ("壬", "辰"): "长流水",
-    ("癸", "巳"): "长流水",
-    ("甲", "午"): "砂中金",
-    ("乙", "未"): "砂中金",
-    ("丙", "申"): "山下火",
-    ("丁", "酉"): "山下火",
-    ("戊", "戌"): "平地木",
-    ("己", "亥"): "平地木",
-    ("庚", "子"): "壁上土",
-    ("辛", "丑"): "壁上土",
-    ("壬", "寅"): "金泊金",
-    ("癸", "卯"): "金泊金",
-    ("甲", "辰"): "覆灯火",
-    ("乙", "巳"): "覆灯火",
-    ("丙", "午"): "天河水",
-    ("丁", "未"): "天河水",
-    ("戊", "申"): "大驿土",
-    ("己", "酉"): "大驿土",
-    ("庚", "戌"): "钗钏金",
-    ("辛", "亥"): "钗钏金",
-    ("壬", "子"): "桑柘木",
-    ("癸", "丑"): "桑柘木",
-    ("甲", "寅"): "大溪水",
-    ("乙", "卯"): "大溪水",
-    ("丙", "辰"): "砂中土",
-    ("丁", "巳"): "砂中土",
-    ("戊", "午"): "天上火",
-    ("己", "未"): "天上火",
-    ("庚", "申"): "石榴木",
-    ("辛", "酉"): "石榴木",
+    ("First", "son"): "Haizhongjin",
+    ("Second", "ugly"): "Haizhongjin",
+    ("C", "Yin"): "Fire in the furnace",
+    ("Man", "Mao"): "Fire in the furnace",
+    ("E", "Chen"): "big forest tree",
+    ("self", "Si"): "big forest tree",
+    ("Geng", "noon"): "roadside dirt",
+    ("pungent", "not yet"): "roadside dirt",
+    ("the ninth of the ten Heavenly Stems", "state"): "Jianfengjin",
+    ("Gui", "unitary"): "Jianfengjin",
+    ("First", "Xu"): "Shantouhuo",
+    ("Second", "Hai"): "Shantouhuo",
+    ("C", "son"): "Stream water",
+    ("Man", "ugly"): "Stream water",
+    ("E", "Yin"): "Chengtou soil",
+    ("self", "Mao"): "Chengtou soil",
+    ("Geng", "Chen"): "pewter gold",
+    ("pungent", "Si"): "pewter gold",
+    ("the ninth of the ten Heavenly Stems", "noon"): "Willow wood",
+    ("Gui", "not yet"): "Willow wood",
+    ("First", "state"): "well spring water",
+    ("Second", "unitary"): "well spring water",
+    ("C", "Xu"): "dirt on house",
+    ("Man", "Hai"): "dirt on house",
+    ("E", "son"): "Human Torch",
+    ("self", "ugly"): "Human Torch",
+    ("Geng", "Yin"): "pine wood",
+    ("pungent", "Mao"): "pine wood",
+    ("the ninth of the ten Heavenly Stems", "Chen"): "long flowing water",
+    ("Gui", "Si"): "long flowing water",
+    ("First", "noon"): "gold in sand",
+    ("Second", "not yet"): "gold in sand",
+    ("C", "state"): "Fire under the mountain",
+    ("Man", "unitary"): "Fire under the mountain",
+    ("E", "Xu"): "flat wood",
+    ("self", "Hai"): "flat wood",
+    ("Geng", "son"): "Soil on the wall",
+    ("pungent", "ugly"): "Soil on the wall",
+    ("the ninth of the ten Heavenly Stems", "Yin"): "Gold Bojin",
+    ("Gui", "Mao"): "Gold Bojin",
+    ("First", "Chen"): "Cover the lights",
+    ("Second", "Si"): "Cover the lights",
+    ("C", "noon"): "Tianhe water",
+    ("Man", "not yet"): "Tianhe water",
+    ("E", "state"): "dayitu",
+    ("self", "unitary"): "dayitu",
+    ("Geng", "Xu"): "Hairpin",
+    ("pungent", "Hai"): "Hairpin",
+    ("the ninth of the ten Heavenly Stems", "son"): "Mulberry",
+    ("Gui", "ugly"): "Mulberry",
+    ("First", "Yin"): "daxishui",
+    ("Second", "Mao"): "daxishui",
+    ("C", "Chen"): "soil in sand",
+    ("Man", "Si"): "soil in sand",
+    ("E", "noon"): "Fire in the sky",
+    ("self", "not yet"): "Fire in the sky",
+    ("Geng", "state"): "pomegranate wood",
+    ("pungent", "unitary"): "pomegranate wood",
 }
 
-# ==================== 神煞星宿 ====================
+# ==================== The evil stars ====================
 
-# 天乙贵人
+# Tianyi noble man
 TIANYI_GUIREN = {
-    "甲": "未丑",
-    "乙": "申子",
-    "丙": "酉亥",
-    "丁": "酉亥",
-    "戊": "未丑",
-    "己": "申子",
-    "庚": "未丑",
-    "辛": "寅午",
-    "壬": "卯巳",
-    "癸": "卯巳",
+    "First": "Not ugly",
+    "Second": "Shenzi",
+    "C": "Youhai",
+    "Man": "Youhai",
+    "E": "Not ugly",
+    "self": "Shenzi",
+    "Geng": "Not ugly",
+    "pungent": "Yin Wu",
+    "the ninth of the ten Heavenly Stems": "Mao Si",
+    "Gui": "Mao Si",
 }
 
-# 文昌贵人
+# Wenchang nobleman
 WENCHANG_GUIREN = {
-    "甲": "巳",
-    "乙": "午",
-    "丙": "申",
-    "丁": "酉",
-    "戊": "申",
-    "己": "酉",
-    "庚": "亥",
-    "辛": "子",
-    "壬": "寅",
-    "癸": "丑",
+    "First": "Si",
+    "Second": "noon",
+    "C": "state",
+    "Man": "unitary",
+    "E": "state",
+    "self": "unitary",
+    "Geng": "Hai",
+    "pungent": "son",
+    "the ninth of the ten Heavenly Stems": "Yin",
+    "Gui": "ugly",
 }
 
-# 驿马星
+# Yima
 YIMA_XING = {
-    "子": "寅",
-    "丑": "亥",
-    "寅": "申",
-    "卯": "巳",
-    "辰": "寅",
-    "巳": "亥",
-    "午": "申",
-    "未": "巳",
-    "申": "寅",
-    "酉": "亥",
-    "戌": "申",
-    "亥": "巳",
+    "son": "Yin",
+    "ugly": "Hai",
+    "Yin": "state",
+    "Mao": "Si",
+    "Chen": "Yin",
+    "Si": "Hai",
+    "noon": "state",
+    "not yet": "Si",
+    "state": "Yin",
+    "unitary": "Hai",
+    "Xu": "state",
+    "Hai": "Si",
 }
 
-# 桃花星
+# peach blossom star
 TAOHUA_XING = {
-    "子": "酉",
-    "丑": "午",
-    "寅": "卯",
-    "卯": "子",
-    "辰": "酉",
-    "巳": "午",
-    "午": "卯",
-    "未": "子",
-    "申": "酉",
-    "酉": "午",
-    "戌": "卯",
-    "亥": "子",
+    "son": "unitary",
+    "ugly": "noon",
+    "Yin": "Mao",
+    "Mao": "son",
+    "Chen": "unitary",
+    "Si": "noon",
+    "noon": "Mao",
+    "not yet": "son",
+    "state": "unitary",
+    "unitary": "noon",
+    "Xu": "Mao",
+    "Hai": "son",
 }
 
-# 华盖星
+# Huagai Star
 HUAGAI_XING = {
-    "子": "辰",
-    "丑": "丑",
-    "寅": "戌",
-    "卯": "未",
-    "辰": "辰",
-    "巳": "丑",
-    "午": "戌",
-    "未": "未",
-    "申": "辰",
-    "酉": "丑",
-    "戌": "戌",
-    "亥": "未",
+    "son": "Chen",
+    "ugly": "ugly",
+    "Yin": "Xu",
+    "Mao": "not yet",
+    "Chen": "Chen",
+    "Si": "ugly",
+    "noon": "Xu",
+    "not yet": "not yet",
+    "state": "Chen",
+    "unitary": "ugly",
+    "Xu": "Xu",
+    "Hai": "not yet",
 }
 
-# ==================== 长生十二宫 ====================
+# ==================== The Twelve Palaces of Immortality ====================
 
 CHANGSHENG_TWELVE = {
-    "甲": {
-        "子": "沐浴",
-        "丑": "冠带",
-        "寅": "建禄",
-        "卯": "帝旺",
-        "辰": "衰",
-        "巳": "病",
-        "午": "死",
-        "未": "墓",
-        "申": "绝",
-        "酉": "胎",
-        "戌": "养",
-        "亥": "长生",
+    "First": {
+        "son": "bathing",
+        "ugly": "crown band",
+        "Yin": "Jianlu",
+        "Mao": "Diwang",
+        "Chen": "decline",
+        "Si": "sick",
+        "noon": "die",
+        "not yet": "tomb",
+        "state": "Absolutely",
+        "unitary": "fetal",
+        "Xu": "keep",
+        "Hai": "Immortality",
     },
-    "乙": {
-        "子": "病",
-        "丑": "衰",
-        "寅": "帝旺",
-        "卯": "建禄",
-        "辰": "冠带",
-        "巳": "沐浴",
-        "午": "长生",
-        "未": "养",
-        "申": "胎",
-        "酉": "绝",
-        "戌": "墓",
-        "亥": "死",
+    "Second": {
+        "son": "sick",
+        "ugly": "decline",
+        "Yin": "Diwang",
+        "Mao": "Jianlu",
+        "Chen": "crown band",
+        "Si": "bathing",
+        "noon": "Immortality",
+        "not yet": "keep",
+        "state": "fetal",
+        "unitary": "Absolutely",
+        "Xu": "tomb",
+        "Hai": "die",
     },
-    "丙": {
-        "子": "胎",
-        "丑": "养",
-        "寅": "长生",
-        "卯": "沐浴",
-        "辰": "冠带",
-        "巳": "建禄",
-        "午": "帝旺",
-        "未": "衰",
-        "申": "病",
-        "酉": "死",
-        "戌": "墓",
-        "亥": "绝",
+    "C": {
+        "son": "fetal",
+        "ugly": "keep",
+        "Yin": "Immortality",
+        "Mao": "bathing",
+        "Chen": "crown band",
+        "Si": "Jianlu",
+        "noon": "Diwang",
+        "not yet": "decline",
+        "state": "sick",
+        "unitary": "die",
+        "Xu": "tomb",
+        "Hai": "Absolutely",
     },
-    "丁": {
-        "子": "绝",
-        "丑": "墓",
-        "寅": "死",
-        "卯": "病",
-        "辰": "衰",
-        "巳": "帝旺",
-        "午": "建禄",
-        "未": "冠带",
-        "申": "沐浴",
-        "酉": "长生",
-        "戌": "养",
-        "亥": "胎",
+    "Man": {
+        "son": "Absolutely",
+        "ugly": "tomb",
+        "Yin": "die",
+        "Mao": "sick",
+        "Chen": "decline",
+        "Si": "Diwang",
+        "noon": "Jianlu",
+        "not yet": "crown band",
+        "state": "bathing",
+        "unitary": "Immortality",
+        "Xu": "keep",
+        "Hai": "fetal",
     },
-    "戊": {
-        "子": "胎",
-        "丑": "养",
-        "寅": "长生",
-        "卯": "沐浴",
-        "辰": "冠带",
-        "巳": "建禄",
-        "午": "帝旺",
-        "未": "衰",
-        "申": "病",
-        "酉": "死",
-        "戌": "墓",
-        "亥": "绝",
+    "E": {
+        "son": "fetal",
+        "ugly": "keep",
+        "Yin": "Immortality",
+        "Mao": "bathing",
+        "Chen": "crown band",
+        "Si": "Jianlu",
+        "noon": "Diwang",
+        "not yet": "decline",
+        "state": "sick",
+        "unitary": "die",
+        "Xu": "tomb",
+        "Hai": "Absolutely",
     },
-    "己": {
-        "子": "绝",
-        "丑": "墓",
-        "寅": "死",
-        "卯": "病",
-        "辰": "衰",
-        "巳": "帝旺",
-        "午": "建禄",
-        "未": "冠带",
-        "申": "沐浴",
-        "酉": "长生",
-        "戌": "养",
-        "亥": "胎",
+    "self": {
+        "son": "Absolutely",
+        "ugly": "tomb",
+        "Yin": "die",
+        "Mao": "sick",
+        "Chen": "decline",
+        "Si": "Diwang",
+        "noon": "Jianlu",
+        "not yet": "crown band",
+        "state": "bathing",
+        "unitary": "Immortality",
+        "Xu": "keep",
+        "Hai": "fetal",
     },
-    "庚": {
-        "子": "死",
-        "丑": "墓",
-        "寅": "绝",
-        "卯": "胎",
-        "辰": "养",
-        "巳": "长生",
-        "午": "沐浴",
-        "未": "冠带",
-        "申": "建禄",
-        "酉": "帝旺",
-        "戌": "衰",
-        "亥": "病",
+    "Geng": {
+        "son": "die",
+        "ugly": "tomb",
+        "Yin": "Absolutely",
+        "Mao": "fetal",
+        "Chen": "keep",
+        "Si": "Immortality",
+        "noon": "bathing",
+        "not yet": "crown band",
+        "Apply": "Jianlu",
+        "unitary": "Diwang",
+        "Xu": "decline",
+        "Hai": "sick",
     },
-    "辛": {
-        "子": "长生",
-        "丑": "养",
-        "寅": "胎",
-        "卯": "绝",
-        "辰": "墓",
-        "巳": "死",
-        "午": "病",
-        "未": "衰",
-        "申": "帝旺",
-        "酉": "建禄",
-        "戌": "冠带",
-        "亥": "沐浴",
+    "pungent": {
+        "son": "Immortality",
+        "ugly": "keep",
+        "Yin": "fetal",
+        "Mao": "Absolutely",
+        "Chen": "tomb",
+        "Si": "die",
+        "noon": "sick",
+        "not yet": "decline",
+        "state": "Diwang",
+        "unitary": "Jianlu",
+        "Xu": "crown band",
+        "Hai": "bathing",
     },
-    "壬": {
-        "子": "帝旺",
-        "丑": "衰",
-        "寅": "病",
-        "卯": "死",
-        "辰": "墓",
-        "巳": "绝",
-        "午": "胎",
-        "未": "养",
-        "申": "长生",
-        "酉": "沐浴",
-        "戌": "冠带",
-        "亥": "建禄",
+    "the ninth of the ten Heavenly Stems": {
+        "son": "Diwang",
+        "ugly": "decline",
+        "Yin": "sick",
+        "Mao": "die",
+        "Chen": "tomb",
+        "Si": "Absolutely",
+        "noon": "fetal",
+        "not yet": "keep",
+        "state": "Immortality",
+        "unitary": "bathing",
+        "Xu": "crown band",
+        "Hai": "Jianlu",
     },
-    "癸": {
-        "子": "建禄",
-        "丑": "冠带",
-        "寅": "沐浴",
-        "卯": "长生",
-        "辰": "养",
-        "巳": "胎",
-        "午": "绝",
-        "未": "墓",
-        "申": "死",
-        "酉": "病",
-        "戌": "衰",
-        "亥": "帝旺",
+    "Gui": {
+        "son": "Jianlu",
+        "ugly": "crown band",
+        "Yin": "bathing",
+        "Mao": "Immortality",
+        "Chen": "keep",
+        "Si": "fetal",
+        "noon": "Absolutely",
+        "not yet": "tomb",
+        "state": "die",
+        "unitary": "sick",
+        "Xu": "decline",
+        "Hai": "Diwang",
     },
 }
 
-# ==================== 实用函数 ====================
+# ==================== Utility functions ====================
 
 
 def get_ten_gods_relation(day_master: str, other_stem: str) -> str:
-    """
-    获取十神关系.
-    """
-    return TEN_GODS_MAP.get((day_master, other_stem), "未知")
+    """Get the relationship between the ten gods."""
+    return TEN_GODS_MAP.get((day_master, other_stem), "unknown")
 
 
 def get_nayin(gan: str, zhi: str) -> str:
-    """
-    获取纳音五行.
-    """
-    return NAYIN_TABLE.get((gan, zhi), "未知")
+    """Get the five elements of Nayin."""
+    return NAYIN_TABLE.get((gan, zhi), "unknown")
 
 
 def get_zhi_relation(zhi1: str, zhi2: str, relation_type: str) -> bool:
-    """
-    检查地支关系.
-    """
+    """Check the earthly branch relationships."""
     if zhi1 not in ZHI_RELATIONS:
         return False
 
@@ -849,16 +841,12 @@ def get_zhi_relation(zhi1: str, zhi2: str, relation_type: str) -> bool:
 
 
 def get_changsheng_state(gan: str, zhi: str) -> str:
-    """
-    获取长生十二宫状态.
-    """
-    return CHANGSHENG_TWELVE.get(gan, {}).get(zhi, "未知")
+    """Get the status of the twelve zodiac signs of immortality."""
+    return CHANGSHENG_TWELVE.get(gan, {}).get(zhi, "unknown")
 
 
 def get_shensha(item: str, shensha_type: str) -> str:
-    """
-    获取神煞.
-    """
+    """Get the evil spirit."""
     shensha_tables = {
         "tianyi": TIANYI_GUIREN,
         "wenchang": WENCHANG_GUIREN,
@@ -872,9 +860,7 @@ def get_shensha(item: str, shensha_type: str) -> str:
 
 
 def analyze_zhi_combinations(zhi_list: List[str]) -> Dict[str, List[str]]:
-    """
-    分析地支组合（三合、六合、三会等）
-    """
+    """Analyze earthly branch combinations (Sanhe, Liuhe, Sanhui, etc.)"""
     result = {
         "sanhe": [],
         "liuhe": [],
@@ -884,31 +870,31 @@ def analyze_zhi_combinations(zhi_list: List[str]) -> Dict[str, List[str]]:
         "hai": [],
     }
 
-    # 检查三合
+    # Check Sanhe
     for combo, element in ZHI_SAN_HE.items():
         if all(zhi in zhi_list for zhi in combo):
             result["sanhe"].append(f"{combo}合{element}")
 
-    # 检查六合
+    # Check Liuhe
     for i, zhi1 in enumerate(zhi_list):
         for j, zhi2 in enumerate(zhi_list[i + 1 :], i + 1):
             combo = "".join(sorted([zhi1, zhi2]))
             if combo in ZHI_LIU_HE:
                 result["liuhe"].append(f"{zhi1}{zhi2}合{ZHI_LIU_HE[combo]}")
 
-    # 检查三会
+    # Check three meetings
     for combo, element in ZHI_SAN_HUI.items():
         if all(zhi in zhi_list for zhi in combo):
-            result["sanhui"].append(f"{combo}会{element}")
+            result["sanhui"].append(f"{combo}will{element}")
 
-    # 检查相冲、相刑、相害
+    # Check for opposition, square, and harm.
     for i, zhi1 in enumerate(zhi_list):
         for zhi2 in zhi_list[i + 1 :]:
-            if get_zhi_relation(zhi1, zhi2, "冲"):
-                result["chong"].append(f"{zhi1}冲{zhi2}")
-            if get_zhi_relation(zhi1, zhi2, "刑"):
-                result["xing"].append(f"{zhi1}刑{zhi2}")
-            if get_zhi_relation(zhi1, zhi2, "害"):
-                result["hai"].append(f"{zhi1}害{zhi2}")
+            if get_zhi_relation(zhi1, zhi2, "rush"):
+                result["chong"].append(f"{zhi1}Chong{zhi2}")
+            if get_zhi_relation(zhi1, zhi2, "punishment"):
+                result["xing"].append(f"{zhi1} Punishment{zhi2}")
+            if get_zhi_relation(zhi1, zhi2, "Harmful"):
+                result["hai"].append(f"{zhi1}harm{zhi2}")
 
     return result

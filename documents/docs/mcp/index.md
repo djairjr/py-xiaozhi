@@ -1,34 +1,34 @@
-# MCP 开发指南
+# MCP Development Guide
 
-MCP (Model Context Protocol) 是一个用于AI工具扩展的开放标准协议。本项目基于 MCP 实现了一个强大的工具系统，支持多种功能模块的无缝集成。
+MCP (Model Context Protocol) is an open standard protocol for AI tool extension. This project implements a powerful tool system based on MCP, supporting the seamless integration of multiple functional modules.
 
-## 📖 文档导航
+## 📖 Document Navigation
 
-- **[🔧 内置MCP开发指南](#系统架构)** - 本文档：开发和使用内置MCP工具
-- **[🔌 外挂MCP接入指南](xiaozhi-mcp.md)** - 外部MCP服务接入和社区项目集成
+- **[🔧Built-in MCP Development Guide](#SystemArchitecture)** - This document: Develop and use built-in MCP tools
+- **[🔌 External MCP Access Guide](xiaozhi-mcp.md)** - External MCP service access and community project integration
 
-> 💡 **选择指南**: 如果你想开发新的内置工具，请参考本文档；如果你想接入外部MCP服务或了解社区项目，请查看[外挂接入指南](xiaozhi-mcp.md)。
+> 💡 **Selection Guide**: If you want to develop new built-in tools, please refer to this document; if you want to access external MCP services or learn about community projects, please view the [Plug-in Access Guide] (xiaozhi-mcp.md).
 
-## 系统架构
+## System architecture
 
-### 核心组件
+### Core components
 
-#### 1. MCP 服务器 (`src/mcp/mcp_server.py`)
-- **基于 JSON-RPC 2.0 协议**: 符合 MCP 标准规范
-- **单例模式**: 全局统一的服务器实例管理
-- **工具注册系统**: 支持动态添加和管理工具
-- **参数验证**: 完整的类型检查和参数验证机制
-- **错误处理**: 标准化的错误响应和异常处理
+#### 1. MCP server (`src/mcp/mcp_server.py`)
+- **Based on JSON-RPC 2.0 protocol**: Comply with MCP standard specification
+- **Single case mode**: Global unified server instance management
+- **Tool Registration System**: Supports dynamic addition and management of tools
+- **Parameter Validation**: Complete type checking and parameter validation mechanism
+- **Error Handling**: Standardized error response and exception handling
 
-#### 2. 工具属性系统
+#### 2. Tool attribute system
 ```python
-# 属性类型定义
+#Attribute type definition
 class PropertyType(Enum):
     BOOLEAN = "boolean"
     INTEGER = "integer"
     STRING = "string"
 
-# 属性定义
+#Property definition
 @dataclass
 class Property:
     name: str
@@ -38,126 +38,126 @@ class Property:
     max_value: Optional[int] = None
 ```
 
-#### 3. 工具定义结构
+#### 3. Tool definition structure
 ```python
 @dataclass
 class McpTool:
-    name: str                  # 工具名称
-    description: str           # 工具描述
-    properties: PropertyList   # 参数列表
-    callback: Callable         # 回调函数
+name: str # Tool name
+description: str # tool description
+properties: PropertyList # Parameter list
+callback: Callable # callback function
 ```
 
-### 工具管理器架构
+### Tool Manager Architecture
 
-每个功能模块都有对应的管理器类，负责：
-- 工具的初始化和注册
-- 业务逻辑的封装
-- 与底层服务的交互
+Each functional module has a corresponding manager class, which is responsible for:
+- Initialization and registration of tools
+- Encapsulation of business logic
+- Interaction with underlying services
 
-#### 现有工具模块
+#### Existing tool modules
 
-1. **系统工具 (`src/mcp/tools/system/`)**
-   - 设备状态监控
-   - 应用程序管理（启动、终止、扫描）
-   - 系统信息查询
+1. **System tools (`src/mcp/tools/system/`)**
+- Equipment status monitoring
+- Application management (start, terminate, scan)
+- System information query
 
-2. **日程管理 (`src/mcp/tools/calendar/`)**
-   - 日程的增删改查
-   - 智能时间解析
-   - 冲突检测
-   - 提醒服务
+2. **Schedule Management (`src/mcp/tools/calendar/`)**
+- Add, delete, modify and check the schedule
+- Intelligent time analysis
+- Clash detection
+- Reminder service
 
-3. **定时器 (`src/mcp/tools/timer/`)**
-   - 倒计时器管理
-   - 任务调度
-   - 时间提醒
+3. **Timer (`src/mcp/tools/timer/`)**
+- Countdown timer management
+- Task scheduling
+- Time reminder
 
-4. **音乐播放 (`src/mcp/tools/music/`)**
-   - 音乐播放控制
-   - 播放列表管理
-   - 音量控制
+4. **Music player (`src/mcp/tools/music/`)**
+- Music playback control
+- Playlist management
+- Volume control
 
-5. **铁路查询 (`src/mcp/tools/railway/`)**
-   - 12306 车次查询
-   - 车站信息查询
-   - 票价查询
+5. **Railway query (`src/mcp/tools/railway/`)**
+- 12306 train number query
+- Station information query
+- Fare inquiry
 
-6. **搜索工具 (`src/mcp/tools/search/`)**
-   - 网络搜索
-   - 信息检索
-   - 结果过滤
+6. **Search tool (`src/mcp/tools/search/`)**
+- Web search
+- Information retrieval
+- Filter results
 
-7. **菜谱工具 (`src/mcp/tools/recipe/`)**
-   - 菜谱查询
-   - 食谱推荐
-   - 营养信息
+7. **Recipe Tool (`src/mcp/tools/recipe/`)**
+- Recipe query
+- Recipe recommendations
+- Nutritional information
 
-8. **相机工具 (`src/mcp/tools/camera/`)**
-   - 拍照功能
-   - 视觉问答
-   - 图像分析
+8. **Camera Tools (`src/mcp/tools/camera/`)**
+- Photo function
+- Visual Q&A
+- Image analysis
 
-9. **地图工具 (`src/mcp/tools/amap/`)**
-   - 地理编码/逆地理编码
-   - 路径规划
-   - 天气查询
-   - POI 搜索
+9. **Map Tools (`src/mcp/tools/amap/`)**
+- Geocoding/reverse geocoding
+- Path planning
+- Weather query
+- POI search
 
-10. **八字命理 (`src/mcp/tools/bazi/`)**
-    - 八字计算
-    - 命理分析
-    - 合婚分析
-    - 黄历查询
+10. **Bazi numerology (`src/mcp/tools/bazi/`)**
+- Bazi calculation
+- Numerology analysis
+- Intermarriage analysis
+- Almanac query
 
-## 工具开发指南
+## Tool Development Guide
 
-### 1. 创建新工具模块
+### 1. Create a new tool module
 
-创建新的工具模块需要以下步骤：
+Creating a new tool module requires the following steps:
 
-#### 步骤 1: 创建模块目录
+#### Step 1: Create module directory
 ```bash
 mkdir src/mcp/tools/your_tool_name
 cd src/mcp/tools/your_tool_name
 ```
 
-#### 步骤 2: 创建必要文件
+#### Step 2: Create necessary files
 ```bash
 touch __init__.py
-touch manager.py      # 管理器类
-touch tools.py        # 工具函数实现
-touch models.py       # 数据模型（可选）
-touch client.py       # 客户端类（可选）
+touch manager.py # Manager class
+touch tools.py # Tool function implementation
+touch models.py #Data model (optional)
+touch client.py # Client class (optional)
 ```
 
-#### 步骤 3: 实现管理器类
+#### Step 3: Implement the manager class
 ```python
 # manager.py
 class YourToolManager:
     def __init__(self):
-        # 初始化代码
+#Initialization code
         pass
     
     def init_tools(self, add_tool, PropertyList, Property, PropertyType):
         """
-        初始化并注册工具
+Initialize and register tools
         """
-        # 定义工具属性
+# Define tool properties
         tool_props = PropertyList([
             Property("param1", PropertyType.STRING),
             Property("param2", PropertyType.INTEGER, default_value=0)
         ])
         
-        # 注册工具
+#Registration tool
         add_tool((
             "tool_name",
-            "工具描述",
+"Tool Description",
             tool_props,
             your_tool_function
         ))
 
-# 全局管理器实例
+# Global manager instance
 _manager = None
 
 def get_your_tool_manager():
@@ -167,181 +167,181 @@ def get_your_tool_manager():
     return _manager
 ```
 
-#### 步骤 4: 实现工具函数
+#### Step 4: Implement tool functions
 ```python
 # tools.py
 async def your_tool_function(args: dict) -> str:
     """
-    工具函数实现
+Tool function implementation
     """
     param1 = args.get("param1")
     param2 = args.get("param2", 0)
     
-    # 业务逻辑
+#Business logic
     result = perform_operation(param1, param2)
     
-    return f"操作结果: {result}"
+return f"Operation result: {result}"
 ```
 
-#### 步骤 5: 注册到主服务器
-在 `src/mcp/mcp_server.py` 的 `add_common_tools` 方法中添加：
+#### Step 5: Register to the main server
+Add in the `add_common_tools` method of `src/mcp/mcp_server.py`:
 ```python
-# 添加你的工具
+# Add your tools
 from src.mcp.tools.your_tool_name import get_your_tool_manager
 
 your_tool_manager = get_your_tool_manager()
 your_tool_manager.init_tools(self.add_tool, PropertyList, Property, PropertyType)
 ```
 
-### 2. 最佳实践
+### 2. Best Practices
 
-#### 工具命名规范
-- 使用 `self.module.action` 格式
-- 例如：`self.calendar.create_event`、`self.music.play`
+#### Tool naming convention
+- Use `self.module.action` format
+- For example: `self.calendar.create_event`, `self.music.play`
 
-#### 参数设计
-- 必需参数不设默认值
-- 可选参数设置合理的默认值
-- 使用合适的参数类型（STRING、INTEGER、BOOLEAN）
+#### Parameter design
+- Required parameters do not have default values
+- Optional parameters set to sensible default values
+- Use appropriate parameter types (STRING, INTEGER, BOOLEAN)
 
-#### 错误处理
+#### Error handling
 ```python
 async def your_tool_function(args: dict) -> str:
     try:
-        # 业务逻辑
+#Business logic
         result = await perform_operation(args)
-        return f"成功: {result}"
+return f"Success: {result}"
     except Exception as e:
-        logger.error(f"工具执行失败: {e}")
-        return f"错误: {str(e)}"
+logger.error(f"Tool execution failed: {e}")
+return f"Error: {str(e)}"
 ```
 
-#### 异步支持
-- 优先使用 async/await
-- 支持同步函数的自动包装
-- 合理使用 asyncio 工具
+#### Asynchronous support
+- Prefer async/await
+- Support automatic packaging of synchronized functions
+- Proper use of asyncio tools
 
-### 3. 工具描述编写
+### 3. Writing tool description
 
-工具描述应包含：
-- 功能简介
-- 使用场景
-- 参数说明
-- 返回格式
-- 注意事项
+Tool description should contain:
+- Function introduction
+- Usage scenarios
+- Parameter description
+- return format
+- Precautions
 
-示例：
+Example:
 ```python
 description = """
-创建新的日程事件，支持智能时间设置和冲突检测。
-使用场景：
-1. 安排会议或约会
-2. 设置提醒事项
-3. 时间管理规划
+Create new schedule events with support for intelligent time setting and conflict detection.
+Usage scenarios:
+1. Schedule a meeting or appointment
+2. Set reminders
+3. Time management planning
 
-参数：
-  title: 事件标题（必需）
-  start_time: 开始时间，ISO格式（必需）
-  end_time: 结束时间，可自动计算
-  description: 事件描述
-  category: 事件分类
-  reminder_minutes: 提醒时间（分钟）
+parameter:
+title: event title (required)
+start_time: start time, ISO format (required)
+end_time: end time, can be automatically calculated
+description: event description
+category: event classification
+reminder_minutes: reminder time (minutes)
 
-返回：创建成功或失败的消息
+Return: creation success or failure message
 """
 ```
 
-## 使用示例
+## Usage example
 
-### 日程管理
+### Schedule Management
 ```python
-# 创建日程
+#Create schedule
 await mcp_server.call_tool("self.calendar.create_event", {
-    "title": "团队会议",
+"title": "Team Meeting",
     "start_time": "2024-01-01T10:00:00",
-    "category": "会议",
+"category": "Conference",
     "reminder_minutes": 15
 })
 
-# 查询今日日程
+# Check today’s schedule
 await mcp_server.call_tool("self.calendar.get_events", {
     "date_type": "today"
 })
 ```
 
-### 地图功能
+### Map function
 ```python
-# 地址转经纬度
+#Convert address to latitude and longitude
 await mcp_server.call_tool("self.amap.geocode", {
-    "address": "北京市天安门广场"
+"address": "Tiananmen Square, Beijing"
 })
 
-# 路径规划
+# Path planning
 await mcp_server.call_tool("self.amap.direction_walking", {
     "origin": "116.397428,39.90923",
     "destination": "116.390813,39.904368"
 })
 ```
 
-### 八字命理
+### Eight-character numerology
 ```python
-# 获取八字分析
+# Get horoscope analysis
 await mcp_server.call_tool("self.bazi.get_bazi_detail", {
     "solar_datetime": "2008-03-01T13:00:00+08:00",
     "gender": 1
 })
 
-# 合婚分析
+# marriage analysis
 await mcp_server.call_tool("self.bazi.analyze_marriage_compatibility", {
     "male_solar_datetime": "1990-01-01T10:00:00+08:00",
     "female_solar_datetime": "1992-05-15T14:30:00+08:00"
 })
 ```
 
-## 高级特性
+## Advanced features
 
-### 1. 参数验证
-系统提供完整的参数验证机制：
-- 类型检查
-- 范围验证
-- 必需参数检查
-- 默认值处理
+### 1. Parameter verification
+The system provides a complete parameter verification mechanism:
+- type checking
+- Range validation
+- Required parameter check
+- Default value handling
 
-### 2. 工具发现
-支持动态工具发现和列表获取：
-- 分页支持
-- 大小限制
-- 游标遍历
+### 2. Tool discovery
+Support dynamic tool discovery and list acquisition:
+- Pagination support
+- size limit
+- Cursor traversal
 
-### 3. 视觉能力
-支持视觉相关功能：
-- 图像分析
-- 视觉问答
-- 配置外部视觉服务
+### 3. Visual ability
+Support visual related functions:
+- Image analysis
+- Visual Q&A
+- Configure external vision services
 
-### 4. 并发处理
-- 异步工具执行
-- 任务调度
-- 资源管理
+### 4. Concurrent processing
+- Asynchronous tool execution
+- Task scheduling
+- Resource management
 
-## 调试和测试
+## Debugging and testing
 
-### 日志系统
+### Log system
 ```python
 from src.utils.logging_config import get_logger
 logger = get_logger(__name__)
 
-logger.info("工具执行开始")
-logger.error("执行失败", exc_info=True)
+logger.info("Tool execution starts")
+logger.error("Execution failed", exc_info=True)
 ```
 
-### 测试工具
+### Test Tools
 ```python
-# 测试工具注册
+# Test tool registration
 server = McpServer.get_instance()
 server.add_common_tools()
 
-# 测试工具调用
+# Test tool call
 result = await server.parse_message({
     "jsonrpc": "2.0",
     "method": "tools/call",
@@ -353,35 +353,35 @@ result = await server.parse_message({
 })
 ```
 
-## 部署和配置
+## Deployment and configuration
 
-### 环境要求
+### Environmental requirements
 - Python 3.8+
-- 异步支持
-- 相关依赖库
+- Asynchronous support
+- Relevant dependent libraries
 
-### 配置文件
-工具配置通过 `config/config.json` 进行管理，支持：
-- API 密钥配置
-- 服务端点设置
-- 功能开关控制
+### Configuration file
+Tool configuration is managed through `config/config.json` and supports:
+- API key configuration
+- Service endpoint settings
+- Function switch control
 
-### 性能优化
-- 连接池管理
-- 缓存策略
-- 并发控制
-- 资源回收
+### Performance optimization
+- Connection pool management
+- Caching strategy
+- Concurrency control
+- Resource recovery
 
-## 故障排除
+## troubleshooting
 
-### 常见问题
-1. **工具注册失败**: 检查管理器单例和导入路径
-2. **参数验证错误**: 确认参数类型和必需性
-3. **异步调用问题**: 确保正确使用 async/await
-4. **依赖缺失**: 检查模块导入和依赖安装
+### FAQ
+1. **Tool registration failed**: Check manager singleton and import path
+2. **Parameter validation error**: Confirm parameter type and necessity
+3. **Asynchronous call issue**: Make sure to use async/await correctly
+4. **Missing dependency**: Check module import and dependency installation
 
-### 调试技巧
-- 启用详细日志
-- 使用调试工具
-- 单元测试验证
-- 性能分析工具
+### Debugging Tips
+- Enable verbose logging
+- Use debugging tools
+- Unit test verification
+- Performance analysis tools

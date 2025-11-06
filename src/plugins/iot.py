@@ -12,7 +12,7 @@ class IoTPlugin(Plugin):
 
     async def setup(self, app: Any) -> None:
         self.app = app
-        # 确保设备初始化完成
+        # Make sure device initialization is complete
         try:
             from src.iot.thing_manager import ThingManager
 
@@ -22,9 +22,7 @@ class IoTPlugin(Plugin):
             pass
 
     async def on_protocol_connected(self, protocol: Any) -> None:
-        """
-        协议连接后，发送 IoT 描述符与一次状态。
-        """
+        """After the protocol is connected, the IoT descriptor and status are sent once."""
         try:
             from src.iot.thing_manager import ThingManager
 
@@ -38,9 +36,7 @@ class IoTPlugin(Plugin):
             pass
 
     async def on_incoming_json(self, message: Any) -> None:
-        """
-        处理来自服务端的 IoT 命令消息。
-        """
+        """Process IoT command messages from the server."""
         try:
             if not isinstance(message, dict):
                 return
@@ -57,12 +53,12 @@ class IoTPlugin(Plugin):
             for command in commands:
                 try:
                     result = await manager.invoke(command)
-                    print(f"[IOT] 执行命令结果: {result}")
+                    print(f"[IOT] Command execution result: {result}")
                 except Exception:
                     pass
 
             try:
-                # 执行后下发一次最新状态（只发变化）
+                # Send the latest status once after execution (only changes are sent)
                 changed, states_json = await manager.get_states_json(delta=True)
                 if changed:
                     await self.app.protocol.send_iot_states(states_json)

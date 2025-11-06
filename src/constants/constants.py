@@ -6,9 +6,7 @@ config = ConfigManager.get_instance()
 
 
 class ListeningMode:
-    """
-    监听模式.
-    """
+    """Monitor mode."""
 
     REALTIME = "realtime"
     AUTO_STOP = "auto_stop"
@@ -16,9 +14,7 @@ class ListeningMode:
 
 
 class AbortReason:
-    """
-    中止原因.
-    """
+    """Reason for suspension."""
 
     NONE = "none"
     WAKE_WORD_DETECTED = "wake_word_detected"
@@ -26,9 +22,7 @@ class AbortReason:
 
 
 class DeviceState:
-    """
-    设备状态.
-    """
+    """Device status."""
 
     IDLE = "idle"
     CONNECTING = "connecting"
@@ -37,9 +31,7 @@ class DeviceState:
 
 
 class EventType:
-    """
-    事件类型.
-    """
+    """Event type."""
 
     SCHEDULE_EVENT = "schedule_event"
     AUDIO_INPUT_READY_EVENT = "audio_input_ready_event"
@@ -47,62 +39,58 @@ class EventType:
 
 
 def is_official_server(ws_addr: str) -> bool:
-    """判断是否为小智官方的服务器地址.
+    """Determine whether it is Xiaozhi's official server address.
 
     Args:
-        ws_addr (str): WebSocket 地址
+        ws_addr (str): WebSocket address
 
     Returns:
-        bool: 是否为小智官方的服务器地址
-    """
+        bool: Is it Xiaozhi’s official server address?"""
     return "api.tenclass.net" in ws_addr
 
 
 def get_frame_duration() -> int:
-    """获取设备的帧长度.
+    """Get the frame length of the device.
 
-    返回:
-        int: 帧长度(毫秒)
-    """
+    Return:
+        int: frame length (milliseconds)"""
     try:
-        # 检查是否为官方服务器
+        # Check if it is an official server
         ota_url = config.get_config("SYSTEM_OPTIONS.NETWORK.OTA_VERSION_URL")
         if not is_official_server(ota_url):
             return 60
 
-        # 检测ARM架构设备（如树莓派）
+        # Detect ARM architecture devices (such as Raspberry Pi)
         machine = platform.machine().lower()
         arm_archs = ["arm", "aarch64", "armv7l", "armv6l"]
         is_arm_device = any(arch in machine for arch in arm_archs)
 
         if is_arm_device:
-            # ARM设备（如树莓派）使用较大帧长以减少CPU负载
+            # ARM devices (such as Raspberry Pi) use larger frame sizes to reduce CPU load
             return 60
         else:
-            # 其他设备（Windows/macOS/Linux x86）都有足够性能，使用低延迟
+            # Other devices (Windows/macOS/Linux x86) have sufficient performance and use low latency
             return 20
 
     except Exception:
-        # 如果获取失败，返回默认值20ms（适合大多数现代设备）
+        # If acquisition fails, return to the default value of 20ms (suitable for most modern devices)
         return 20
 
 
 class AudioConfig:
-    """
-    音频配置类.
-    """
+    """Audio configuration class."""
 
-    # 固定配置
-    INPUT_SAMPLE_RATE = 16000  # 输入采样率16kHz
-    # 输出采样率：官方服务器使用24kHz，其他使用16kHz
+    # Fixed configuration
+    INPUT_SAMPLE_RATE = 16000  # Input sampling rate 16kHz
+    # Output sampling rate: official server uses 24kHz, others use 16kHz
     _ota_url = config.get_config("SYSTEM_OPTIONS.NETWORK.OTA_VERSION_URL")
     OUTPUT_SAMPLE_RATE = 24000 if is_official_server(_ota_url) else 16000
     CHANNELS = 1
 
-    # 动态获取帧长度
+    # Dynamically obtain frame length
     FRAME_DURATION = get_frame_duration()
 
-    # 根据不同采样率计算帧大小
+    # Calculate frame size based on different sample rates
     INPUT_FRAME_SIZE = int(INPUT_SAMPLE_RATE * (FRAME_DURATION / 1000))
-    # Linux系统使用固定帧大小以减少PCM打印，其他系统动态计算
+    # Linux systems use fixed frame size to reduce PCM printing, other systems calculate dynamically
     OUTPUT_FRAME_SIZE = int(OUTPUT_SAMPLE_RATE * (FRAME_DURATION / 1000))

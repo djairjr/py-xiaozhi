@@ -1,17 +1,16 @@
-"""WebRTC回声消除(AEC)演示脚本.
+"""WebRTC Echo Cancellation (AEC) demo script.
 
-该脚本用于演示WebRTC APM库的回声消除功能:
-1. 播放指定的音频文件(作为参考信号)
-2. 同时录制麦克风输入(包含回声和环境声音)
-3. 应用WebRTC回声消除处理
-4. 保存原始录音和处理后的录音，以便比较
+This script is used to demonstrate the echo cancellation feature of the WebRTC APM library:
+1. Play the specified audio file (as a reference signal)
+2. Simultaneously record microphone input (including echo and ambient sounds)
+3. Apply WebRTC echo cancellation processing
+4. Save the original recording and the processed recording for comparison
 
-用法:
-    python webrtc_aec_demo.py [音频文件路径]
+Usage:
+    python webrtc_aec_demo.py [audio file path]
 
-示例:
-    python webrtc_aec_demo.py 鞠婧祎.wav
-"""
+Example:
+    python webrtc_aec_demo.py Ju Jingyi.wav"""
 
 import ctypes
 import os
@@ -27,23 +26,23 @@ import pygame
 import soundfile as sf
 from pygame import mixer
 
-# 获取DLL文件的绝对路径
+# Get the absolute path of the DLL file
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.dirname(current_dir)
 dll_path = os.path.join(
     project_root, "libs", "webrtc_apm", "win", "x86_64", "libwebrtc_apm.dll"
 )
 
-# 加载DLL
+# Load DLL
 try:
     apm_lib = ctypes.CDLL(dll_path)
-    print(f"成功加载WebRTC APM库: {dll_path}")
+    print(f"Successfully loaded WebRTC APM library: {dll_path}")
 except Exception as e:
-    print(f"加载WebRTC APM库失败: {e}")
+    print(f"Failed to load WebRTC APM library: {e}")
     sys.exit(1)
 
 
-# 定义结构体和枚举类型
+# Define structure and enumeration types
 class DownmixMethod(ctypes.c_int):
     AverageChannels = 0
     UseFirstChannel = 1
@@ -68,7 +67,7 @@ class ClippingPredictorMode(ctypes.c_int):
     FixedStepClippingPeakPrediction = 2
 
 
-# 定义Pipeline结构体
+# Define Pipeline structure
 class Pipeline(Structure):
     _fields_ = [
         ("MaximumInternalProcessingRate", c_int),
@@ -78,17 +77,17 @@ class Pipeline(Structure):
     ]
 
 
-# 定义PreAmplifier结构体
+# Define PreAmplifier structure
 class PreAmplifier(Structure):
     _fields_ = [("Enabled", c_bool), ("FixedGainFactor", c_float)]
 
 
-# 定义AnalogMicGainEmulation结构体
+# Define the AnalogMicGainEmulation structure
 class AnalogMicGainEmulation(Structure):
     _fields_ = [("Enabled", c_bool), ("InitialLevel", c_int)]
 
 
-# 定义CaptureLevelAdjustment结构体
+# Define the CaptureLevelAdjustment structure
 class CaptureLevelAdjustment(Structure):
     _fields_ = [
         ("Enabled", c_bool),
@@ -98,12 +97,12 @@ class CaptureLevelAdjustment(Structure):
     ]
 
 
-# 定义HighPassFilter结构体
+# Define the HighPassFilter structure
 class HighPassFilter(Structure):
     _fields_ = [("Enabled", c_bool), ("ApplyInFullBand", c_bool)]
 
 
-# 定义EchoCanceller结构体
+# Define the EchoCanceler structure
 class EchoCanceller(Structure):
     _fields_ = [
         ("Enabled", c_bool),
@@ -113,7 +112,7 @@ class EchoCanceller(Structure):
     ]
 
 
-# 定义NoiseSuppression结构体
+# Define NoiseSuppression structure
 class NoiseSuppression(Structure):
     _fields_ = [
         ("Enabled", c_bool),
@@ -122,12 +121,12 @@ class NoiseSuppression(Structure):
     ]
 
 
-# 定义TransientSuppression结构体
+# Define TransientSuppression structure
 class TransientSuppression(Structure):
     _fields_ = [("Enabled", c_bool)]
 
 
-# 定义ClippingPredictor结构体
+# Define ClippingPredictor structure
 class ClippingPredictor(Structure):
     _fields_ = [
         ("Enabled", c_bool),
@@ -141,7 +140,7 @@ class ClippingPredictor(Structure):
     ]
 
 
-# 定义AnalogGainController结构体
+# Define AnalogGainController structure
 class AnalogGainController(Structure):
     _fields_ = [
         ("Enabled", c_bool),
@@ -155,7 +154,7 @@ class AnalogGainController(Structure):
     ]
 
 
-# 定义GainController1结构体
+# Define GainController1 structure
 class GainController1(Structure):
     _fields_ = [
         ("Enabled", c_bool),
@@ -167,12 +166,12 @@ class GainController1(Structure):
     ]
 
 
-# 定义InputVolumeController结构体
+# Define the InputVolumeController structure
 class InputVolumeController(Structure):
     _fields_ = [("Enabled", c_bool)]
 
 
-# 定义AdaptiveDigital结构体
+# Define AdaptiveDigital structure
 class AdaptiveDigital(Structure):
     _fields_ = [
         ("Enabled", c_bool),
@@ -184,12 +183,12 @@ class AdaptiveDigital(Structure):
     ]
 
 
-# 定义FixedDigital结构体
+# Define FixedDigital structure
 class FixedDigital(Structure):
     _fields_ = [("GainDb", c_float)]
 
 
-# 定义GainController2结构体
+# Define GainController2 structure
 class GainController2(Structure):
     _fields_ = [
         ("Enabled", c_bool),
@@ -199,7 +198,7 @@ class GainController2(Structure):
     ]
 
 
-# 定义完整的Config结构体
+# Define the complete Config structure
 class Config(Structure):
     _fields_ = [
         ("PipelineConfig", Pipeline),
@@ -214,7 +213,7 @@ class Config(Structure):
     ]
 
 
-# 定义DLL函数原型
+# Define DLL function prototype
 apm_lib.WebRTC_APM_Create.restype = c_void_p
 apm_lib.WebRTC_APM_Create.argtypes = []
 
@@ -253,53 +252,53 @@ apm_lib.WebRTC_APM_SetStreamDelayMs.argtypes = [c_void_p, c_int]
 
 
 def create_apm_config():
-    """创建WebRTC APM配置 - 优化为保留自然语音，减少错误码-11问题"""
+    """Create WebRTC APM configuration - optimized to preserve natural speech and reduce error code-11 issues"""
     config = Config()
 
-    # 设置Pipeline配置 - 使用标准采样率避免重采样问题
-    config.PipelineConfig.MaximumInternalProcessingRate = 16000  # WebRTC优化频率
+    # Set Pipeline Configuration - Use standard sample rate to avoid resampling issues
+    config.PipelineConfig.MaximumInternalProcessingRate = 16000  # WebRTC optimization frequency
     config.PipelineConfig.MultiChannelRender = False
     config.PipelineConfig.MultiChannelCapture = False
     config.PipelineConfig.CaptureDownmixMethod = DownmixMethod.AverageChannels
 
-    # 设置PreAmplifier配置 - 减少预放大干扰
-    config.PreAmp.Enabled = False  # 关闭预放大，避免失真
-    config.PreAmp.FixedGainFactor = 1.0  # 不增益
+    # Set PreAmplifier configuration - reduce pre-amp interference
+    config.PreAmp.Enabled = False  # Turn off pre-amplification to avoid distortion
+    config.PreAmp.FixedGainFactor = 1.0  # No gain
 
-    # 设置LevelAdjustment配置 - 简化电平调整
-    config.LevelAdjustment.Enabled = False  # 禁用电平调整以减少处理冲突
+    # Set LevelAdjustment Configuration - Simplified Level Adjustment
+    config.LevelAdjustment.Enabled = False  # Disable level adjustment to reduce processing conflicts
     config.LevelAdjustment.PreGainFactor = 1.0
     config.LevelAdjustment.PostGainFactor = 1.0
     config.LevelAdjustment.MicGainEmulation.Enabled = False
-    config.LevelAdjustment.MicGainEmulation.InitialLevel = 100  # 降低初始电平避免过饱和
+    config.LevelAdjustment.MicGainEmulation.InitialLevel = 100  # Lower initial level to avoid oversaturation
 
-    # 设置HighPassFilter配置 - 使用标准高通滤波
-    config.HighPass.Enabled = True  # 启用高通滤波器移除低频噪声
-    config.HighPass.ApplyInFullBand = True  # 在全频段应用，更好的兼容性
+    # Set HighPassFilter configuration - use standard high-pass filtering
+    config.HighPass.Enabled = True  # Enable high-pass filter to remove low-frequency noise
+    config.HighPass.ApplyInFullBand = True  # Application in the whole frequency band, better compatibility
 
-    # 设置EchoCanceller配置 - 优化回声消除
-    config.Echo.Enabled = True  # 启用回声消除
-    config.Echo.MobileMode = False  # 使用标准模式而非移动模式以获取更好效果
+    # Setting up EchoCanceler configuration - Optimizing echo cancellation
+    config.Echo.Enabled = True  # Enable echo cancellation
+    config.Echo.MobileMode = False  # Use standard mode instead of mobile mode for better results
     config.Echo.ExportLinearAecOutput = False
-    config.Echo.EnforceHighPassFiltering = True  # 启用强制高通滤波，帮助消除低频回声
+    config.Echo.EnforceHighPassFiltering = True  # Enable forced high-pass filtering to help eliminate low-frequency echo
 
-    # 设置NoiseSuppression配置 - 中等强度噪声抑制
+    # Set NoiseSuppression configuration - medium intensity noise suppression
     config.NoiseSuppress.Enabled = True
-    config.NoiseSuppress.NoiseLevel = NoiseSuppressionLevel.Moderate  # 中等级别抑制
+    config.NoiseSuppress.NoiseLevel = NoiseSuppressionLevel.Moderate  # medium level suppression
     config.NoiseSuppress.AnalyzeLinearAecOutputWhenAvailable = True
 
-    # 设置TransientSuppression配置
-    config.TransientSuppress.Enabled = False  # 关闭瞬态抑制，避免切割语音
+    # Set TransientSuppression configuration
+    config.TransientSuppress.Enabled = False  # Turn off transient suppression to avoid cutting speech
 
-    # 设置GainController1配置 - 轻度增益控制
-    config.GainControl1.Enabled = True  # 启用增益控制
+    # Set GainController1 configuration - light gain control
+    config.GainControl1.Enabled = True  # Enable gain control
     config.GainControl1.ControllerMode = GainControllerMode.AdaptiveDigital
-    config.GainControl1.TargetLevelDbfs = 3  # 降低目标电平(更积极的控制)
-    config.GainControl1.CompressionGainDb = 9  # 适中的压缩增益
-    config.GainControl1.EnableLimiter = True  # 启用限制器
+    config.GainControl1.TargetLevelDbfs = 3  # Lower target level (more aggressive control)
+    config.GainControl1.CompressionGainDb = 9  # Moderate compression gain
+    config.GainControl1.EnableLimiter = True  # Enable limiter
 
     # AnalogGainController
-    config.GainControl1.AnalogController.Enabled = False  # 关闭模拟增益控制
+    config.GainControl1.AnalogController.Enabled = False  # Turn off analog gain control
     config.GainControl1.AnalogController.StartupMinVolume = 0
     config.GainControl1.AnalogController.ClippedLevelMin = 70
     config.GainControl1.AnalogController.EnableDigitalAdaptive = False
@@ -318,7 +317,7 @@ def create_apm_config():
     predictor.CrestFactorMargin = 3.0
     predictor.UsePredictedStep = True
 
-    # 设置GainController2配置 - 禁用以避免冲突
+    # Set GainController2 configuration - disabled to avoid conflicts
     config.GainControl2.Enabled = False
     config.GainControl2.VolumeController.Enabled = False
     config.GainControl2.AdaptiveController.Enabled = False
@@ -332,34 +331,32 @@ def create_apm_config():
     return config
 
 
-# 参考音频缓冲区（用于存储扬声器输出）
+# Reference audio buffer (used to store speaker output)
 reference_buffer = []
 reference_lock = threading.Lock()
 
 
 def record_playback_audio(chunk_size, sample_rate, channels):
-    """
-    录制扬声器输出的音频（更准确的参考信号）
-    """
+    """Record audio output from speakers (more accurate reference signal)"""
     global reference_buffer
 
-    # 注：这是理想情况下的实现，但Windows下PyAudio通常无法直接录制扬声器输出
-    # 实际应用中，需要使用其他方法捕获系统音频输出
+    # Note: This is an ideal implementation, but PyAudio under Windows usually cannot record speaker output directly.
+    # In actual applications, other methods need to be used to capture system audio output
     try:
         p = pyaudio.PyAudio()
 
-        # 尝试创建一个从默认输出设备录制的流（部分系统支持）
-        # 注意：这在大多数系统上不起作用，这里只是作为示例
+        # Try creating a stream recorded from the default output device (supported on some systems)
+        # NOTE: This will not work on most systems, here is just an example
         loopback_stream = p.open(
             format=pyaudio.paInt16,
             channels=channels,
             rate=sample_rate,
             input=True,
             frames_per_buffer=chunk_size,
-            input_device_index=None,  # 尝试使用默认输出设备作为输入源
+            input_device_index=None,  # Try using the default output device as the input source
         )
 
-        # 开始录制
+        # Start recording
         while True:
             try:
                 data = loopback_stream.read(chunk_size, exception_on_overflow=False)
@@ -368,12 +365,12 @@ def record_playback_audio(chunk_size, sample_rate, channels):
             except OSError:
                 break
 
-            # 保持缓冲区大小合理
+            # Keep buffer sizes reasonable
             with reference_lock:
-                if len(reference_buffer) > 100:  # 保持约2秒的缓冲
+                if len(reference_buffer) > 100:  # Keep buffering for about 2 seconds
                     reference_buffer = reference_buffer[-100:]
     except Exception as e:
-        print(f"无法录制系统音频: {e}")
+        print(f"Unable to record system audio: {e}")
     finally:
         try:
             if "loopback_stream" in locals() and loopback_stream:
@@ -386,34 +383,32 @@ def record_playback_audio(chunk_size, sample_rate, channels):
 
 
 def aec_demo(audio_file):
-    """
-    WebRTC回声消除演示主函数.
-    """
-    # 检查音频文件是否存在
+    """WebRTC echo cancellation demo main function."""
+    # Check if the audio file exists
     if not os.path.exists(audio_file):
-        print(f"错误: 找不到音频文件 {audio_file}")
+        print(f"Error: Audio file {audio_file} not found")
         return
 
-    # 音频参数设置 - 使用WebRTC优化的音频参数
-    SAMPLE_RATE = 16000  # 采样率16kHz (WebRTC AEC优化采样率)
-    CHANNELS = 1  # 单声道
-    CHUNK = 160  # 每帧样本数(10ms @ 16kHz，WebRTC的标准帧大小)
-    FORMAT = pyaudio.paInt16  # 16位PCM格式
+    # Audio Parameter Settings - Optimized audio parameters using WebRTC
+    SAMPLE_RATE = 16000  # Sampling rate 16kHz (WebRTC AEC optimized sampling rate)
+    CHANNELS = 1  # mono
+    CHUNK = 160  # Number of samples per frame (10ms @ 16kHz, standard frame size for WebRTC)
+    FORMAT = pyaudio.paInt16  # 16-bit PCM format
 
-    # 初始化PyAudio
+    # Initialize PyAudio
     p = pyaudio.PyAudio()
 
-    # 列出所有可用的音频设备信息供参考
-    print("\n可用音频设备:")
+    # Lists all available audio device information for reference
+    print("\nAvailable audio devices:")
     for i in range(p.get_device_count()):
         dev_info = p.get_device_info_by_index(i)
-        print(f"设备 {i}: {dev_info['name']}")
-        print(f"  - 输入通道: {dev_info['maxInputChannels']}")
-        print(f"  - 输出通道: {dev_info['maxOutputChannels']}")
-        print(f"  - 默认采样率: {dev_info['defaultSampleRate']}")
+        print(f"Device {i}: {dev_info['name']}")
+        print(f"- Input channels: {dev_info['maxInputChannels']}")
+        print(f"- Output channels: {dev_info['maxOutputChannels']}")
+        print(f"- Default sample rate: {dev_info['defaultSampleRate']}")
     print("")
 
-    # 打开麦克风输入流
+    # Open microphone input stream
     input_stream = p.open(
         format=FORMAT,
         channels=CHANNELS,
@@ -422,134 +417,134 @@ def aec_demo(audio_file):
         frames_per_buffer=CHUNK,
     )
 
-    # 初始化pygame用于播放音频
+    # Initialize pygame for playing audio
     pygame.init()
     mixer.init(frequency=SAMPLE_RATE, size=-16, channels=CHANNELS, buffer=CHUNK * 4)
 
-    # 加载参考音频文件
-    print(f"加载音频文件: {audio_file}")
+    # Load reference audio file
+    print(f"Load audio file: {audio_file}")
 
-    # 读取参考音频文件并转换采样率/通道数
-    # 注意：这里使用soundfile库加载音频文件以支持多种格式并进行重采样
+    # Read reference audio file and convert sample rate/number of channels
+    # Note: The soundfile library is used here to load audio files to support multiple formats and resample
     try:
-        print("加载参考音频...")
-        # 使用soundfile库读取原始音频
+        print("Loading reference audio...")
+        # Read raw audio using soundfile library
         ref_audio_data, orig_sr = sf.read(audio_file, dtype="int16")
         print(
-            f"原始音频: 采样率={orig_sr}, 通道数="
+            f"Original audio: sample rate={orig_sr}, number of channels="
             f"{ref_audio_data.shape[1] if len(ref_audio_data.shape) > 1 else 1}"
         )
 
-        # 转换为单声道(如果是立体声)
+        # Convert to mono (if stereo)
         if len(ref_audio_data.shape) > 1 and ref_audio_data.shape[1] > 1:
             ref_audio_data = ref_audio_data.mean(axis=1).astype(np.int16)
 
-        # 转换采样率(如果需要)
+        # Convert sample rate (if needed)
         if orig_sr != SAMPLE_RATE:
-            print(f"重采样参考音频从{orig_sr}Hz到{SAMPLE_RATE}Hz...")
-            # 使用librosa或scipy进行重采样
+            print(f"Resample reference audio from {orig_sr}Hz to {SAMPLE_RATE}Hz...")
+            # Resampling using librosa or scipy
             from scipy import signal
 
             ref_audio_data = signal.resample(
                 ref_audio_data, int(len(ref_audio_data) * SAMPLE_RATE / orig_sr)
             ).astype(np.int16)
 
-        # 保存为临时wav文件供pygame播放
+        # Save as temporary wav file for pygame to play
         temp_wav_path = os.path.join(current_dir, "temp_reference.wav")
         with wave.open(temp_wav_path, "wb") as wf:
             wf.setnchannels(1)
-            wf.setsampwidth(2)  # 2字节(16位)
+            wf.setsampwidth(2)  # 2 bytes (16 bits)
             wf.setframerate(SAMPLE_RATE)
             wf.writeframes(ref_audio_data.tobytes())
 
-        # 将参考音频分成CHUNK大小的帧
+        # Split reference audio into CHUNK-sized frames
         ref_audio_frames = []
         for i in range(0, len(ref_audio_data), CHUNK):
             if i + CHUNK <= len(ref_audio_data):
                 ref_audio_frames.append(ref_audio_data[i : i + CHUNK])
             else:
-                # 最后一帧不足CHUNK大小，补零
+                # The last frame is less than the CHUNK size, padding with zeros
                 last_frame = np.zeros(CHUNK, dtype=np.int16)
                 last_frame[: len(ref_audio_data) - i] = ref_audio_data[i:]
                 ref_audio_frames.append(last_frame)
 
-        print(f"参考音频准备完成，共{len(ref_audio_frames)}帧")
+        print(f"The reference audio preparation is completed, with a total of {len(ref_audio_frames)} frames")
 
-        # 加载处理后的临时WAV文件
+        # Load the processed temporary WAV file
         mixer.music.load(temp_wav_path)
     except Exception as e:
-        print(f"加载参考音频时出错: {e}")
+        print(f"Error loading reference audio: {e}")
         sys.exit(1)
 
-    # 创建WebRTC APM实例
+    # Create a WebRTC APM instance
     apm = apm_lib.WebRTC_APM_Create()
 
-    # 应用APM配置
+    # Apply APM configuration
     config = create_apm_config()
     result = apm_lib.WebRTC_APM_ApplyConfig(apm, byref(config))
     if result != 0:
-        print(f"警告: APM配置应用失败，错误码: {result}")
+        print(f"Warning: APM configuration application failed, error code: {result}")
 
-    # 创建流配置
+    # Create flow configuration
     stream_config = apm_lib.WebRTC_APM_CreateStreamConfig(SAMPLE_RATE, CHANNELS)
 
-    # 设置较小的延迟时间以更准确匹配参考信号和麦克风信号
+    # Set a smaller delay time to more accurately match the reference signal and microphone signal
     apm_lib.WebRTC_APM_SetStreamDelayMs(apm, 50)
 
-    # 创建录音缓冲区
+    # Create recording buffer
     original_frames = []
     processed_frames = []
     reference_frames = []
 
-    # 等待一会让音频系统准备好
+    # Wait for a while for the audio system to be ready
     time.sleep(0.5)
 
-    print("开始录制和处理...")
-    print("播放参考音频...")
+    print("Start recording and processing...")
+    print("Play reference audio...")
 
     mixer.music.play()
 
-    # 录制持续时间(根据音频文件长度)
+    # Recording duration (based on audio file length)
     try:
         sound_length = mixer.Sound(temp_wav_path).get_length()
         recording_time = sound_length if sound_length > 0 else 10
     except Exception:
-        recording_time = 10  # 如果无法获取长度，默认10秒
+        recording_time = 10  # If the length cannot be obtained, the default is 10 seconds.
 
-    recording_time += 1  # 额外1秒确保捕获所有音频
+    recording_time += 1  # Extra 1 second to ensure all audio is captured
 
     start_time = time.time()
     current_ref_frame_index = 0
     try:
         while time.time() - start_time < recording_time:
-            # 从麦克风读取一帧数据
+            # Read a frame of data from the microphone
             input_data = input_stream.read(CHUNK, exception_on_overflow=False)
 
-            # 保存原始录音
+            # Save original recording
             original_frames.append(input_data)
 
-            # 将输入数据转换为short数组
+            # Convert input data to short array
             input_array = np.frombuffer(input_data, dtype=np.int16)
             input_ptr = input_array.ctypes.data_as(POINTER(c_short))
 
-            # 获取当前参考音频帧
+            # Get the current reference audio frame
             if current_ref_frame_index < len(ref_audio_frames):
                 ref_array = ref_audio_frames[current_ref_frame_index]
                 reference_frames.append(ref_array.tobytes())
                 current_ref_frame_index += 1
             else:
-                # 如果参考音频播放完毕，使用静音帧
+                # If the reference audio has finished playing, use a silent frame
                 ref_array = np.zeros(CHUNK, dtype=np.int16)
                 reference_frames.append(ref_array.tobytes())
 
             ref_ptr = ref_array.ctypes.data_as(POINTER(c_short))
 
-            # 创建输出缓冲区
+            # Create output buffer
             output_array = np.zeros(CHUNK, dtype=np.int16)
             output_ptr = output_array.ctypes.data_as(POINTER(c_short))
 
-            # 重要：先处理参考信号（扬声器输出）
-            # 创建参考信号的输出缓冲区（虽然不使用但必须提供）
+            # Important: Process the reference signal (speaker output) first
+            # Creates an output buffer for the reference signal (required although not used)
             ref_output_array = np.zeros(CHUNK, dtype=np.int16)
             ref_output_ptr = ref_output_array.ctypes.data_as(POINTER(c_short))
 
@@ -558,77 +553,75 @@ def aec_demo(audio_file):
             )
 
             if result_reverse != 0:
-                print(f"\r警告: 参考信号处理失败，错误码: {result_reverse}")
+                print(f"\rWarning: Reference signal processing failed, error code: {result_reverse}")
 
-            # 然后处理麦克风信号，应用回声消除
+            # The microphone signal is then processed, applying echo cancellation
             result = apm_lib.WebRTC_APM_ProcessStream(
                 apm, input_ptr, stream_config, stream_config, output_ptr
             )
 
             if result != 0:
-                print(f"\r警告: 处理失败，错误码: {result}")
+                print(f"\rWarning: Processing failed, error code: {result}")
 
-            # 保存处理后的音频帧
+            # Save processed audio frames
             processed_frames.append(output_array.tobytes())
 
-            # 计算并显示进度
+            # Calculate and display progress
             progress = (time.time() - start_time) / recording_time * 100
-            sys.stdout.write(f"\r处理进度: {progress:.1f}%")
+            sys.stdout.write(f"\rProcessing progress: {progress:.1f}%")
             sys.stdout.flush()
 
     except KeyboardInterrupt:
-        print("\n录制被用户中断")
+        print("\nRecording interrupted by user")
     finally:
-        print("\n录制和处理完成")
+        print("\nRecording and processing completed")
 
-        # 停止播放
+        # Stop playing
         mixer.music.stop()
 
-        # 关闭音频流
+        # Turn off audio stream
         input_stream.stop_stream()
         input_stream.close()
 
-        # 释放APM资源
+        # Release APM resources
         apm_lib.WebRTC_APM_DestroyStreamConfig(stream_config)
         apm_lib.WebRTC_APM_Destroy(apm)
 
-        # 关闭PyAudio
+        # Close PyAudio
         p.terminate()
 
-        # 保存原始录音
+        # Save original recording
         original_output_path = os.path.join(current_dir, "original_recording.wav")
         save_wav(original_output_path, original_frames, SAMPLE_RATE, CHANNELS)
 
-        # 保存处理后的录音
+        # Save the processed recording
         processed_output_path = os.path.join(current_dir, "processed_recording.wav")
         save_wav(processed_output_path, processed_frames, SAMPLE_RATE, CHANNELS)
 
-        # 保存参考音频（播放的音频）
+        # Save reference audio (played audio)
         reference_output_path = os.path.join(current_dir, "reference_playback.wav")
         save_wav(reference_output_path, reference_frames, SAMPLE_RATE, CHANNELS)
 
-        # 删除临时文件
+        # Delete temporary files
         if os.path.exists(temp_wav_path):
             try:
                 os.remove(temp_wav_path)
             except Exception:
                 pass
 
-        print(f"原始录音已保存至: {original_output_path}")
-        print(f"处理后的录音已保存至: {processed_output_path}")
-        print(f"参考音频已保存至: {reference_output_path}")
+        print(f"The original recording has been saved to: {original_output_path}")
+        print(f"The processed recording has been saved to: {processed_output_path}")
+        print(f"Reference audio has been saved to: {reference_output_path}")
 
-        # 退出pygame
+        # Exit pygame
         pygame.quit()
 
 
 def save_wav(file_path, frames, sample_rate, channels):
-    """
-    将音频帧保存为WAV文件.
-    """
+    """Save audio frames as WAV files."""
     with wave.open(file_path, "wb") as wf:
         wf.setnchannels(channels)
-        wf.setsampwidth(2)  # 2字节(16位)
+        wf.setsampwidth(2)  # 2 bytes (16 bits)
         wf.setframerate(sample_rate)
         if isinstance(frames[0], bytes):
             wf.writeframes(b"".join(frames))
@@ -637,20 +630,20 @@ def save_wav(file_path, frames, sample_rate, channels):
 
 
 if __name__ == "__main__":
-    # 获取命令行参数
+    # Get command line parameters
     if len(sys.argv) > 1:
         audio_file = sys.argv[1]
     else:
-        # 默认使用scripts目录下的鞠婧祎.wav
-        audio_file = os.path.join(current_dir, "鞠婧祎.wav")
+        # By default, Ju Jingyi.wav in the scripts directory is used.
+        audio_file = os.path.join(current_dir, "Ju Jingyi.wav")
 
-        # 如果默认文件不存在，尝试MP3版本
+        # If the default file does not exist, try the MP3 version
         if not os.path.exists(audio_file):
-            audio_file = os.path.join(current_dir, "鞠婧祎.mp3")
+            audio_file = os.path.join(current_dir, "Ju Jingyi.mp3")
             if not os.path.exists(audio_file):
-                print("错误: 找不到默认音频文件，请指定要播放的音频文件路径")
-                print("用法: python webrtc_aec_demo.py [音频文件路径]")
+                print("Error: Default audio file not found, please specify the path to the audio file to play")
+                print("Usage: python webrtc_aec_demo.py [audio file path]")
                 sys.exit(1)
 
-    # 运行演示
+    # Run the demo
     aec_demo(audio_file)

@@ -13,20 +13,16 @@ logger = get_logger(__name__)
 
 
 class BaseCamera(ABC):
-    """
-    基础摄像头类，定义接口.
-    """
+    """Basic camera class, defining interface."""
 
     _instance = None
     _lock = threading.Lock()
 
     def __init__(self):
-        """
-        初始化基础摄像头.
-        """
-        self.jpeg_data = {"buf": b"", "len": 0}  # 图像的JPEG字节数据  # 字节数据长度
+        """Initialize the base camera."""
+        self.jpeg_data = {"buf": b"", "len": 0}  # JPEG byte data of the image # byte data length
 
-        # 从配置中读取相机参数
+        # Read camera parameters from configuration
         config = ConfigManager.get_instance()
         self.camera_index = config.get_config("CAMERA.camera_index", 0)
         self.frame_width = config.get_config("CAMERA.frame_width", 640)
@@ -34,25 +30,17 @@ class BaseCamera(ABC):
 
     @abstractmethod
     def capture(self) -> bool:
-        """
-        捕获图像.
-        """
+        """Capture image."""
 
     @abstractmethod
     def analyze(self, question: str) -> str:
-        """
-        分析图像.
-        """
+        """Analyze images."""
 
     def get_jpeg_data(self) -> Dict[str, any]:
-        """
-        获取JPEG数据.
-        """
+        """Get JPEG data."""
         return self.jpeg_data
 
     def set_jpeg_data(self, data_bytes: bytes):
-        """
-        设置JPEG数据.
-        """
+        """Set JPEG data."""
         self.jpeg_data["buf"] = data_bytes
         self.jpeg_data["len"] = len(data_bytes)

@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
-"""
-GUI 显示模块 - 使用 QML 实现.
-"""
+"""GUI display module - implemented using QML."""
 
 import asyncio
 import os
@@ -20,15 +18,15 @@ from src.display.gui_display_model import GuiDisplayModel
 from src.utils.resource_finder import find_assets_dir
 
 
-# 创建兼容的元类
+# Create compatible metaclasses
 class CombinedMeta(type(QObject), ABCMeta):
     pass
 
 
 class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
-    """GUI 显示类 - 基于 QML 的现代化界面"""
+    """GUI display class - modern interface based on QML"""
 
-    # 常量定义
+    # constant definition
     EMOTION_EXTENSIONS = (".gif", ".png", ".jpg", ".jpeg", ".webp")
     DEFAULT_WINDOW_SIZE = (880, 560)
     DEFAULT_FONT_SIZE = 12
@@ -38,30 +36,30 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
         super().__init__()
         QObject.__init__(self)
 
-        # Qt 组件
+        # Qt components
         self.app = None
         self.root = None
         self.qml_widget = None
         self.system_tray = None
 
-        # 数据模型
+        # data model
         self.display_model = GuiDisplayModel()
 
-        # 表情管理
+        # Expression management
         self._emotion_cache = {}
         self._last_emotion_name = None
 
-        # 状态管理
+        # Status management
         self.auto_mode = False
         self._running = True
         self.current_status = ""
         self.is_connected = True
 
-        # 窗口拖动状态
+        # Window drag state
         self._dragging = False
         self._drag_position = None
 
-        # 回调函数映射
+        # callback function mapping
         self._callbacks = {
             "button_press": None,
             "button_release": None,
@@ -72,7 +70,7 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
         }
 
     # =========================================================================
-    # 公共 API - 回调与更新
+    # Public API - Callbacks and Updates
     # =========================================================================
 
     async def set_callbacks(
@@ -84,9 +82,7 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
         abort_callback: Optional[Callable] = None,
         send_text_callback: Optional[Callable] = None,
     ):
-        """
-        设置回调函数.
-        """
+        """Set the callback function."""
         self._callbacks.update(
             {
                 "button_press": press_callback,
@@ -99,12 +95,10 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
         )
 
     async def update_status(self, status: str, connected: bool):
-        """
-        更新状态文本并处理相关逻辑.
-        """
+        """Update status text and handle related logic."""
         self.display_model.update_status(status, connected)
 
-        # 跟踪状态变化
+        # Track status changes
         status_changed = status != self.current_status
         connected_changed = bool(connected) != self.is_connected
 
@@ -113,34 +107,30 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
         if connected_changed:
             self.is_connected = bool(connected)
 
-        # 更新系统托盘
+        # Update system tray
         if (status_changed or connected_changed) and self.system_tray:
             self.system_tray.update_status(status, self.is_connected)
 
     async def update_text(self, text: str):
-        """
-        更新 TTS 文本.
-        """
+        """Update TTS text."""
         self.display_model.update_text(text)
 
     async def update_emotion(self, emotion_name: str):
-        """
-        更新表情显示.
-        """
+        """Update emoticon display."""
         if emotion_name == self._last_emotion_name:
             return
 
         self._last_emotion_name = emotion_name
         asset_path = self._get_emotion_asset_path(emotion_name)
 
-        # 将本地文件路径转换为 QML 可用的 URL（file:///...），
-        # 非文件（如 emoji 字符）保持原样。
+        # Convert a local file path to a QML usable URL (file:///...),
+        # Non-files (such as emoji characters) are left intact.
         def to_qml_url(p: str) -> str:
             if not p:
                 return ""
             if p.startswith(("qrc:/", "file:")):
                 return p
-            # 仅当路径存在时才转换为 file URL，避免把 emoji 当作路径
+            # Convert to file URL only if path exists, avoid treating emoji as path
             try:
                 if os.path.exists(p):
                     return QUrl.fromLocalFile(p).toString()
@@ -152,38 +142,30 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
         self.display_model.update_emotion(url_or_text)
 
     async def update_button_status(self, text: str):
-        """
-        更新按钮状态.
-        """
+        """Update button state."""
         if self.auto_mode:
             self.display_model.update_button_text(text)
 
     async def toggle_mode(self):
-        """
-        切换对话模式.
-        """
+        """Switch conversation mode."""
         if self._callbacks["mode"]:
             self._on_mode_button_click()
-            self.logger.debug("通过快捷键切换了对话模式")
+            self.logger.debug("Switched conversation mode via shortcut keys")
 
     async def toggle_window_visibility(self):
-        """
-        切换窗口可见性.
-        """
+        """Toggle window visibility."""
         if not self.root:
             return
 
         if self.root.isVisible():
-            self.logger.debug("通过快捷键隐藏窗口")
+            self.logger.debug("Hide windows via shortcut keys")
             self.root.hide()
         else:
-            self.logger.debug("通过快捷键显示窗口")
+            self.logger.debug("Show windows via shortcut keys")
             self._show_main_window()
 
     async def close(self):
-        """
-        关闭窗口处理.
-        """
+        """Close window handling."""
         self._running = False
         if self.system_tray:
             self.system_tray.hide()
@@ -191,13 +173,11 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
             self.root.close()
 
     # =========================================================================
-    # 启动流程
+    # Start process
     # =========================================================================
 
     async def start(self):
-        """
-        启动 GUI.
-        """
+        """Start the GUI."""
         try:
             self._configure_environment()
             self._create_main_window()
@@ -205,18 +185,16 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
             self._setup_interactions()
             await self._finalize_startup()
         except Exception as e:
-            self.logger.error(f"GUI启动失败: {e}", exc_info=True)
+            self.logger.error(f"GUI startup failed: {e}", exc_info=True)
             raise
 
     def _configure_environment(self):
-        """
-        配置环境.
-        """
+        """Configure the environment."""
         os.environ.setdefault("QT_LOGGING_RULES", "qt.qpa.fonts.debug=false")
 
         self.app = QApplication.instance()
         if self.app is None:
-            raise RuntimeError("QApplication 未找到，请确保在 qasync 环境中运行")
+            raise RuntimeError("QApplication not found, please make sure you are running in a qasync environment")
 
         self.app.setQuitOnLastWindowClosed(False)
         self.app.setFont(QFont("PingFang SC", self.DEFAULT_FONT_SIZE))
@@ -225,26 +203,22 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
         self._setup_activation_handler()
 
     def _create_main_window(self):
-        """
-        创建主窗口.
-        """
+        """Create the main window."""
         self.root = QWidget()
         self.root.setWindowTitle("")
         self.root.setWindowFlags(Qt.FramelessWindowHint | Qt.Window)
 
-        # 根据配置计算窗口大小
+        # Calculate window size based on configuration
         window_size, is_fullscreen = self._calculate_window_size()
         self.root.resize(*window_size)
 
-        # 保存是否全屏的状态，在 show 时使用
+        # Save the status of whether it is full screen or not and use it when showing
         self._is_fullscreen = is_fullscreen
 
         self.root.closeEvent = self._closeEvent
 
     def _calculate_window_size(self) -> tuple:
-        """
-        根据配置计算窗口大小，返回 (宽, 高, 是否全屏)
-        """
+        """Calculate the window size according to the configuration and return (width, height, full screen or not)"""
         try:
             from src.utils.config_manager import ConfigManager
 
@@ -253,15 +227,15 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
                 "SYSTEM_OPTIONS.WINDOW_SIZE_MODE", "default"
             )
 
-            # 获取屏幕尺寸（可用区域，排除任务栏等）
+            # Get screen size (available area, exclude taskbar, etc.)
             desktop = QApplication.desktop()
             screen_rect = desktop.availableGeometry()
             screen_width = screen_rect.width()
             screen_height = screen_rect.height()
 
-            # 根据模式计算窗口大小
+            # Calculate window size based on mode
             if window_size_mode == "default":
-                # 默认使用 50%
+                # Default uses 50%
                 width = int(screen_width * 0.5)
                 height = int(screen_height * 0.5)
                 is_fullscreen = False
@@ -270,12 +244,12 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
                 height = int(screen_height * 0.75)
                 is_fullscreen = False
             elif window_size_mode == "screen_100":
-                # 100% 使用真正的全屏模式
+                # 100% use true full screen mode
                 width = screen_width
                 height = screen_height
                 is_fullscreen = True
             else:
-                # 未知模式使用 50%
+                # Unknown mode uses 50%
                 width = int(screen_width * 0.5)
                 height = int(screen_height * 0.5)
                 is_fullscreen = False
@@ -283,8 +257,8 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
             return ((width, height), is_fullscreen)
 
         except Exception as e:
-            self.logger.error(f"计算窗口大小失败: {e}", exc_info=True)
-            # 错误时返回屏幕 50%
+            self.logger.error(f"Failed to calculate window size: {e}", exc_info=True)
+            # Return to screen 50% on error
             try:
                 desktop = QApplication.desktop()
                 screen_rect = desktop.availableGeometry()
@@ -296,39 +270,33 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
                 return (self.DEFAULT_WINDOW_SIZE, False)
 
     def _load_qml(self):
-        """
-        加载 QML 界面.
-        """
+        """Load the QML interface."""
         self.qml_widget = QQuickWidget()
         self.qml_widget.setResizeMode(QQuickWidget.SizeRootObjectToView)
         self.qml_widget.setClearColor(Qt.white)
 
-        # 注册数据模型到 QML 上下文
+        # Register the data model to the QML context
         qml_context = self.qml_widget.rootContext()
         qml_context.setContextProperty("displayModel", self.display_model)
 
-        # 加载 QML 文件
+        # Load QML file
         qml_file = Path(__file__).parent / "gui_display.qml"
         self.qml_widget.setSource(QUrl.fromLocalFile(str(qml_file)))
 
-        # 设置为主窗口的中央 widget
+        # Set as the central widget of the main window
         layout = QVBoxLayout(self.root)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.qml_widget)
 
     def _setup_interactions(self):
-        """
-        设置交互（信号、托盘）
-        """
+        """Set up interactions (signals, trays)"""
         self._connect_qml_signals()
 
     async def _finalize_startup(self):
-        """
-        完成启动流程.
-        """
+        """Complete the startup process."""
         await self.update_emotion("neutral")
 
-        # 根据配置决定显示模式
+        # Determine display mode based on configuration
         if getattr(self, "_is_fullscreen", False):
             self.root.showFullScreen()
         else:
@@ -337,19 +305,17 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
         self._setup_system_tray()
 
     # =========================================================================
-    # 信号连接
+    # Signal connection
     # =========================================================================
 
     def _connect_qml_signals(self):
-        """
-        连接 QML 信号到 Python 槽.
-        """
+        """Connect QML signals to Python slots."""
         root_object = self.qml_widget.rootObject()
         if not root_object:
-            self.logger.warning("QML 根对象未找到，无法设置信号连接")
+            self.logger.warning("QML root object not found, unable to set signal connection")
             return
 
-        # 按钮事件信号映射
+        # Button event signal mapping
         button_signals = {
             "manualButtonPressed": self._on_manual_button_press,
             "manualButtonReleased": self._on_manual_button_release,
@@ -360,7 +326,7 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
             "settingsButtonClicked": self._on_settings_button_click,
         }
 
-        # 标题栏控制信号映射
+        # Title bar control signal mapping
         titlebar_signals = {
             "titleMinimize": self._minimize_window,
             "titleClose": self._quit_application,
@@ -369,59 +335,47 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
             "titleDragEnd": self._on_title_drag_end,
         }
 
-        # 批量连接信号
+        # Batch connection signals
         for signal_name, handler in {**button_signals, **titlebar_signals}.items():
             try:
                 getattr(root_object, signal_name).connect(handler)
             except AttributeError:
-                self.logger.debug(f"信号 {signal_name} 不存在（可能是可选功能）")
+                self.logger.debug(f"Signal {signal_name} does not exist (may be an optional feature)")
 
-        self.logger.debug("QML 信号连接设置完成")
+        self.logger.debug("QML signal connection setup completed")
 
     # =========================================================================
-    # 按钮事件处理
+    # Button event handling
     # =========================================================================
 
     def _on_manual_button_press(self):
-        """
-        手动模式按钮按下.
-        """
+        """Manual mode button pressed."""
         self._dispatch_callback("button_press")
 
     def _on_manual_button_release(self):
-        """
-        手动模式按钮释放.
-        """
+        """Manual mode button release."""
         self._dispatch_callback("button_release")
 
     def _on_auto_button_click(self):
-        """
-        自动模式按钮点击.
-        """
+        """Auto mode button click."""
         self._dispatch_callback("auto")
 
     def _on_abort_button_click(self):
-        """
-        中止按钮点击.
-        """
+        """Abort button click."""
         self._dispatch_callback("abort")
 
     def _on_mode_button_click(self):
-        """
-        对话模式切换按钮点击.
-        """
+        """Click the conversation mode switch button."""
         if self._callbacks["mode"] and not self._callbacks["mode"]():
             return
 
         self.auto_mode = not self.auto_mode
-        mode_text = "自动对话" if self.auto_mode else "手动对话"
+        mode_text = "automatic conversation" if self.auto_mode else "Manual conversation"
         self.display_model.update_mode_text(mode_text)
         self.display_model.set_auto_mode(self.auto_mode)
 
     def _on_send_button_click(self, text: str):
-        """
-        处理发送文本按钮点击.
-        """
+        """Handles send text button clicks."""
         text = text.strip()
         if not text or not self._callbacks["send_text"]:
             return
@@ -432,65 +386,53 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
                 lambda t: t.cancelled()
                 or not t.exception()
                 or self.logger.error(
-                    f"发送文本任务异常: {t.exception()}", exc_info=True
+                    f"Exception in sending text task: {t.exception()}", exc_info=True
                 )
             )
         except Exception as e:
-            self.logger.error(f"发送文本时出错: {e}")
+            self.logger.error(f"Error sending text: {e}")
 
     def _on_settings_button_click(self):
-        """
-        处理设置按钮点击.
-        """
+        """Handles settings button clicks."""
         try:
             from src.views.settings import SettingsWindow
 
             settings_window = SettingsWindow(self.root)
             settings_window.exec_()
         except Exception as e:
-            self.logger.error(f"打开设置窗口失败: {e}", exc_info=True)
+            self.logger.error(f"Failed to open settings window: {e}", exc_info=True)
 
     def _dispatch_callback(self, callback_name: str, *args):
-        """
-        通用回调调度器.
-        """
+        """Generic callback scheduler."""
         callback = self._callbacks.get(callback_name)
         if callback:
             callback(*args)
 
     # =========================================================================
-    # 窗口拖动
+    # Window dragging
     # =========================================================================
 
     def _on_title_drag_start(self, _x, _y):
-        """
-        标题栏拖动开始.
-        """
+        """Title bar dragging begins."""
         self._dragging = True
         self._drag_position = QCursor.pos() - self.root.pos()
 
     def _on_title_drag_move(self, _x, _y):
-        """
-        标题栏拖动移动.
-        """
+        """Drag and move the title bar."""
         if self._dragging and self._drag_position:
             self.root.move(QCursor.pos() - self._drag_position)
 
     def _on_title_drag_end(self):
-        """
-        标题栏拖动结束.
-        """
+        """Title bar dragging ends."""
         self._dragging = False
         self._drag_position = None
 
     # =========================================================================
-    # 表情管理
+    # Expression management
     # =========================================================================
 
     def _get_emotion_asset_path(self, emotion_name: str) -> str:
-        """
-        获取表情资源文件路径，自动匹配常见后缀.
-        """
+        """Get the emoticon resource file path and automatically match common suffixes."""
         if emotion_name in self._emotion_cache:
             return self._emotion_cache[emotion_name]
 
@@ -499,7 +441,7 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
             path = "😊"
         else:
             emotion_dir = assets_dir / "emojis"
-            # 尝试查找表情文件，失败则回退到 neutral
+            # Try to find emoticon files, fallback to neutral if failed
             path = (
                 str(self._find_emotion_file(emotion_dir, emotion_name))
                 or str(self._find_emotion_file(emotion_dir, "neutral"))
@@ -510,9 +452,7 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
         return path
 
     def _find_emotion_file(self, emotion_dir: Path, name: str) -> Optional[Path]:
-        """
-        在指定目录查找表情文件.
-        """
+        """Search for emoticon files in the specified directory."""
         for ext in self.EMOTION_EXTENSIONS:
             file_path = emotion_dir / f"{name}{ext}"
             if file_path.exists():
@@ -520,25 +460,21 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
         return None
 
     # =========================================================================
-    # 系统设置
+    # System settings
     # =========================================================================
 
     def _setup_signal_handlers(self):
-        """
-        设置信号处理器（Ctrl+C）
-        """
+        """Set signal handler (Ctrl+C)"""
         try:
             signal.signal(
                 signal.SIGINT,
                 lambda *_: QTimer.singleShot(0, self._quit_application),
             )
         except Exception as e:
-            self.logger.warning(f"设置信号处理器失败: {e}")
+            self.logger.warning(f"Failed to set signal handler: {e}")
 
     def _setup_activation_handler(self):
-        """
-        设置应用激活处理器（macOS Dock 图标点击恢复窗口）
-        """
+        """Set the application activation handler (macOS Dock icon click to restore the window)"""
         try:
             import platform
 
@@ -546,23 +482,19 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
                 return
 
             self.app.applicationStateChanged.connect(self._on_application_state_changed)
-            self.logger.debug("已设置应用激活处理器（macOS Dock 支持）")
+            self.logger.debug("App activation handler set (macOS Dock support)")
         except Exception as e:
-            self.logger.warning(f"设置应用激活处理器失败: {e}")
+            self.logger.warning(f"Failed to set application activation handler: {e}")
 
     def _on_application_state_changed(self, state):
-        """
-        应用状态变化处理（macOS Dock 点击时恢复窗口）
-        """
+        """Application state change handling (macOS Dock restores window when clicked)"""
         if state == Qt.ApplicationActive and self.root and not self.root.isVisible():
             QTimer.singleShot(0, self._show_main_window)
 
     def _setup_system_tray(self):
-        """
-        设置系统托盘.
-        """
+        """Set up the system tray."""
         if os.getenv("XIAOZHI_DISABLE_TRAY") == "1":
-            self.logger.warning("已通过环境变量禁用系统托盘 (XIAOZHI_DISABLE_TRAY=1)")
+            self.logger.warning("System tray disabled via environment variable (XIAOZHI_DISABLE_TRAY=1)")
             return
 
         try:
@@ -570,7 +502,7 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
 
             self.system_tray = SystemTray(self.root)
 
-            # 连接托盘信号（使用 QTimer 确保主线程执行）
+            # Connect the tray signal (use QTimer to ensure main thread execution)
             tray_signals = {
                 "show_window_requested": self._show_main_window,
                 "settings_requested": self._on_settings_button_click,
@@ -583,16 +515,14 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
                 )
 
         except Exception as e:
-            self.logger.error(f"初始化系统托盘组件失败: {e}", exc_info=True)
+            self.logger.error(f"Failed to initialize system tray component: {e}", exc_info=True)
 
     # =========================================================================
-    # 窗口控制
+    # window control
     # =========================================================================
 
     def _show_main_window(self):
-        """
-        显示主窗口.
-        """
+        """Show the main window."""
         if not self.root:
             return
 
@@ -604,17 +534,13 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
         self.root.raise_()
 
     def _minimize_window(self):
-        """
-        最小化窗口.
-        """
+        """Minimize window."""
         if self.root:
             self.root.showMinimized()
 
     def _quit_application(self):
-        """
-        退出应用程序.
-        """
-        self.logger.info("开始退出应用程序...")
+        """Exit the application."""
+        self.logger.info("Starting to exit the application...")
         self._running = False
 
         if self.system_tray:
@@ -633,19 +559,19 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
                 QApplication.quit()
                 return
 
-            # 创建关闭任务并设置超时
+            # Create a shutdown task and set a timeout
             shutdown_task = asyncio.create_task(app.shutdown())
 
             def on_shutdown_complete(task):
                 if not task.cancelled() and task.exception():
-                    self.logger.error(f"应用程序关闭异常: {task.exception()}")
+                    self.logger.error(f"Application shutdown exception: {task.exception()}")
                 else:
-                    self.logger.info("应用程序正常关闭")
+                    self.logger.info("Application closes gracefully")
                 QApplication.quit()
 
             def force_quit():
                 if not shutdown_task.done():
-                    self.logger.warning("关闭超时，强制退出")
+                    self.logger.warning("Close timeout, force exit")
                     shutdown_task.cancel()
                 QApplication.quit()
 
@@ -653,19 +579,17 @@ class GuiDisplay(BaseDisplay, QObject, metaclass=CombinedMeta):
             QTimer.singleShot(self.QUIT_TIMEOUT_MS, force_quit)
 
         except Exception as e:
-            self.logger.error(f"关闭应用程序失败: {e}")
+            self.logger.error(f"Failed to close application: {e}")
             QApplication.quit()
 
     def _closeEvent(self, event):
-        """
-        处理窗口关闭事件.
-        """
-        # 如果系统托盘可用，最小化到托盘
+        """Handle window close event."""
+        # If the system tray is available, minimize to the tray
         if self.system_tray and (
             getattr(self.system_tray, "is_available", lambda: False)()
             or getattr(self.system_tray, "is_visible", lambda: False)()
         ):
-            self.logger.info("关闭窗口：最小化到托盘")
+            self.logger.info("Close window: minimize to tray")
             QTimer.singleShot(0, self.root.hide)
             event.ignore()
         else:

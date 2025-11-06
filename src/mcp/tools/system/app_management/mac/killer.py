@@ -1,7 +1,6 @@
-"""macOS系统应用程序关闭器.
+"""macOS system application closer.
 
-提供macOS平台下的应用程序关闭功能
-"""
+Provide application closing function under macOS platform"""
 
 import json
 import subprocess
@@ -13,10 +12,9 @@ logger = get_logger(__name__)
 
 
 def list_running_applications(filter_name: str = "") -> List[Dict[str, Any]]:
-    """列出macOS上正在运行的、有用户界面的应用程序.
+    """Lists running applications with user interfaces on macOS.
 
-    使用AppleScript (JXA) 来获取更精确的应用列表.
-    """
+    Use AppleScript (JXA) to get a more precise list of apps."""
     apps = []
     script = """
     ObjC.import('AppKit');
@@ -63,7 +61,7 @@ def list_running_applications(filter_name: str = "") -> List[Dict[str, Any]]:
                     }
                 )
 
-        logger.info(f"[MacKiller] 使用JXA找到 {len(apps)} 个正在运行的应用程序")
+        logger.info(f"[MacKiller] Find {len(apps)} running applications using JXA")
         return apps
 
     except (
@@ -72,21 +70,19 @@ def list_running_applications(filter_name: str = "") -> List[Dict[str, Any]]:
         FileNotFoundError,
         subprocess.CalledProcessError,
     ) as e:
-        logger.warning(f"[MacKiller] JXA进程扫描失败 ({e})，回退到ps命令")
+        logger.warning(f"[MacKiller] JXA process scan failed ({e}), fallback to ps command")
         return _list_running_applications_ps(filter_name)
     except json.JSONDecodeError as e:
-        logger.error(f"[MacKiller] 解析JXA输出失败 ({e})，回退到ps命令")
+        logger.error(f"[MacKiller] Failed to parse JXA output ({e}), fallback to ps command")
         return _list_running_applications_ps(filter_name)
 
 
 def _list_running_applications_ps(filter_name: str = "") -> List[Dict[str, Any]]:
-    """
-    列出macOS上正在运行的应用程序 (基于ps命令).
-    """
+    """List running applications on macOS (based on ps command)."""
     apps = []
 
     try:
-        # 使用ps命令获取进程信息
+        # Use ps command to get process information
         result = subprocess.run(
             ["ps", "-eo", "pid,ppid,comm,command"],
             capture_output=True,
@@ -95,14 +91,14 @@ def _list_running_applications_ps(filter_name: str = "") -> List[Dict[str, Any]]
         )
 
         if result.returncode == 0:
-            lines = result.stdout.strip().split("\n")[1:]  # 跳过标题行
+            lines = result.stdout.strip().split("\n")[1:]  # skip title row
 
             for line in lines:
                 parts = line.strip().split(None, 3)
                 if len(parts) >= 4:
                     pid, ppid, comm, command = parts
 
-                    # 过滤应用程序
+                    # Filter applications
                     is_app = (
                         ".app" in command
                         or not command.startswith("/")
@@ -115,7 +111,7 @@ def _list_running_applications_ps(filter_name: str = "") -> List[Dict[str, Any]]
                     if is_app:
                         app_name = comm.split("/")[-1]
 
-                        # 应用过滤条件
+                        # Apply filters
                         if not filter_name or filter_name.lower() in app_name.lower():
                             apps.append(
                                 {
@@ -129,25 +125,23 @@ def _list_running_applications_ps(filter_name: str = "") -> List[Dict[str, Any]]
                             )
 
     except (subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
-        logger.warning(f"[MacKiller] macOS进程扫描失败 (ps): {e}")
+        logger.warning(f"[MacKiller] macOS process scan failed (ps): {e}")
 
     return apps
 
 
 def kill_application(pid: int, force: bool) -> bool:
-    """
-    在macOS上关闭应用程序.
-    """
+    """Close the application on macOS."""
     try:
-        logger.info(f"[MacKiller] 尝试关闭macOS应用程序，PID: {pid}, 强制关闭: {force}")
+        logger.info(f"[MacKiller] Try to close macOS application, PID: {pid}, force close: {force}")
 
         if force:
-            # 强制关闭 (SIGKILL)
+            # Force close (SIGKILL)
             result = subprocess.run(
                 ["kill", "-9", str(pid)], capture_output=True, text=True, timeout=5
             )
         else:
-            # 正常关闭 (SIGTERM)
+            # Normal shutdown (SIGTERM)
             result = subprocess.run(
                 ["kill", "-15", str(pid)], capture_output=True, text=True, timeout=5
             )
@@ -155,12 +149,12 @@ def kill_application(pid: int, force: bool) -> bool:
         success = result.returncode == 0
 
         if success:
-            logger.info(f"[MacKiller] 成功关闭应用程序，PID: {pid}")
+            logger.info(f"[MacKiller] Successfully closed application, PID: {pid}")
         else:
-            logger.warning(f"[MacKiller] 关闭应用程序失败，PID: {pid}")
+            logger.warning(f"[MacKiller] Failed to close application, PID: {pid}")
 
         return success
 
     except (subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
-        logger.error(f"[MacKiller] macOS关闭应用程序失败: {e}")
+        logger.error(f"[MacKiller] macOS failed to close application: {e}")
         return False

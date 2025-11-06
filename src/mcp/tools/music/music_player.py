@@ -1,7 +1,6 @@
-"""音乐播放器单例实现.
+"""Music player singleton implementation.
 
-提供单例模式的音乐播放器，在注册时初始化，支持异步操作。
-"""
+Provides a music player in singleton mode, which is initialized during registration and supports asynchronous operations."""
 
 import asyncio
 import shutil
@@ -17,7 +16,7 @@ from src.constants.constants import AudioConfig
 from src.utils.logging_config import get_logger
 from src.utils.resource_finder import get_user_cache_dir
 
-# 尝试导入音乐元数据库
+# Try importing the music metadata database
 try:
     from mutagen import File as MutagenFile
     from mutagen.id3 import ID3NoHeaderError
@@ -30,26 +29,22 @@ logger = get_logger(__name__)
 
 
 class MusicMetadata:
-    """
-    音乐元数据类.
-    """
+    """Music metadata class."""
 
     def __init__(self, file_path: Path):
         self.file_path = file_path
         self.filename = file_path.name
-        self.file_id = file_path.stem  # 文件名去掉扩展名，即歌曲ID
+        self.file_id = file_path.stem  # Remove the extension from the file name, which is the song ID
         self.file_size = file_path.stat().st_size
 
-        # 从文件提取的元数据
+        # Metadata extracted from files
         self.title = None
         self.artist = None
         self.album = None
-        self.duration = None  # 秒数
+        self.duration = None  # seconds
 
     def extract_metadata(self) -> bool:
-        """
-        提取音乐文件元数据.
-        """
+        """Extract music file metadata."""
         if not MUTAGEN_AVAILABLE:
             return False
 
@@ -58,35 +53,33 @@ class MusicMetadata:
             if audio_file is None:
                 return False
 
-            # 基本信息
+            # Basic information
             if hasattr(audio_file, "info"):
                 self.duration = getattr(audio_file.info, "length", None)
 
-            # ID3标签信息
+            # ID3 tag information
             tags = audio_file.tags if audio_file.tags else {}
 
-            # 标题
+            # title
             self.title = self._get_tag_value(tags, ["TIT2", "TITLE", "\xa9nam"])
 
-            # 艺术家
+            # artist
             self.artist = self._get_tag_value(tags, ["TPE1", "ARTIST", "\xa9ART"])
 
-            # 专辑
+            # album
             self.album = self._get_tag_value(tags, ["TALB", "ALBUM", "\xa9alb"])
 
             return True
 
         except ID3NoHeaderError:
-            # 没有ID3标签，不是错误
+            # No ID3 tag, not an error
             return True
         except Exception as e:
-            logger.debug(f"提取元数据失败 {self.filename}: {e}")
+            logger.debug(f"Failed to extract metadata {self.filename}: {e}")
             return False
 
     def _get_tag_value(self, tags: dict, tag_names: List[str]) -> Optional[str]:
-        """
-        从多个可能的标签名中获取值.
-        """
+        """Get values ​​from multiple possible tag names."""
         for tag_name in tag_names:
             if tag_name in tags:
                 value = tags[tag_name]
@@ -97,11 +90,9 @@ class MusicMetadata:
         return None
 
     def format_duration(self) -> str:
-        """
-        格式化播放时长.
-        """
+        """Format playback duration."""
         if self.duration is None:
-            return "未知"
+            return "unknown"
 
         minutes = int(self.duration) // 60
         seconds = int(self.duration) % 60
@@ -109,16 +100,15 @@ class MusicMetadata:
 
 
 class MusicPlayer:
-    """音乐播放器 - 专为IoT设备设计
+    """Music Player - Designed for IoT Devices
 
-    只保留核心功能：搜索、播放、暂停、停止、跳转
-    """
+    Only retain core functions: search, play, pause, stop, jump"""
 
     def __init__(self):
-        # 根据服务器类型优化pygame mixer初始化
+        # Optimize pygame mixer initialization according to server type
         self._init_pygame_mixer()
 
-        # 核心播放状态
+        # Core play status
         self.current_song = ""
         self.current_url = ""
         self.song_id = ""
@@ -128,17 +118,17 @@ class MusicPlayer:
         self.current_position = 0
         self.start_play_time = 0
 
-        # 歌词相关
-        self.lyrics = []  # 歌词列表，格式为 [(时间, 文本), ...]
-        self.current_lyric_index = -1  # 当前歌词索引
+        # Lyrics related
+        self.lyrics = []  # Lyrics list in the format [(time, text), ...]
+        self.current_lyric_index = -1  # Current lyrics index
 
-        # 缓存目录设置 - 使用用户缓存目录确保可写
+        # Cache Directory Settings - Use user cache directory to ensure it is writable
         user_cache_dir = get_user_cache_dir()
         self.cache_dir = user_cache_dir / "music"
         self.temp_cache_dir = self.cache_dir / "temp"
         self._init_cache_dirs()
 
-        # API配置
+        # API configuration
         self.config = {
             "SEARCH_URL": "http://search.kuwo.cn/r.s",
             "PLAY_URL": "http://api.xiaodaokg.com/kuwo.php",
@@ -152,102 +142,92 @@ class MusicPlayer:
             },
         }
 
-        # 清理临时缓存
+        # Clear temporary cache
         self._clean_temp_cache()
 
-        # 获取应用程序实例
+        # Get application instance
         self.app = None
         self._initialize_app_reference()
 
-        # 本地歌单缓存
+        # Local playlist cache
         self._local_playlist = None
         self._last_scan_time = 0
 
-        logger.info("音乐播放器单例初始化完成")
+        logger.info("Music player singleton initialization completed")
 
     def _init_pygame_mixer(self):
-        """
-        根据服务器类型优化pygame mixer初始化.
-        """
+        """Optimize pygame mixer initialization based on server type."""
         try:
 
-            # 预初始化mixer以设置缓冲区
+            # Pre-initialize mixer to set buffer
             pygame.mixer.pre_init(
                 frequency=AudioConfig.OUTPUT_SAMPLE_RATE,
-                size=-16,  # 16位有符号
+                size=-16,  # 16-bit signed
                 channels=AudioConfig.CHANNELS,
                 buffer=1024,
             )
 
-            # 正式初始化
+            # Formal initialization
             pygame.mixer.init()
 
             logger.info(
-                f"pygame mixer初始化完成 - 采样率: {AudioConfig.OUTPUT_SAMPLE_RATE}Hz"
+                f"pygame mixer initialization completed - sampling rate: {AudioConfig.OUTPUT_SAMPLE_RATE}Hz"
             )
 
         except Exception as e:
-            logger.warning(f"优化pygame初始化失败，使用默认配置: {e}")
-            # 回退到默认配置
+            logger.warning(f"Optimizing pygame initialization failed, using default configuration: {e}")
+            # Fall back to default configuration
             pygame.mixer.init(
                 frequency=AudioConfig.OUTPUT_SAMPLE_RATE, channels=AudioConfig.CHANNELS
             )
 
     def _initialize_app_reference(self):
-        """
-        初始化应用程序引用.
-        """
+        """Initialize application reference."""
         try:
             from src.application import Application
 
             self.app = Application.get_instance()
         except Exception as e:
-            logger.warning(f"获取Application实例失败: {e}")
+            logger.warning(f"Failed to obtain Application instance: {e}")
             self.app = None
 
     def _init_cache_dirs(self):
-        """
-        初始化缓存目录.
-        """
+        """Initialize the cache directory."""
         try:
-            # 创建主缓存目录
+            # Create main cache directory
             self.cache_dir.mkdir(parents=True, exist_ok=True)
-            # 创建临时缓存目录
+            # Create temporary cache directory
             self.temp_cache_dir.mkdir(parents=True, exist_ok=True)
-            logger.info(f"音乐缓存目录初始化完成: {self.cache_dir}")
+            logger.info(f"Music cache directory initialization completed: {self.cache_dir}")
         except Exception as e:
-            logger.error(f"创建缓存目录失败: {e}")
-            # 回退到系统临时目录
+            logger.error(f"Failed to create cache directory: {e}")
+            # Fall back to the system temporary directory
             self.cache_dir = Path(tempfile.gettempdir()) / "xiaozhi_music_cache"
             self.temp_cache_dir = self.cache_dir / "temp"
             self.cache_dir.mkdir(parents=True, exist_ok=True)
             self.temp_cache_dir.mkdir(parents=True, exist_ok=True)
 
     def _clean_temp_cache(self):
-        """
-        清理临时缓存文件.
-        """
+        """Clean temporary cache files."""
         try:
-            # 清空临时缓存目录中的所有文件
+            # Clear all files in the temporary cache directory
             for file_path in self.temp_cache_dir.glob("*"):
                 try:
                     if file_path.is_file():
                         file_path.unlink()
-                        logger.debug(f"已删除临时缓存文件: {file_path.name}")
+                        logger.debug(f"Deleted temporary cache file: {file_path.name}")
                 except Exception as e:
-                    logger.warning(f"删除临时缓存文件失败: {file_path.name}, {e}")
+                    logger.warning(f"Failed to delete temporary cache file: {file_path.name}, {e}")
 
-            logger.info("临时音乐缓存清理完成")
+            logger.info("Temporary music cache cleanup completed")
         except Exception as e:
-            logger.error(f"清理临时缓存目录失败: {e}")
+            logger.error(f"Failed to clear temporary cache directory: {e}")
 
     def _scan_local_music(self, force_refresh: bool = False) -> List[MusicMetadata]:
-        """
-        扫描本地音乐缓存，返回歌单.
-        """
+        """Scan the local music cache and return to the playlist."""
         current_time = time.time()
 
-        # 如果不强制刷新且缓存未过期（5分钟），直接返回缓存
+        # If there is no forced refresh and the cache has not expired (5 minutes), return to the cache directly.
         if (
             not force_refresh
             and self._local_playlist is not None
@@ -258,90 +238,86 @@ class MusicPlayer:
         playlist = []
 
         if not self.cache_dir.exists():
-            logger.warning(f"缓存目录不存在: {self.cache_dir}")
+            logger.warning(f"The cache directory does not exist: {self.cache_dir}")
             return playlist
 
-        # 查找所有音乐文件
+        # Find all music files
         music_files = []
         for pattern in ["*.mp3", "*.m4a", "*.flac", "*.wav", "*.ogg"]:
             music_files.extend(self.cache_dir.glob(pattern))
 
-        logger.debug(f"找到 {len(music_files)} 个音乐文件")
+        logger.debug(f"{len(music_files)} music files found")
 
-        # 扫描每个文件
+        # Scan every file
         for file_path in music_files:
             try:
                 metadata = MusicMetadata(file_path)
 
-                # 尝试提取元数据
+                # Try to extract metadata
                 if MUTAGEN_AVAILABLE:
                     metadata.extract_metadata()
 
                 playlist.append(metadata)
 
             except Exception as e:
-                logger.debug(f"处理音乐文件失败 {file_path.name}: {e}")
+                logger.debug(f"Failed to process music file {file_path.name}: {e}")
 
-        # 按艺术家和标题排序
+        # Sort by artist and title
         playlist.sort(key=lambda x: (x.artist or "Unknown", x.title or x.filename))
 
-        # 更新缓存
+        # Update cache
         self._local_playlist = playlist
         self._last_scan_time = current_time
 
-        logger.info(f"扫描完成，找到 {len(playlist)} 首本地音乐")
+        logger.info(f"Scanning completed, {len(playlist)} local music found")
         return playlist
 
     async def get_local_playlist(self, force_refresh: bool = False) -> dict:
-        """
-        获取本地音乐歌单.
-        """
+        """Get local music playlists."""
         try:
             playlist = self._scan_local_music(force_refresh)
 
             if not playlist:
                 return {
                     "status": "info",
-                    "message": "本地缓存中没有音乐文件",
+                    "message": "No music files in local cache",
                     "playlist": [],
                     "total_count": 0,
                 }
 
-            # 格式化歌单，简洁格式方便 AI 读取
+            # Format the playlist in a concise format that is easy for AI to read
             formatted_playlist = []
             for metadata in playlist:
-                title = metadata.title or "未知标题"
-                artist = metadata.artist or "未知艺术家"
+                title = metadata.title or "Unknown title"
+                artist = metadata.artist or "unknown artist"
                 song_info = f"{title} - {artist}"
                 formatted_playlist.append(song_info)
 
             return {
                 "status": "success",
-                "message": f"找到 {len(playlist)} 首本地音乐",
+                "message": f"Found {len(playlist)} local music",
                 "playlist": formatted_playlist,
                 "total_count": len(playlist),
             }
 
         except Exception as e:
-            logger.error(f"获取本地歌单失败: {e}")
+            logger.error(f"Failed to obtain local playlist: {e}")
             return {
                 "status": "error",
-                "message": f"获取本地歌单失败: {str(e)}",
+                "message": f"Failed to obtain local playlist: {str(e)}",
                 "playlist": [],
                 "total_count": 0,
             }
 
     async def search_local_music(self, query: str) -> dict:
-        """
-        搜索本地音乐.
-        """
+        """Search local music."""
         try:
             playlist = self._scan_local_music()
 
             if not playlist:
                 return {
                     "status": "info",
-                    "message": "本地缓存中没有音乐文件",
+                    "message": "No music files in local cache",
                     "results": [],
                     "found_count": 0,
                 }
@@ -350,7 +326,7 @@ class MusicPlayer:
             results = []
 
             for metadata in playlist:
-                # 在标题、艺术家、文件名中搜索
+                # Search within title, artist, filename
                 searchable_text = " ".join(
                     filter(
                         None,
@@ -364,8 +340,8 @@ class MusicPlayer:
                 ).lower()
 
                 if query in searchable_text:
-                    title = metadata.title or "未知标题"
-                    artist = metadata.artist or "未知艺术家"
+                    title = metadata.title or "Unknown title"
+                    artist = metadata.artist or "unknown artist"
                     song_info = f"{title} - {artist}"
                     results.append(
                         {
@@ -377,81 +353,79 @@ class MusicPlayer:
 
             return {
                 "status": "success",
-                "message": f"在本地音乐中找到 {len(results)} 首匹配的歌曲",
+                "message": f"Found {len(results)} matching songs in local music",
                 "results": results,
                 "found_count": len(results),
             }
 
         except Exception as e:
-            logger.error(f"搜索本地音乐失败: {e}")
+            logger.error(f"Failed to search local music: {e}")
             return {
                 "status": "error",
-                "message": f"搜索失败: {str(e)}",
+                "message": f"Search failed: {str(e)}",
                 "results": [],
                 "found_count": 0,
             }
 
     async def play_local_song_by_id(self, file_id: str) -> dict:
-        """
-        根据文件ID播放本地歌曲.
-        """
+        """Play local songs based on file ID."""
         try:
-            # 构建文件路径
+            # Build file path
             file_path = self.cache_dir / f"{file_id}.mp3"
 
             if not file_path.exists():
-                # 尝试其他格式
+                # Try another format
                 for ext in [".m4a", ".flac", ".wav", ".ogg"]:
                     alt_path = self.cache_dir / f"{file_id}{ext}"
                     if alt_path.exists():
                         file_path = alt_path
                         break
                 else:
-                    return {"status": "error", "message": f"本地文件不存在: {file_id}"}
+                    return {"status": "error", "message": f"Local file does not exist: {file_id}"}
 
-            # 获取歌曲信息
+            # Get song information
             metadata = MusicMetadata(file_path)
             if MUTAGEN_AVAILABLE:
                 metadata.extract_metadata()
 
-            # 停止当前播放
+            # Stop current playback
             if self.is_playing:
                 pygame.mixer.music.stop()
 
-            # 加载并播放
+            # Load and play
             pygame.mixer.music.load(str(file_path))
             pygame.mixer.music.play()
 
-            # 更新播放状态
-            title = metadata.title or "未知标题"
-            artist = metadata.artist or "未知艺术家"
+            # Update playback status
+            title = metadata.title or "Unknown title"
+            artist = metadata.artist or "unknown artist"
             self.current_song = f"{title} - {artist}"
             self.song_id = file_id
             self.total_duration = metadata.duration or 0
-            self.current_url = str(file_path)  # 本地文件路径
+            self.current_url = str(file_path)  # local file path
             self.is_playing = True
             self.paused = False
             self.current_position = 0
             self.start_play_time = time.time()
             self.current_lyric_index = -1
-            self.lyrics = []  # 本地文件暂不支持歌词
+            self.lyrics = []  # Local files do not support lyrics yet
 
-            logger.info(f"开始播放本地音乐: {self.current_song}")
+            logger.info(f"Start playing local music: {self.current_song}")
 
-            # 更新UI
+            # Update UI
             if self.app and hasattr(self.app, "set_chat_message"):
-                await self._safe_update_ui(f"正在播放本地音乐: {self.current_song}")
+                await self._safe_update_ui(f"Playing local music: {self.current_song}")
 
             return {
                 "status": "success",
-                "message": f"正在播放本地音乐: {self.current_song}",
+                "message": f"Playing local music: {self.current_song}",
             }
 
         except Exception as e:
-            logger.error(f"播放本地音乐失败: {e}")
-            return {"status": "error", "message": f"播放失败: {str(e)}"}
+            logger.error(f"Failed to play local music: {e}")
+            return {"status": "error", "message": f"Playback failed: {str(e)}"}
 
-    # 属性getter方法
+    # Property getter method
     async def get_current_song(self):
         return self.current_song
 
@@ -470,122 +444,112 @@ class MusicPlayer:
 
         current_pos = min(self.total_duration, time.time() - self.start_play_time)
 
-        # 检查是否播放完成
+        # Check if playback is complete
         if current_pos >= self.total_duration and self.total_duration > 0:
             await self._handle_playback_finished()
 
         return current_pos
 
     async def get_progress(self):
-        """
-        获取播放进度百分比.
-        """
+        """Get the playback progress percentage."""
         if self.total_duration <= 0:
             return 0
         position = await self.get_position()
         return round(position * 100 / self.total_duration, 1)
 
     async def _handle_playback_finished(self):
-        """
-        处理播放完成.
-        """
+        """Processing and playback completed."""
         if self.is_playing:
-            logger.info(f"歌曲播放完成: {self.current_song}")
+            logger.info(f"Song playback completed: {self.current_song}")
             pygame.mixer.music.stop()
             self.is_playing = False
             self.paused = False
             self.current_position = self.total_duration
 
-            # 更新UI显示完成状态
+            # Update UI to show completion status
             if self.app and hasattr(self.app, "set_chat_message"):
                 dur_str = self._format_time(self.total_duration)
-                await self._safe_update_ui(f"播放完成: {self.current_song} [{dur_str}]")
+                await self._safe_update_ui(f"Playback completed: {self.current_song} [{dur_str}]")
 
-    # 核心方法
+    # core method
     async def search_and_play(self, song_name: str) -> dict:
-        """
-        搜索并播放歌曲.
-        """
+        """Search and play songs."""
         try:
-            # 搜索歌曲
+            # Search for songs
             song_id, url = await self._search_song(song_name)
             if not song_id or not url:
-                return {"status": "error", "message": f"未找到歌曲: {song_name}"}
+                return {"status": "error", "message": f"Song not found: {song_name}"}
 
-            # 播放歌曲
+            # play song
             success = await self._play_url(url)
             if success:
                 return {
                     "status": "success",
-                    "message": f"正在播放: {self.current_song}",
+                    "message": f"Now playing: {self.current_song}",
                 }
             else:
-                return {"status": "error", "message": "播放失败"}
+                return {"status": "error", "message": "Play failed"}
 
         except Exception as e:
-            logger.error(f"搜索播放失败: {e}")
-            return {"status": "error", "message": f"操作失败: {str(e)}"}
+            logger.error(f"Search playback failed: {e}")
+            return {"status": "error", "message": f"Operation failed: {str(e)}"}
 
     async def play_pause(self) -> dict:
-        """
-        播放/暂停切换.
-        """
+        """Play/pause switch."""
         try:
             if not self.is_playing and self.current_url:
-                # 重新播放
+                # Replay
                 success = await self._play_url(self.current_url)
                 return {
                     "status": "success" if success else "error",
                     "message": (
-                        f"开始播放: {self.current_song}" if success else "播放失败"
+                        f"Start playing: {self.current_song}" if success else "Play failed"
                     ),
                 }
 
             elif self.is_playing and self.paused:
-                # 恢复播放
+                # Resume playback
                 pygame.mixer.music.unpause()
                 self.paused = False
                 self.start_play_time = time.time() - self.current_position
 
-                # 更新UI
+                # Update UI
                 if self.app and hasattr(self.app, "set_chat_message"):
-                    await self._safe_update_ui(f"继续播放: {self.current_song}")
+                    await self._safe_update_ui(f"Continue playing: {self.current_song}")
 
                 return {
                     "status": "success",
-                    "message": f"继续播放: {self.current_song}",
+                    "message": f"Continue playing: {self.current_song}",
                 }
 
             elif self.is_playing and not self.paused:
-                # 暂停播放
+                # Pause playback
                 pygame.mixer.music.pause()
                 self.paused = True
                 self.current_position = time.time() - self.start_play_time
 
-                # 更新UI
+                # Update UI
                 if self.app and hasattr(self.app, "set_chat_message"):
                     pos_str = self._format_time(self.current_position)
                     dur_str = self._format_time(self.total_duration)
                     await self._safe_update_ui(
-                        f"已暂停: {self.current_song} [{pos_str}/{dur_str}]"
+                        f"Paused: {self.current_song} [{pos_str}/{dur_str}]"
                     )
 
-                return {"status": "success", "message": f"已暂停: {self.current_song}"}
+                return {"status": "success", "message": f"Paused: {self.current_song}"}
 
             else:
-                return {"status": "error", "message": "没有可播放的歌曲"}
+                return {"status": "error", "message": "No songs available to play"}
 
         except Exception as e:
-            logger.error(f"播放暂停操作失败: {e}")
-            return {"status": "error", "message": f"操作失败: {str(e)}"}
+            logger.error(f"Playback pause operation failed: {e}")
+            return {"status": "error", "message": f"Operation failed: {str(e)}"}
 
     async def stop(self) -> dict:
-        """
-        停止播放.
-        """
+        """Stop playing."""
         try:
             if not self.is_playing:
-                return {"status": "info", "message": "没有正在播放的歌曲"}
+                return {"status": "info", "message": "No songs playing"}
 
             pygame.mixer.music.stop()
             current_song = self.current_song
@@ -593,23 +557,21 @@ class MusicPlayer:
             self.paused = False
             self.current_position = 0
 
-            # 更新UI
+            # Update UI
             if self.app and hasattr(self.app, "set_chat_message"):
-                await self._safe_update_ui(f"已停止: {current_song}")
+                await self._safe_update_ui(f"Stopped: {current_song}")
 
-            return {"status": "success", "message": f"已停止: {current_song}"}
+            return {"status": "success", "message": f"Stopped: {current_song}"}
 
         except Exception as e:
-            logger.error(f"停止播放失败: {e}")
-            return {"status": "error", "message": f"停止失败: {str(e)}"}
+            logger.error(f"Failed to stop playback: {e}")
+            return {"status": "error", "message": f"Stop failed: {str(e)}"}
 
     async def seek(self, position: float) -> dict:
-        """
-        跳转到指定位置.
-        """
+        """Jump to the specified location."""
         try:
             if not self.is_playing:
-                return {"status": "error", "message": "没有正在播放的歌曲"}
+                return {"status": "error", "message": "No songs playing"}
 
             position = max(0, min(position, self.total_duration))
             self.current_position = position
@@ -621,26 +583,24 @@ class MusicPlayer:
             if self.paused:
                 pygame.mixer.music.pause()
 
-            # 更新UI
+            # Update UI
             pos_str = self._format_time(position)
             dur_str = self._format_time(self.total_duration)
             if self.app and hasattr(self.app, "set_chat_message"):
-                await self._safe_update_ui(f"已跳转到: {pos_str}/{dur_str}")
+                await self._safe_update_ui(f"Jumped to: {pos_str}/{dur_str}")
 
-            return {"status": "success", "message": f"已跳转到: {position:.1f}秒"}
+            return {"status": "success", "message": f"Jumped to: {position:.1f} seconds"}
 
         except Exception as e:
-            logger.error(f"跳转失败: {e}")
-            return {"status": "error", "message": f"跳转失败: {str(e)}"}
+            logger.error(f"Jump failed: {e}")
+            return {"status": "error", "message": f"Jump failed: {str(e)}"}
 
     async def get_lyrics(self) -> dict:
-        """
-        获取当前歌曲歌词.
-        """
+        """Get the lyrics of the current song."""
         if not self.lyrics:
-            return {"status": "info", "message": "当前歌曲没有歌词", "lyrics": []}
+            return {"status": "info", "message": "The current song has no lyrics", "lyrics": []}
 
-        # 提取歌词文本，转换为列表
+        # Extract lyrics text and convert to list
         lyrics_text = []
         for time_sec, text in self.lyrics:
             time_str = self._format_time(time_sec)
@@ -648,14 +608,12 @@ class MusicPlayer:
 
         return {
             "status": "success",
-            "message": f"获取到 {len(self.lyrics)} 行歌词",
+            "message": f"Get {len(self.lyrics)} lines of lyrics",
             "lyrics": lyrics_text,
         }
 
     async def get_status(self) -> dict:
-        """
-        获取播放器状态.
-        """
+        """Get player status."""
         position = await self.get_position()
         progress = await self.get_progress()
 
@@ -670,13 +628,11 @@ class MusicPlayer:
             "has_lyrics": len(self.lyrics) > 0,
         }
 
-    # 内部方法
+    # internal method
     async def _search_song(self, song_name: str) -> Tuple[str, str]:
-        """
-        搜索歌曲获取ID和URL.
-        """
+        """Search songs to get ID and URL."""
         try:
-            # 构建搜索参数
+            # Build search parameters
             params = {
                 "all": song_name,
                 "ft": "music",
@@ -698,7 +654,7 @@ class MusicPlayer:
                 "devid": "0",
             }
 
-            # 搜索歌曲
+            # Search for songs
             response = await asyncio.to_thread(
                 requests.get,
                 self.config["SEARCH_URL"],
@@ -708,16 +664,14 @@ class MusicPlayer:
             )
             response.raise_for_status()
 
-            # 解析响应
+            # Parse response
             text = response.text.replace("'", '"')
 
-            # 提取歌曲ID
-            song_id = self._extract_value(text, '"DC_TARGETID":"', '"')
+            #Extract song ID
+            song_id = self._extract_value(text, '"(text, '"DC_TARGETID":"', '"')
             if not song_id:
-                return "", ""
-
-            # 提取歌曲信息
-            title = self._extract_value(text, '"NAME":"', '"') or song_name
+                return "", ""# Extract song information
+            title = self._extract_value(text, '"act_value(text, '"NAME":"', '"') or song_name
             artist = self._extract_value(text, '"ARTIST":"', '"')
             album = self._extract_value(text, '"ALBUM":"', '"')
             duration_str = self._extract_value(text, '"DURATION":"', '"')
@@ -728,17 +682,16 @@ class MusicPlayer:
                 except ValueError:
                     self.total_duration = 0
 
-            # 设置显示名称
+            # Set display name
             display_name = title
             if artist:
-                display_name = f"{title} - {artist}"
+                display_name = f"_name = f"{title} - {artist}"
                 if album:
-                    display_name += f" ({album})"
-            self.current_song = display_name
+                    display_name += f" ({album})"self.current_song = display_name
             self.song_id = song_id
 
-            # 获取播放URL
-            play_url = f"{self.config['PLAY_URL']}?ID={song_id}"
+            # Get playback URL
+            play_url = f"_url = f"{self.config['PLAY_URL']}?ID={song_id}"
             url_response = await asyncio.to_thread(
                 requests.get, play_url, headers=self.config["HEADERS"], timeout=10
             )
@@ -746,11 +699,11 @@ class MusicPlayer:
 
             play_url_text = url_response.text.strip()
             if play_url_text and play_url_text.startswith("http"):
-                # 获取歌词
+                # Get lyrics
                 await self._fetch_lyrics(song_id)
                 return song_id, play_url_text
 
-            return song_id, ""
+            return song_id,"_id, ""
 
         except Exception as e:
             logger.error(f"搜索歌曲失败: {e}")
@@ -759,18 +712,17 @@ class MusicPlayer:
     async def _play_url(self, url: str) -> bool:
         """
         播放指定URL.
-        """
-        try:
-            # 停止当前播放
+        """try:
+            # Stop current playback
             if self.is_playing:
                 pygame.mixer.music.stop()
 
-            # 检查缓存或下载
+            # Check cache or download
             file_path = await self._get_or_download_file(url)
             if not file_path:
                 return False
 
-            # 加载并播放
+            # Load and play
             pygame.mixer.music.load(str(file_path))
             pygame.mixer.music.play()
 
@@ -779,42 +731,43 @@ class MusicPlayer:
             self.paused = False
             self.current_position = 0
             self.start_play_time = time.time()
-            self.current_lyric_index = -1  # 重置歌词索引
+            self.current_lyric_index = -1 # Reset lyrics index
+
+            logger.info(f"1  # Reset lyrics index
 
             logger.info(f"开始播放: {self.current_song}")
 
-            # 更新UI
-            if self.app and hasattr(self.app, "set_chat_message"):
+            # Update UI
+            if self.app and hasattr(self.app,"pp, "set_chat_message"):
                 await self._safe_update_ui(f"正在播放: {self.current_song}")
 
-            # 启动歌词更新任务
+            # Start the lyrics update task
             asyncio.create_task(self._lyrics_update_task())
 
             return True
 
         except Exception as e:
-            logger.error(f"播放失败: {e}")
+            logger.error(f"     logger.error(f"播放失败: {e}")
             return False
 
     async def _get_or_download_file(self, url: str) -> Optional[Path]:
         """获取或下载文件.
 
         先检查缓存，如果缓存中没有则下载
-        """
-        try:
-            # 使用歌曲ID作为缓存文件名
-            cache_filename = f"{self.song_id}.mp3"
-            cache_path = self.cache_dir / cache_filename
+        """try:
+            # Use song ID as cache file name
+            cache_filename = f"che_filename = f"{self.song_id}.mp3"cache_path = self.cache_dir/cache_filename
 
-            # 检查缓存是否存在
+            # Check if cache exists
             if cache_path.exists():
-                logger.info(f"使用缓存: {cache_path}")
+                logger.info(f"ogger.info(f"使用缓存: {cache_path}")
                 return cache_path
 
-            # 缓存不存在，需要下载
+            # The cache does not exist and needs to be downloaded.
             return await self._download_file(url, cache_filename)
 
         except Exception as e:
+            logger.error(f"ception as e:
             logger.error(f"获取文件失败: {e}")
             return None
 
@@ -822,42 +775,41 @@ class MusicPlayer:
         """下载文件到缓存目录.
 
         先下载到临时目录，下载完成后移动到正式缓存目录
-        """
-        temp_path = None
+        """temp_path = None
         try:
-            # 创建临时文件路径
-            temp_path = self.temp_cache_dir / f"temp_{int(time.time())}_{filename}"
-
-            # 异步下载
+            #Create temporary file path
+            temp_path = self.temp_cache_dir/f"emp_cache_dir / f"temp_{int(time.time())}_{filename}"# Asynchronous download
             response = await asyncio.to_thread(
                 requests.get,
                 url,
-                headers=self.config["HEADERS"],
+                headers=self.config["ers=self.config["HEADERS"],
                 stream=True,
                 timeout=30,
             )
             response.raise_for_status()
 
-            # 写入临时文件
-            with open(temp_path, "wb") as f:
+            #Write to temporary file
+            with open(temp_path,"open(temp_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
 
-            # 下载完成，移动到正式缓存目录
-            cache_path = self.cache_dir / filename
+            # After the download is completed, move to the official cache directory
+            cache_path = self.cache_dir/filename
             shutil.move(str(temp_path), str(cache_path))
+
+            logger.info(f"r(cache_path))
 
             logger.info(f"音乐下载完成并缓存: {cache_path}")
             return cache_path
 
         except Exception as e:
             logger.error(f"下载失败: {e}")
-            # 清理临时文件
+            # Clean up temporary files
             if temp_path and temp_path.exists():
                 try:
                     temp_path.unlink()
-                    logger.debug(f"已清理临时下载文件: {temp_path}")
+                    logger.debug(f"logger.debug(f"已清理临时下载文件: {temp_path}")
                 except Exception:
                     pass
             return None
@@ -865,13 +817,12 @@ class MusicPlayer:
     async def _fetch_lyrics(self, song_id: str):
         """
         获取歌词.
-        """
-        try:
-            # 重置歌词
+        """try:
+            # reset lyrics
             self.lyrics = []
 
-            # 构建歌词API请求
-            lyric_url = self.config.get("LYRIC_URL")
+            # Construct lyrics API request
+            lyric_url = self.config.get("ric_url = self.config.get("LYRIC_URL")
             lyric_api_url = f"{lyric_url}?id={song_id}"
             logger.info(f"获取歌词URL: {lyric_api_url}")
 
@@ -880,41 +831,41 @@ class MusicPlayer:
             )
             response.raise_for_status()
 
-            # 解析JSON
+            # Parse JSON
             data = response.json()
 
-            # 解析歌词
+            # Parse lyrics
             if (
-                data.get("code") == 200
+                data.get("  data.get("code") == 200
                 and data.get("data")
                 and data["data"].get("content")
             ):
                 lrc_content = data["data"]["content"]
 
-                # 解析LRC格式歌词
-                lines = lrc_content.split("\n")
+                # Parse LRC format lyrics
+                lines = lrc_content.split("ontent.split("\n")
                 for line in lines:
                     line = line.strip()
                     if not line:
                         continue
 
-                    # 匹配时间标签格式 [mm:ss.xx]
+                    # Match time tag format [mm:ss.xx]
                     import re
 
-                    time_match = re.match(r"\[(\d{2}):(\d{2})\.(\d{2})\](.+)", line)
+                    time_match = re.match(r" = re.match(r"\[(\d{2}):(\d{2})\.(\d{2})\](.+)", line)
                     if time_match:
                         minutes = int(time_match.group(1))
                         seconds = int(time_match.group(2))
                         centiseconds = int(time_match.group(3))
                         text = time_match.group(4).strip()
 
-                        # 转换为总秒数
+                        # Convert to total seconds
                         time_sec = minutes * 60 + seconds + centiseconds / 100.0
 
-                        # 跳过空歌词和元信息歌词
+                        # Skip empty lyrics and meta information lyrics
                         if (
                             text
-                            and not text.startswith("作词")
+                            and not text.startswith("                           and not text.startswith("作词")
                             and not text.startswith("作曲")
                             and not text.startswith("编曲")
                             and not text.startswith("ti:")
@@ -935,8 +886,7 @@ class MusicPlayer:
     async def _lyrics_update_task(self):
         """
         歌词更新任务.
-        """
-        if not self.lyrics:
+        """if not self.lyrics:
             return
 
         try:
@@ -947,61 +897,66 @@ class MusicPlayer:
 
                 current_time = time.time() - self.start_play_time
 
-                # 检查是否播放完成
+                # Check if playback is complete
                 if current_time >= self.total_duration:
                     await self._handle_playback_finished()
                     break
 
-                # 查找当前时间对应的歌词
+                # Find lyrics corresponding to the current time
                 current_index = self._find_current_lyric_index(current_time)
 
-                # 如果歌词索引变化了，更新显示
+                # If the lyrics index changes, update the display
                 if current_index != self.current_lyric_index:
                     await self._display_current_lyric(current_index)
 
                 await asyncio.sleep(0.2)
+        except Exception as e:
+            logger.error(f"     await asyncio.sleep(0.2)
         except Exception as e:
             logger.error(f"歌词更新任务异常: {e}")
 
     def _find_current_lyric_index(self, current_time: float) -> int:
         """
         查找当前时间对应的歌词索引.
-        """
-        # 查找下一句歌词
+        """# Find the next lyrics
         next_lyric_index = None
         for i, (time_sec, _) in enumerate(self.lyrics):
-            # 添加一个小的偏移量(0.5秒)，使歌词显示更准确
+            # Add a small offset (0.5 seconds) to make the lyrics display more accurate
             if time_sec > current_time - 0.5:
                 next_lyric_index = i
                 break
 
-        # 确定当前歌词索引
+        # Determine the current lyrics index
         if next_lyric_index is not None and next_lyric_index > 0:
-            # 如果找到下一句歌词，当前歌词就是它的前一句
+            # If the next lyric is found, the current lyric is its previous sentence
             return next_lyric_index - 1
         elif next_lyric_index is None and self.lyrics:
-            # 如果没找到下一句，说明已经到最后一句
+            # If the next sentence is not found, it means we have reached the last sentence.
             return len(self.lyrics) - 1
         else:
-            # 其他情况（如播放刚开始）
+            # Other situations (such as just starting playback)
+            return 0
+
+    async def _display_current_lyric(self, current_index: int):"sentence.
+            return len(self.lyrics) - 1
+        else:
+            # Other situations (such as playback just started)
             return 0
 
     async def _display_current_lyric(self, current_index: int):
         """
         显示当前歌词.
-        """
-        self.current_lyric_index = current_index
+        """self.current_lyric_index = current_index
 
         if current_index < len(self.lyrics):
             time_sec, text = self.lyrics[current_index]
 
-            # 在歌词前添加时间和进度信息
+            # Add time and progress information before lyrics
             position_str = self._format_time(time.time() - self.start_play_time)
             duration_str = self._format_time(self.total_duration)
-            display_text = f"[{position_str}/{duration_str}] {text}"
-
-            # 更新UI
-            if self.app and hasattr(self.app, "set_chat_message"):
+            display_text = f"ion)
+            display_text = f"[{position_str}/{duration_str}] {text}"# Update UI
+            if self.app and hasattr(self.app,"pp, "set_chat_message"):
                 await self._safe_update_ui(display_text)
                 logger.debug(f"显示歌词: {text}")
 
@@ -1044,16 +999,22 @@ class MusicPlayer:
     def __del__(self):
         """
         清理资源.
-        """
-        try:
-            # 如果程序正常退出，额外清理一次临时缓存
+        """try:
+            # If the program exits normally, clean the temporary cache once more
             self._clean_temp_cache()
-        except Exception:
-            # 忽略错误，因为在对象销毁阶段可能会有各种异常
+        exceptException:
+            # Ignore errors because there may be various exceptions during the object destruction phase
             pass
 
 
-# 全局音乐播放器实例
+#Global music player instance
+_music_player_instance = None
+
+
+def get_music_player_instance() -> MusicPlayer:"      pass
+
+
+# Global music player instance
 _music_player_instance = None
 
 

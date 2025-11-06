@@ -8,11 +8,9 @@ from src.utils.logging_config import get_logger
 
 
 class SystemOptionsWidget(QWidget):
-    """
-    系统选项设置组件.
-    """
+    """System option settings component."""
 
-    # 信号定义
+    # Signal definition
     settings_changed = pyqtSignal()
 
     def __init__(self, parent=None):
@@ -20,36 +18,32 @@ class SystemOptionsWidget(QWidget):
         self.logger = get_logger(__name__)
         self.config_manager = ConfigManager.get_instance()
 
-        # UI控件引用
+        # UI control reference
         self.ui_controls = {}
 
-        # 初始化UI
+        # Initialize UI
         self._setup_ui()
         self._connect_events()
         self._load_config_values()
 
     def _setup_ui(self):
-        """
-        设置UI界面.
-        """
+        """Set up the UI interface."""
         try:
             from PyQt5 import uic
 
             ui_path = Path(__file__).parent / "system_options_widget.ui"
             uic.loadUi(str(ui_path), self)
 
-            # 获取UI控件引用
+            # Get UI control reference
             self._get_ui_controls()
 
         except Exception as e:
-            self.logger.error(f"设置系统选项UI失败: {e}", exc_info=True)
+            self.logger.error(f"Failed to set system options UI: {e}", exc_info=True)
             raise
 
     def _get_ui_controls(self):
-        """
-        获取UI控件引用.
-        """
-        # 系统选项控件
+        """Get the UI control reference."""
+        # System Options Control
         self.ui_controls.update(
             {
                 "client_id_edit": self.findChild(QLineEdit, "client_id_edit"),
@@ -69,7 +63,7 @@ class SystemOptionsWidget(QWidget):
             }
         )
 
-        # MQTT配置控件
+        # MQTT configuration control
         self.ui_controls.update(
             {
                 "mqtt_endpoint_edit": self.findChild(QLineEdit, "mqtt_endpoint_edit"),
@@ -85,7 +79,7 @@ class SystemOptionsWidget(QWidget):
             }
         )
 
-        # AEC配置控件
+        # AEC configuration control
         self.ui_controls.update(
             {
                 "aec_enabled_check": self.findChild(QCheckBox, "aec_enabled_check"),
@@ -93,10 +87,8 @@ class SystemOptionsWidget(QWidget):
         )
 
     def _connect_events(self):
-        """
-        连接事件处理.
-        """
-        # 为所有输入控件连接变更信号
+        """Connection event handling."""
+        # Connect change signals to all input controls
         for control in self.ui_controls.values():
             if isinstance(control, QLineEdit):
                 control.textChanged.connect(self.settings_changed.emit)
@@ -106,11 +98,9 @@ class SystemOptionsWidget(QWidget):
                 control.stateChanged.connect(self.settings_changed.emit)
 
     def _load_config_values(self):
-        """
-        从配置文件加载值到UI控件.
-        """
+        """Load values ​​from configuration files to UI controls."""
         try:
-            # 系统选项
+            # System options
             client_id = self.config_manager.get_config("SYSTEM_OPTIONS.CLIENT_ID", "")
             self._set_text_value("client_id_edit", client_id)
 
@@ -137,7 +127,7 @@ class SystemOptionsWidget(QWidget):
             )
             self._set_text_value("authorization_url_edit", auth_url)
 
-            # 激活版本
+            # activated version
             activation_version = self.config_manager.get_config(
                 "SYSTEM_OPTIONS.NETWORK.ACTIVATION_VERSION", "v1"
             )
@@ -145,21 +135,21 @@ class SystemOptionsWidget(QWidget):
                 combo = self.ui_controls["activation_version_combo"]
                 combo.setCurrentText(activation_version)
 
-            # 窗口大小模式
+            # window size mode
             window_size_mode = self.config_manager.get_config(
                 "SYSTEM_OPTIONS.WINDOW_SIZE_MODE", "default"
             )
             if self.ui_controls["window_size_combo"]:
-                # 映射配置值到显示文本（默认 = 50%）
+                # Map configuration value to display text (default = 50%)
                 mode_to_text = {
-                    "default": "默认",
+                    "default": "default",
                     "screen_75": "75%",
                     "screen_100": "100%",
                 }
                 combo = self.ui_controls["window_size_combo"]
-                combo.setCurrentText(mode_to_text.get(window_size_mode, "默认"))
+                combo.setCurrentText(mode_to_text.get(window_size_mode, "default"))
 
-            # MQTT配置
+            # MQTT configuration
             mqtt_info = self.config_manager.get_config(
                 "SYSTEM_OPTIONS.NETWORK.MQTT_INFO", {}
             )
@@ -183,55 +173,45 @@ class SystemOptionsWidget(QWidget):
                     "mqtt_subscribe_topic_edit", mqtt_info.get("subscribe_topic", "")
                 )
 
-            # AEC配置
+            # AEC configuration
             aec_enabled = self.config_manager.get_config("AEC_OPTIONS.ENABLED", True)
             self._set_check_value("aec_enabled_check", aec_enabled)
 
         except Exception as e:
-            self.logger.error(f"加载系统选项配置值失败: {e}", exc_info=True)
+            self.logger.error(f"Failed to load system option configuration values: {e}", exc_info=True)
 
     def _set_text_value(self, control_name: str, value: str):
-        """
-        设置文本控件的值.
-        """
+        """Set the value of the text control."""
         control = self.ui_controls.get(control_name)
         if control and hasattr(control, "setText"):
             control.setText(str(value) if value is not None else "")
 
     def _get_text_value(self, control_name: str) -> str:
-        """
-        获取文本控件的值.
-        """
+        """Get the value of the text control."""
         control = self.ui_controls.get(control_name)
         if control and hasattr(control, "text"):
             return control.text().strip()
         return ""
 
     def _set_check_value(self, control_name: str, value: bool):
-        """
-        设置复选框控件的值.
-        """
+        """Sets the value of the checkbox control."""
         control = self.ui_controls.get(control_name)
         if control and hasattr(control, "setChecked"):
             control.setChecked(bool(value))
 
     def _get_check_value(self, control_name: str) -> bool:
-        """
-        获取复选框控件的值.
-        """
+        """Gets the value of the checkbox control."""
         control = self.ui_controls.get(control_name)
         if control and hasattr(control, "isChecked"):
             return control.isChecked()
         return False
 
     def get_config_data(self) -> dict:
-        """
-        获取当前配置数据.
-        """
+        """Get current configuration data."""
         config_data = {}
 
         try:
-            # 客户端ID和设备ID
+            # Client ID and Device ID
             client_id = self._get_text_value("client_id_edit")
             if client_id:
                 config_data["SYSTEM_OPTIONS.CLIENT_ID"] = client_id
@@ -240,7 +220,7 @@ class SystemOptionsWidget(QWidget):
             if device_id:
                 config_data["SYSTEM_OPTIONS.DEVICE_ID"] = device_id
 
-            # 系统选项 - 网络配置
+            # System Options - Network Configuration
             ota_url = self._get_text_value("ota_url_edit")
             if ota_url:
                 config_data["SYSTEM_OPTIONS.NETWORK.OTA_VERSION_URL"] = ota_url
@@ -261,7 +241,7 @@ class SystemOptionsWidget(QWidget):
                     authorization_url
                 )
 
-            # 激活版本
+            # activated version
             if self.ui_controls["activation_version_combo"]:
                 activation_version = self.ui_controls[
                     "activation_version_combo"
@@ -270,11 +250,11 @@ class SystemOptionsWidget(QWidget):
                     activation_version
                 )
 
-            # 窗口大小模式
+            # window size mode
             if self.ui_controls["window_size_combo"]:
-                # 映射显示文本到配置值（默认 = 50%）
+                # Map display text to configuration value (default = 50%)
                 text_to_mode = {
-                    "默认": "default",
+                    "default": "default",
                     "75%": "screen_75",
                     "100%": "screen_100",
                 }
@@ -282,7 +262,7 @@ class SystemOptionsWidget(QWidget):
                 window_size_mode = text_to_mode.get(window_size_text, "default")
                 config_data["SYSTEM_OPTIONS.WINDOW_SIZE_MODE"] = window_size_mode
 
-            # MQTT配置
+            # MQTT configuration
             mqtt_config = {}
             mqtt_endpoint = self._get_text_value("mqtt_endpoint_edit")
             if mqtt_endpoint:
@@ -309,31 +289,29 @@ class SystemOptionsWidget(QWidget):
                 mqtt_config["subscribe_topic"] = mqtt_subscribe_topic
 
             if mqtt_config:
-                # 获取现有的MQTT配置并更新
+                # Get existing MQTT configuration and update
                 existing_mqtt = self.config_manager.get_config(
                     "SYSTEM_OPTIONS.NETWORK.MQTT_INFO", {}
                 )
                 existing_mqtt.update(mqtt_config)
                 config_data["SYSTEM_OPTIONS.NETWORK.MQTT_INFO"] = existing_mqtt
 
-            # AEC配置
+            # AEC configuration
             aec_enabled = self._get_check_value("aec_enabled_check")
             config_data["AEC_OPTIONS.ENABLED"] = aec_enabled
 
         except Exception as e:
-            self.logger.error(f"获取系统选项配置数据失败: {e}", exc_info=True)
+            self.logger.error(f"Failed to obtain system option configuration data: {e}", exc_info=True)
 
         return config_data
 
     def reset_to_defaults(self):
-        """
-        重置为默认值.
-        """
+        """Reset to default values."""
         try:
-            # 获取默认配置
+            # Get default configuration
             default_config = ConfigManager.DEFAULT_CONFIG
 
-            # 系统选项
+            # System options
             self._set_text_value(
                 "ota_url_edit",
                 default_config["SYSTEM_OPTIONS"]["NETWORK"]["OTA_VERSION_URL"],
@@ -350,7 +328,7 @@ class SystemOptionsWidget(QWidget):
                     default_config["SYSTEM_OPTIONS"]["NETWORK"]["ACTIVATION_VERSION"]
                 )
 
-            # 清空MQTT配置
+            # Clear MQTT configuration
             self._set_text_value("mqtt_endpoint_edit", "")
             self._set_text_value("mqtt_client_id_edit", "")
             self._set_text_value("mqtt_username_edit", "")
@@ -358,13 +336,13 @@ class SystemOptionsWidget(QWidget):
             self._set_text_value("mqtt_publish_topic_edit", "")
             self._set_text_value("mqtt_subscribe_topic_edit", "")
 
-            # AEC配置默认值
+            # AEC configuration defaults
             default_aec = default_config.get("AEC_OPTIONS", {})
             self._set_check_value(
                 "aec_enabled_check", default_aec.get("ENABLED", False)
             )
 
-            self.logger.info("系统选项配置已重置为默认值")
+            self.logger.info("System options configuration has been reset to default values")
 
         except Exception as e:
-            self.logger.error(f"重置系统选项配置失败: {e}", exc_info=True)
+            self.logger.error(f"Failed to reset system option configuration: {e}", exc_info=True)

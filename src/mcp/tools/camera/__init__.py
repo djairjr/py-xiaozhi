@@ -12,12 +12,10 @@ logger = get_logger(__name__)
 
 
 def get_camera_instance():
-    """
-    根据配置返回对应的摄像头实现.
-    """
+    """Returns the corresponding camera implementation according to the configuration."""
     config = ConfigManager.get_instance()
 
-    # 检查是否配置了智普AI
+    # Check whether Zhipu AI is configured
     vl_key = config.get_config("CAMERA.VLapi_key")
     vl_url = config.get_config("CAMERA.Local_VL_url")
 
@@ -30,21 +28,19 @@ def get_camera_instance():
 
 
 def take_photo(arguments: dict) -> str:
-    """
-    拍照并分析的工具函数.
-    """
+    """Tool function for taking pictures and analyzing them."""
     camera = get_camera_instance()
     logger.info(f"Using camera implementation: {camera.__class__.__name__}")
 
     question = arguments.get("question", "")
     logger.info(f"Taking photo with question: {question}")
 
-    # 拍照
+    # Photograph
     success = camera.capture()
     if not success:
         logger.error("Failed to capture photo")
         return '{"success": false, "message": "Failed to capture photo"}'
 
-    # 分析图片
+    # Analyze pictures
     logger.info("Photo captured, starting analysis...")
     return camera.analyze(question)

@@ -1,250 +1,250 @@
-# Home Assistant MCP 集成
+# Home Assistant MCP Integration
 
-为提升架构灵活性与稳定性，py-xiaozhi 已移除内置的 Home Assistant（HA）。现可通过基于 WSS 的 Home Assistant MCP 外挂插件接入 HA，与小智 AI 服务器通过 MCP 协议直连，无需任何中转。该插件由 c1pher-cn 开源维护，完整支持设备状态查询、实体控制与自动化管理。
+To improve architectural flexibility and stability, py-xiaozhi has removed the built-in Home Assistant (HA). You can now access HA through the WSS-based Home Assistant MCP plug-in, and directly connect to the Xiaozhi AI server through the MCP protocol without any transfer. This plug-in is maintained by c1pher-cn as an open source and fully supports device status query, entity control and automated management.
 
-项目地址：[ha-mcp-for-xiaozhi](https://github.com/c1pher-cn/ha-mcp-for-xiaozhi)
+Project address: [ha-mcp-for-xiaozhi](https://github.com/c1pher-cn/ha-mcp-for-xiaozhi)
 
-## 插件特性
+## Plug-in features
 
-### 核心能力
+### Core Competencies
 
-1. **直连小智服务器**: Home Assistant 作为 MCP server，通过 WebSocket 协议直接对接小智服务器，无需中转
-2. **多API组代理**: 在一个实体中同时选择多个API组（Home Assistant 自带控制API、用户自定义MCP Server）
-3. **多实体支持**: 支持同时配置多个实体实例
-4. **HACS集成**: 通过 HACS 商店一键安装，方便管理和更新
+1. **Direct connection to Xiaozhi server**: Home Assistant, as an MCP server, directly connects to Xiaozhi server through WebSocket protocol without any transfer.
+2. **Multiple API Group Agent**: Select multiple API groups in one entity at the same time (Home Assistant comes with its own control API, user-defined MCP Server)
+3. **Multi-entity support**: Supports configuring multiple entity instances at the same time
+4. **HACS integration**: One-click installation through HACS store for easy management and updates
 
-### 技术优势
+### Technical advantages
 
-- **低延迟**: 直连架构，减少网络中转延迟
-- **高可靠**: 基于WebSocket长连接，稳定性更佳
-- **易扩展**: 支持代理其他MCP Server，扩展性强
-- **易维护**: HACS管理，自动更新
+- **Low Latency**: Direct connection architecture to reduce network transit delay
+- **High Reliability**: Based on WebSocket long connection, better stability
+- **Easy to Expand**: Supports proxying for other MCP Servers, with strong scalability
+- **Easy to maintain**: HACS management, automatic updates
 
-## 常见使用场景
+## Common usage scenarios
 
-**设备状态查询:**
+**Equipment status query:**
 
-- "客厅灯现在是什么状态"
-- "查看所有灯的状态"
-- "温度传感器显示多少度"
-- "空调现在开着吗"
+- "What is the current status of the living room lights?"
+- "View status of all lights"
+- "How many degrees does the temperature sensor display?"
+- "Is the air conditioner on now?"
 
-**设备控制:**
+**Device Control:**
 
-- "打开客厅灯"
-- "关闭所有灯"
-- "把空调温度设置到25度"
-- "调节客厅灯亮度到80%"
+- "Turn on the living room light"
+- "Turn off all lights"
+- "Set the air conditioner temperature to 25 degrees"
+- "Adjust the brightness of the living room lights to 80%"
 
-**场景控制:**
+**Scene Control:**
 
-- "开启睡眠模式"
-- "激活回家场景"
-- "执行晚安场景"
-- "启动派对模式"
+- "Enable sleep mode"
+- "Activate home scene"
+- "Perform Good Night Scene"
+- "Start party mode"
 
-**高级控制:**
+**Advanced Controls:**
 
-- "通过script控制电视"
-- "执行自定义自动化"
-- "控制多媒体设备"
-- "管理安防系统"
+- "Control TV via script"
+- "Execute custom automation"
+- "Control multimedia devices"
+- "Manage Security Systems"
 
-## 安装指南
+## Installation Guide
 
-### 前置要求
+### Prerequisites
 
-- Home Assistant 已安装并运行
-- 已安装 HACS（Home Assistant Community Store）
-- 小智AI账号及MCP接入点地址
+- Home Assistant is installed and running
+- HACS (Home Assistant Community Store) installed
+- Xiaozhi AI account and MCP access point address
 
-### 安装步骤
+### Installation steps
 
-#### 1. 通过HACS安装
+#### 1. Install via HACS
 
-1. 打开 HACS，搜索 `xiaozhi` 或 `ha-mcp-for-xiaozhi`
+1. Open HACS and search for `xiaozhi` or `ha-mcp-for-xiaozhi`
 
-<img width="700" alt="HACS搜索界面" src="https://github.com/user-attachments/assets/fa49ee7c-b503-49fa-ad63-512499fa3885" />
+<img width="700" alt="HACS search interface" src="https://github.com/user-attachments/assets/fa49ee7c-b503-49fa-ad63-512499fa3885" />
 
-2. 点击下载并安装插件
+2. Click to download and install the plug-in
 
-<img width="500" alt="插件下载界面" src="https://github.com/user-attachments/assets/1ee75d6f-e1b0-4073-a2c7-ee0d72d002ca" />
+<img width="500" alt="Plug-in download interface" src="https://github.com/user-attachments/assets/1ee75d6f-e1b0-4073-a2c7-ee0d72d002ca" />
 
-3. 重启 Home Assistant
+3. Restart Home Assistant
 
-#### 2. 手动安装
+#### 2. Manual installation
 
-如果无法通过HACS安装，可以手动下载：
+If you cannot install via HACS, you can download it manually:
 
-1. 从 [GitHub Releases](https://github.com/c1pher-cn/ha-mcp-for-xiaozhi/releases) 下载最新版本
-2. 解压到 `custom_components` 目录
-3. 重启 Home Assistant
+1. Download the latest version from [GitHub Releases](https://github.com/c1pher-cn/ha-mcp-for-xiaozhi/releases)
+2. Unzip to the `custom_components` directory
+3. Restart Home Assistant
 
-### 配置步骤
+### Configuration steps
 
-#### 1. 添加集成
+#### 1. Add integration
 
-1. 进入 **设置 > 设备与服务 > 添加集成**
-2. 搜索 "Mcp" 或 "MCP Server for Xiaozhi"
+1. Go to **Settings > Devices & Services > Add Integration**
+2. Search for "Mcp" or "MCP Server for Xiaozhi"
 
-<img width="600" alt="添加集成界面" src="https://github.com/user-attachments/assets/07a70fe1-8c6e-4679-84df-1ea05114b271" />
+<img width="600" alt="Add integrated interface" src="https://github.com/user-attachments/assets/07a70fe1-8c6e-4679-84df-1ea05114b271" />
 
-3. 选择并点击添加
+3. Select and click Add
 
-#### 2. 配置参数
+#### 2. Configuration parameters
 
-配置界面需要填写以下信息：
+The configuration interface requires filling in the following information:
 
-**基本配置:**
+**Basic configuration:**
 
-- **小智MCP接入点地址**: 从小智AI后台获取的MCP接入地址
-- **设备名称**: 为该Home Assistant实例设置一个识别名称
+- **Xiaozhi MCP access point address**: MCP access address obtained from Xiaozhi AI background
+- **Device Name**: Set an identifying name for this Home Assistant instance
 
-**API组选择:**
+**API group selection:**
 
-- **Assist**: Home Assistant自带的控制功能
-- **其他MCP Server**: 如果你在Home Assistant中配置了其他MCP服务器，可以选择一并代理给小智
+- **Assist**: Home Assistant’s built-in control function
+- **Other MCP Server**: If you have configured other MCP servers in Home Assistant, you can choose to proxy them to Xiaozhi as well.
 
-<img width="600" alt="配置界面" src="https://github.com/user-attachments/assets/38e98fde-8a6c-4434-932c-840c25dc6e28" />
+<img width="600" alt="Configuration interface" src="https://github.com/user-attachments/assets/38e98fde-8a6c-4434-932c-840c25dc6e28" />
 
-#### 3. 实体公开设置
+#### 3. Entity public settings
 
-为了让小智能够控制设备，需要公开相应实体：
+In order for Xiaozhi to control the device, the corresponding entity needs to be exposed:
 
-1. 进入 **设置 > 语音助手 > 公开**
-2. 选择需要被小智控制的设备和实体
-3. 保存设置
+1. Go to **Settings > Voice Assistant > Public**
+2. Select the devices and entities that need to be controlled by Xiaozhi
+3. Save settings
 
-#### 4. 验证连接
+#### 4. Verify connection
 
-1. 配置完成后等待约1分钟
-2. 登录小智AI后台，进入MCP接入点页面
-3. 点击刷新，检查连接状态是否正常
+1. Wait about 1 minute after the configuration is completed.
+2. Log in to the Xiaozhi AI backend and enter the MCP access point page.
+3. Click Refresh to check whether the connection status is normal.
 
-<img width="600" alt="连接状态检查" src="https://github.com/user-attachments/assets/ace79a44-6197-4e94-8c49-ab9048ed4502" />
+<img width="600" alt="Connection status check" src="https://github.com/user-attachments/assets/ace79a44-6197-4e94-8c49-ab9048ed4502" />
 
-## 使用示例
+## Usage example
 
-### 基础设备控制
-
-```
-用户: "打开客厅灯"
-小智: "好的，已为您打开客厅灯"
-
-用户: "把空调温度调到26度"  
-小智: "已将空调温度设置为26度"
-
-用户: "关闭所有灯"
-小智: "已为您关闭所有灯光"
-```
-
-### 状态查询
+### Basic device control
 
 ```
-用户: "客厅现在的温度是多少"
-小智: "客厅温度传感器显示当前温度为23.5度"
+User: "Turn on the living room lights"
+Xiaozhi: "Okay, I've turned on the living room light for you."
 
-用户: "哪些灯现在是开着的"
-小智: "目前开启的灯有：客厅灯、卧室床头灯"
+User: "Adjust the air conditioner temperature to 26 degrees"
+Xiaozhi: "The air conditioner temperature has been set to 26 degrees"
+
+User: "Turn off all lights"
+Xiaozhi: "All lights have been turned off for you"
 ```
 
-### 场景控制
+### Status Query
 
 ```
-用户: "执行睡眠模式"
-小智: "已为您执行睡眠模式场景，所有灯光已关闭，窗帘已拉上"
+User: "What is the current temperature in the living room?"
+Xiaozhi: "The temperature sensor in the living room shows that the current temperature is 23.5 degrees"
 
-用户: "开启回家场景"  
-小智: "欢迎回家！已为您开启客厅灯和玄关灯，空调已调至舒适温度"
+User: "Which lights are on now?"
+Xiaozhi: "The lights currently turned on are: living room lamp, bedroom bedside lamp"
 ```
 
-## 调试说明
+### Scene control
 
-### 1. 实体暴露检查
+```
+User: "Execute sleep mode"
+Xiaozhi: "The sleep mode scene has been executed for you, all lights have been turned off, and the curtains have been drawn."
 
-暴露的工具数量取决于您公开给Home Assistant语音助手的实体种类：
+User: "Enable home scene"
+Xiaozhi: "Welcome home! The living room lights and entrance lights have been turned on for you, and the air conditioner has been adjusted to a comfortable temperature."
+```
 
-- 进入 **设置 > 语音助手 > 公开**
-- 确保需要控制的设备已添加到公开列表
+## Debugging instructions
 
-### 2. 版本要求
+### 1. Entity exposure check
 
-建议使用最新版本的Home Assistant：
+The number of tools exposed depends on the kind of entities you expose to Home Assistant:
 
-- 新版本提供的工具和API更加完善
-- 5月版本相比3月版本在工具支持上有明显改进
+- Go to **Settings > Voice Assistant > Public**
+- Make sure the device you need to control has been added to the public list
 
-### 3. 调试方法
+### 2. Version requirements
 
-当控制效果未达到预期时：
+It is recommended to use the latest version of Home Assistant:
 
-**查看小智聊天记录:**
+- The tools and API provided by the new version are more complete
+- The May version has significant improvements in tool support compared to the March version
 
-1. 检查小智如何理解和处理指令
-2. 确认是否调用了Home Assistant工具
-3. 分析调用参数是否正确
+### 3. Debugging method
 
-**已知问题:**
+When the control effect does not meet expectations:
 
-- 灯光控制可能与内置屏幕控制冲突
-- 音乐控制可能与内置音乐功能冲突
-- 这些问题将在下个月小智服务器支持内置工具选择后解决
+**View Xiaozhi’s chat history:**
 
-### 4. 调试日志
+1. Check how Xiaozhi understands and processes commands
+2. Confirm whether the Home Assistant tool is called
+3. Analyze whether the calling parameters are correct
 
-如果Home Assistant function调用正确但执行异常：
+**Known issues:**
 
-1. 在Home Assistant中开启本插件的调试日志
-2. 重现问题操作
-3. 查看日志中的详细执行情况
+- Lighting controls may conflict with built-in screen controls
+- Music controls may conflict with built-in music functionality
+- These issues will be resolved next month after Xiaozhi server supports built-in tool selection
 
-## 演示视频
+### 4. Debug log
 
-为了更好地了解插件功能，可以观看以下演示视频：
+If the Home Assistant function is called correctly but executes abnormally:
 
-- [接入演示视频](https://www.bilibili.com/video/BV1XdjJzeEwe) - 基础安装和配置流程
-- [控制电视演示](https://www.bilibili.com/video/BV18DM8zuEYV) - 通过自定义script实现电视控制
-- [进阶教程](https://www.bilibili.com/video/BV1SruXzqEW5) - Home Assistant、LLM、MCP、小智的详细教程
+1. Turn on the debugging log of this plug-in in Home Assistant
+2. Reproduce the problem operation
+3. Check the detailed execution status in the log
 
-## 故障排除
+## Demo video
 
-### 常见问题
+To better understand the plugin functionality, you can watch the following demo video:
 
-**1. 连接失败**
+- [Access to demo video](https://www.bilibili.com/video/BV1XdjJzeEwe) - Basic installation and configuration process
+- [Control TV Demo](https://www.bilibili.com/video/BV18DM8zuEYV) - TV control through custom script
+- [Advanced Tutorial](https://www.bilibili.com/video/BV1SruXzqEW5) - Detailed tutorials for Home Assistant, LLM, MCP, and Xiaozhi
 
-- 检查小智MCP接入点地址是否正确
-- 确认Home Assistant网络连接正常
-- 检查防火墙设置
+## troubleshooting
 
-**2. 设备无法控制**
+### FAQ
 
-- 确认设备已在语音助手中公开
-- 检查设备实体状态是否正常
-- 验证设备是否支持相应操作
+**1. Connection failed**
 
-**3. 部分功能冲突**
+- Check whether the Xiaozhi MCP access point address is correct
+- Confirm that the Home Assistant network connection is normal
+- Check firewall settings
 
-- 临时禁用内置功能
-- 调整设备命名避免冲突
-- 等待小智服务器工具选择功能更新
+**2. The device cannot be controlled**
 
-**4. 响应延迟**
+- Confirm that the device is exposed in the voice assistant
+- Check whether the device entity status is normal
+- Verify that the device supports the corresponding operation
 
-- 检查网络连接质量
-- 优化Home Assistant性能
-- 减少不必要的实体公开
+**3. Some functional conflicts**
 
-### 调试技巧
+- Temporarily disable built-in features
+- Adjust device naming to avoid conflicts
+- Waiting for the update of Xiaozhi server tool selection function
 
-1. 启用详细日志记录
-2. 逐步测试基础功能
-3. 对比正常工作的设备配置
-4. 参考社区讨论和issues
+**4. Response delay**
 
-## 社区支持
+- Check network connection quality
+- Optimize Home Assistant performance
+- Reduce unnecessary entity disclosure
 
-### 项目链接
+### Debugging Tips
 
-- **GitHub仓库**: [ha-mcp-for-xiaozhi](https://github.com/c1pher-cn/ha-mcp-for-xiaozhi)
-- **问题反馈**: [GitHub Issues](https://github.com/c1pher-cn/ha-mcp-for-xiaozhi/issues)
-- **功能请求**: [GitHub Discussions](https://github.com/c1pher-cn/ha-mcp-for-xiaozhi/discussions)
+1. Enable verbose logging
+2. Test basic functions step by step
+3. Compare normal working device configurations
+4. Refer to community discussions and issues
+
+## Community Support
+
+### Project link
+
+- **GitHub repository**: [ha-mcp-for-xiaozhi](https://github.com/c1pher-cn/ha-mcp-for-xiaozhi)
+- **Issue Feedback**: [GitHub Issues](https://github.com/c1pher-cn/ha-mcp-for-xiaozhi/issues)
+- **Feature Request**: [GitHub Discussions](https://github.com/c1pher-cn/ha-mcp-for-xiaozhi/discussions)

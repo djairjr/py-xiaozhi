@@ -1,279 +1,279 @@
-# 八字命理工具 (Bazi Tools)
+# Bazi Tools
 
-八字命理工具是基于中国传统命理学的 MCP 工具集，提供了全面的八字分析、婚姻合婚、黄历查询等功能。
+The horoscope numerology tool is an MCP tool set based on traditional Chinese numerology, which provides comprehensive horoscope analysis, marriage alignment, almanac query and other functions.
 
-### 常见使用场景
+### Common usage scenarios
 
-**个人八字分析:**
-- "帮我算一下我的八字，我是1990年3月15日下午3点出生的"
-- "我的农历生日是1985年二月十五，性别女，算一下八字"
-- "分析一下我的命格特点"
+**Personal horoscope analysis:**
+- "Help me calculate my horoscope. I was born at 3pm on March 15, 1990."
+- "My birthday on the lunar calendar is February 15th, 1985. My gender is female. Let me calculate my horoscopes."
+- "Analyze the characteristics of my destiny"
 
-**婚姻合婚:**
-- "我和我对象八字合不合，我是1990年3月15日生，他是1988年10月20日生"
-- "帮我们算一下婚姻是否般配"
-- "分析一下我们的婚姻时机"
+**Marriage Combination:**
+- "Do my partner and I have similar horoscopes? I was born on March 15, 1990, and he was born on October 20, 1988."
+- "Help us calculate whether the marriage is a good match"
+- "Analyze the timing of our marriage"
 
-**黄历查询:**
-- "今天日子好不好"
-- "2025年7月9日的黄历信息"
-- "查一下明天适合做什么事情"
+**Almanac query:**
+- "How are you doing today?"
+- "Almanac information for July 9, 2025"
+- "Check what things are suitable for tomorrow"
 
-**时间反推:**
-- "我的八字是甲子年丙寅月戊申日甲寅时，有哪些可能的出生时间"
+**Time reverse:**
+- "My horoscope is Bingyin month Wushen day Jiayin hour of Jiazi year. What are the possible birth times?"
 
-### 使用提示
+### Usage tips
 
-1. **提供准确时间**: 包含年、月、日、时信息，可以是公历或农历
-2. **明确性别**: 对于婚姻分析，请说明双方性别
-3. **自然描述**: 用日常语言描述您的需求，AI 会自动调用相应的命理工具
-4. **理性对待**: 命理分析仅供参考，不应完全依赖于此做重要决定
+1. **Provide accurate time**: Contains year, month, day and time information, which can be Gregorian calendar or lunar calendar
+2. **Specify gender**: For marriage analysis, please indicate the gender of both parties
+3. **Natural Description**: Use everyday language to describe your needs, and AI will automatically call the corresponding numerology tool
+4. **Treat rationally**: Numerology analysis is for reference only and should not be relied upon to make important decisions.
 
-AI 助手会根据您的需求自动选择合适的命理工具，为您提供专业的八字分析服务。
+The AI ​​assistant will automatically select appropriate numerology tools based on your needs and provide you with professional horoscope analysis services.
 
-## 功能概览
+## Function overview
 
-### 基础八字分析
-- **八字排盘**: 根据出生时间计算完整的八字信息
-- **五行分析**: 分析五行强弱和喜忌
-- **十神分析**: 分析命格中的十神关系
-- **大运流年**: 分析人生运势走向
+### Basic horoscope analysis
+- **Borogram Ranking**: Calculate complete horoscope information based on birth time
+- **Five Element Analysis**: Analyze the strength and weakness of the five elements and likes and taboos
+- **Ten Gods Analysis**: Analyze the relationship between the ten gods in your destiny
+- **Great Fortune in the Years**: Analyze the direction of life's fortune
 
-### 婚姻分析
-- **合婚分析**: 分析两人八字是否相配
-- **婚姻时机**: 分析最佳结婚时间
-- **配偶特征**: 分析配偶的可能特征
-- **婚姻运势**: 分析婚姻生活的吉凶
+### Marriage Analysis
+- **Marriage Analysis**: Analyze whether two people's horoscopes are compatible
+- **Timing of Marriage**: Analysis of the best time to get married
+- **Spouse Characteristics**: Analyze possible characteristics of spouse
+- **Marriage Fortune**: Analyze the good and bad luck of marriage life
 
-### 黄历服务
-- **每日宜忌**: 查询某日的宜忌事项
-- **节气信息**: 提供二十四节气信息
-- **农历信息**: 提供农历日期和相关信息
+### Almanac Service
+- **Daily taboos**: Check the taboos on a certain day
+- **Solar terms information**: Provides twenty-four solar term information
+- **Lunar Calendar Information**: Provides lunar calendar dates and related information
 
-## 工具列表
+## Tool list
 
-### 1. 基础八字工具
+### 1. Basic horoscope tools
 
-#### get_bazi_detail - 获取八字详情
-根据出生时间（公历或农历）和性别计算完整的八字信息。
+#### get_bazi_detail - Get Bazi details
+Compute complete horoscope information based on birth time (Gregorian or lunar calendar) and gender.
 
-**参数:**
-- `solar_datetime` (可选): 公历时间，格式如 "1990-03-15 15:30"
-- `lunar_datetime` (可选): 农历时间，格式如 "1990-02-15 15:30"
-- `gender` (可选): 性别，1=男，0=女，默认为1
-- `eight_char_provider_sect` (可选): 八字流派，默认为2
+**parameter:**
+- `solar_datetime` (optional): Gregorian calendar time, format such as "1990-03-15 15:30"
+- `lunar_datetime` (optional): lunar time, format such as "1990-02-15 15:30"
+- `gender` (optional): Gender, 1=male, 0=female, default is 1
+- `eight_char_provider_sect` (optional): Eight-character genre, default is 2
 
-**使用场景:**
-- 个人八字分析
-- 命理咨询
-- 运势预测基础
+**Usage scenario:**
+- Personal horoscope analysis
+- Numerology consultation
+- Basics of fortune prediction
 
-#### get_solar_times - 八字反推时间
-根据八字信息反推可能的公历出生时间。
+#### get_solar_times - Bazi reverse time
+Based on the horoscope information, the possible birth time in the Gregorian calendar can be deduced.
 
-**参数:**
-- `bazi` (必需): 八字信息，格式如 "甲子年丙寅月戊申日甲寅时"
+**parameter:**
+- `bazi` (required): eight-character information, in the format of "Bingyin month, Wushen day, Jiayin time, Jiazi year"
 
-**使用场景:**
-- 时间验证
-- 多种可能性分析
-- 八字校对
+**Usage scenario:**
+- Time verification
+- Analysis of multiple possibilities
+- Bazi proofreading
 
-#### get_chinese_calendar - 黄历查询
-查询指定日期的黄历信息，包括宜忌、节气等。
+#### get_chinese_calendar - Almanac query
+Query the lunar calendar information for a specified date, including taboos, solar terms, etc.
 
-**参数:**
-- `solar_datetime` (可选): 公历时间，默认为当前时间
+**parameter:**
+- `solar_datetime` (optional): Gregorian calendar time, default is current time
 
-**使用场景:**
-- 择日选时
-- 日常宜忌查询
-- 传统节日信息
+**Usage scenario:**
+- Choose the day and time
+- Inquire about daily taboos
+-Traditional festival information
 
-### 2. 婚姻分析工具
+### 2. Marriage Analysis Tool
 
-#### analyze_marriage_timing - 婚姻时机分析
-分析个人的婚姻时机和配偶信息。
+#### analyze_marriage_timing - Marriage timing analysis
+Analyze individual marriage timing and spouse information.
 
-**参数:**
-- `solar_datetime` (可选): 公历时间
-- `lunar_datetime` (可选): 农历时间
-- `gender` (可选): 性别，1=男，0=女
-- `eight_char_provider_sect` (可选): 八字流派
+**parameter:**
+- `solar_datetime` (optional): Gregorian calendar time
+- `lunar_datetime` (optional): lunar time
+- `gender` (optional): gender, 1=male, 0=female
+- `eight_char_provider_sect` (optional): eight-character genre
 
-**使用场景:**
-- 婚姻时机预测
-- 配偶特征分析
-- 感情运势分析
+**Usage scenario:**
+- Marriage timing prediction
+- Analysis of spouse characteristics
+- Emotional fortune analysis
 
-#### analyze_marriage_compatibility - 合婚分析
-分析两人八字的婚姻匹配度。
+#### analyze_marriage_compatibility - marriage analysis
+Analyze the marriage compatibility of two people's horoscopes.
 
-**参数:**
-- `male_solar_datetime` (可选): 男方公历时间
-- `male_lunar_datetime` (可选): 男方农历时间
-- `female_solar_datetime` (可选): 女方公历时间
-- `female_lunar_datetime` (可选): 女方农历时间
+**parameter:**
+- `male_solar_datetime` (optional): male’s Gregorian calendar time
+- `male_lunar_datetime` (optional): male’s lunar time
+- `female_solar_datetime` (optional): the woman’s Gregorian calendar time
+- `female_lunar_datetime` (optional): the woman’s lunar time
 
-**使用场景:**
-- 婚前合婚
-- 婚姻咨询
-- 配对分析
+**Usage scenario:**
+- Marriage before marriage
+- Marriage counseling
+- Pair analysis
 
-## 使用示例
+## Usage example
 
-### 基础八字分析示例
+### Basic horoscope analysis example
 
 ```python
-# 公历时间八字分析
+# Gregorian calendar time horoscope analysis
 result = await mcp_server.call_tool("get_bazi_detail", {
     "solar_datetime": "1990-03-15 15:30",
     "gender": 1
 })
 
-# 农历时间八字分析
+# Lunar time horoscope analysis
 result = await mcp_server.call_tool("get_bazi_detail", {
     "lunar_datetime": "1990-02-15 15:30",
     "gender": 0
 })
 
-# 八字反推时间
+# Bazi reverse time
 result = await mcp_server.call_tool("get_solar_times", {
-    "bazi": "甲子年丙寅月戊申日甲寅时"
+"bazi": "Bingyin month, Wushen day, Jiayin time, Jiazi year"
 })
 
-# 黄历查询
+#Almanac query
 result = await mcp_server.call_tool("get_chinese_calendar", {
     "solar_datetime": "2024-01-01"
 })
 ```
 
-### 婚姻分析示例
+### Marriage Analysis Example
 
 ```python
-# 个人婚姻时机分析
+# Personal marriage timing analysis
 result = await mcp_server.call_tool("analyze_marriage_timing", {
     "solar_datetime": "1990-03-15 15:30",
     "gender": 1
 })
 
-# 两人合婚分析
+# Analysis of marriage between two people
 result = await mcp_server.call_tool("analyze_marriage_compatibility", {
     "male_solar_datetime": "1990-03-15 15:30",
     "female_solar_datetime": "1992-08-20 10:00"
 })
 ```
 
-## 数据结构
+## Data structure
 
-### 八字信息 (BaziInfo)
+### BaziInfo
 ```python
 @dataclass
 class BaziInfo:
-    bazi: str              # 完整八字
-    year_pillar: dict      # 年柱信息
-    month_pillar: dict     # 月柱信息
-    day_pillar: dict       # 日柱信息
-    hour_pillar: dict      # 时柱信息
-    day_master: str        # 日主
-    zodiac: str            # 生肖
-    wuxing_analysis: dict  # 五行分析
-    shishen_analysis: dict # 十神分析
+bazi: str # complete horoscope
+year_pillar: dict # Year pillar information
+month_pillar: dict # Month pillar information
+day_pillar: dict #Day pillar information
+hour_pillar: dict #Hour pillar information
+day_master: str # day master
+zodiac: str # zodiac sign
+wuxing_analysis: dict # Five elements analysis
+shishen_analysis: dict # Ten gods analysis
 ```
 
-### 婚姻分析结果 (MarriageAnalysis)
+### Marriage Analysis Results (MarriageAnalysis)
 ```python
 @dataclass
 class MarriageAnalysis:
-    overall_score: float        # 综合评分
-    overall_level: str          # 婚配等级
-    element_analysis: dict      # 五行分析
-    zodiac_analysis: dict       # 生肖分析
-    pillar_analysis: dict       # 日柱分析
-    branch_analysis: dict       # 地支分析
-    complement_analysis: dict   # 互补分析
-    suggestions: list          # 专业建议
+overall_score: float # Overall score
+overall_level: str #Matching level
+element_analysis: dict # Five elements analysis
+zodiac_analysis: dict # Zodiac analysis
+pillar_analysis: dict # Daily pillar analysis
+branch_analysis: dict # Earthly branch analysis
+complement_analysis: dict # Complementary analysis
+suggestions: list # Professional suggestions
 ```
 
-### 黄历信息 (ChineseCalendar)
+### Almanac information (ChineseCalendar)
 ```python
 @dataclass
 class ChineseCalendar:
-    solar_date: str        # 公历日期
-    lunar_date: str        # 农历日期
-    zodiac_year: str       # 生肖年
-    gan_zhi_year: str      # 干支年
-    gan_zhi_month: str     # 干支月
-    gan_zhi_day: str       # 干支日
-    yi_events: list        # 宜事
-    ji_events: list        # 忌事
-    festival: str          # 节日
-    jieqi: str            # 节气
+solar_date: str # Gregorian calendar date
+lunar_date: str # Lunar date
+zodiac_year: str # Zodiac year
+gan_zhi_year: str # Ganzhi year
+gan_zhi_month: str # Ganzhi month
+gan_zhi_day: str # Ganzhi day
+yi_events: list # Events
+ji_events: list # Taboos
+festival: str # festival
+jieqi: str # solar terms
 ```
 
-## 专业术语说明
+## Explanation of professional terms
 
-### 基础概念
-- **八字**: 由出生年、月、日、时的天干地支组成的八个字
-- **五行**: 金、木、水、火、土五种基本元素
-- **十神**: 比肩、劫财、食神、伤官、偏财、正财、七杀、正官、偏印、正印
-- **大运**: 人生各阶段的运势周期
-- **流年**: 每年的运势变化
+### Basic concepts
+- **Bazi**: Eight characters composed of the heavenly stems and earthly branches of the year, month, day and time of birth
+- **Five Elements**: Five basic elements of metal, wood, water, fire and earth
+- **Ten Gods**: Bi Jian, Jie Cai, God of Cookery, Wounded Official, Partial Wealth, Right Wealth, Seven Kills, Zhengguan, Partial Seal, Zhengyin
+- **Great Luck**: Fortune cycles in various stages of life
+- **Fleeing Years**: Changes in fortune every year
 
-### 婚姻术语
-- **合婚**: 分析两人八字是否相配
-- **六合**: 地支间的最佳组合关系
-- **三合**: 地支间的良好组合关系
-- **相冲**: 地支间的对立关系
-- **相刑**: 地支间的刑克关系
-- **相害**: 地支间的伤害关系
+### Marriage terminology
+- **Marriage**: Analyze whether two people’s horoscopes are compatible
+- **Liuhe**: The best combination relationship between the earthly branches
+- **三合**: Good combination relationship between earthly branches
+- **Opposition**: Opposite relationship between earthly branches
+- **Correction**: The relationship between the Earthly Branches
+- **harm to each other**: harmful relationship between earthly branches
 
-### 黄历术语
-- **宜**: 适合进行的活动
-- **忌**: 不宜进行的活动
-- **节气**: 二十四节气，反映季节变化
-- **干支**: 天干地支纪年法
+### Almanac terminology
+- **Ideal**: Suitable activities to do
+- **Don'ts**: Activities that are not suitable to be performed
+- **solar terms**: Twenty-four solar terms, reflecting seasonal changes
+- **Stems and Branches**: Calculation of the Heavenly Stems and Earthly Branches
 
-## 注意事项
+## Notes
 
-1. **时间准确性**: 提供准确的出生时间对分析结果至关重要
-2. **理性对待**: 命理分析仅供参考，不应完全依赖
-3. **文化背景**: 基于中国传统文化，理解时需要文化背景知识
-4. **隐私保护**: 个人出生信息属于隐私，请谨慎分享
+1. **Time Accuracy**: Providing accurate time of birth is critical to analysis results
+2. **Treat rationally**: Numerology analysis is for reference only and should not be relied upon entirely.
+3. **Cultural Background**: Based on traditional Chinese culture, cultural background knowledge is required to understand
+4. **Privacy Protection**: Personal birth information is private, please share with caution
 
-## 最佳实践
+## Best Practices
 
-### 1. 时间格式
-- 公历时间: "YYYY-MM-DD HH:MM" (如 "1990-03-15 15:30")
-- 农历时间: "YYYY-MM-DD HH:MM" (如 "1990-02-15 15:30")
-- 确保时间的准确性，特别是小时信息
+### 1. Time format
+- Gregorian calendar time: "YYYY-MM-DD HH:MM" (such as "1990-03-15 15:30")
+- Lunar time: "YYYY-MM-DD HH:MM" (such as "1990-02-15 15:30")
+- Ensure time accuracy, especially hour information
 
-### 2. 性别参数
-- 男性: gender=1
-- 女性: gender=0
-- 对于婚姻分析，性别信息很重要
+### 2. Gender parameters
+- Male: gender=1
+- Female: gender=0
+- For marriage analysis, gender information is important
 
-### 3. 结果解读
-- 综合分析多个方面，不要只看单一指标
-- 重视专业建议和综合评分
-- 理性对待分析结果
+### 3. Interpretation of results
+- Comprehensive analysis of multiple aspects, don’t just look at a single indicator
+- Pay attention to professional advice and comprehensive ratings
+- Treat analysis results rationally
 
-### 4. 隐私保护
-- 不要在公共场合分享详细的出生信息
-- 注意保护个人隐私和敏感信息
+### 4. Privacy protection
+- Do not share birth details in public
+- Pay attention to protecting personal privacy and sensitive information
 
-## 故障排除
+## troubleshooting
 
-### 常见问题
-1. **时间格式错误**: 确保时间格式正确
-2. **参数缺失**: 检查必需参数是否提供
-3. **结果解读**: 参考术语说明理解结果
-4. **文化差异**: 理解传统文化背景
+### FAQ
+1. **Time format error**: Make sure the time format is correct
+2. **Parameter missing**: Check whether required parameters are provided
+3. **Result Interpretation**: Refer to the terminology to understand the results
+4. **Cultural Differences**: Understanding traditional cultural background
 
-### 调试方法
-1. 检查时间参数格式
-2. 验证性别参数设置
-3. 查看返回的错误信息
-4. 参考使用示例调整参数
+### Debugging method
+1. Check the time parameter format
+2. Verify gender parameter settings
+3. View the returned error message
+4. Adjust parameters by referring to usage examples
 
-通过八字命理工具，您可以获得专业的命理分析服务，但请理性对待分析结果，将其作为人生参考而非绝对指导。
+Through the horoscope numerology tool, you can get professional numerology analysis services, but please treat the analysis results rationally and use them as a life reference rather than an absolute guide.

@@ -1,6 +1,4 @@
-"""
-日程管理MCP工具函数 提供给MCP服务器调用的异步工具函数.
-"""
+"""Schedule management MCP tool function provides an asynchronous tool function called by the MCP server."""
 
 import json
 from datetime import datetime, timedelta
@@ -15,46 +13,44 @@ logger = get_logger(__name__)
 
 
 async def create_event(args: Dict[str, Any]) -> str:
-    """
-    创建日程事件.
-    """
+    """Create calendar events."""
     try:
         title = args["title"]
         start_time = args["start_time"]
         end_time = args.get("end_time")
         description = args.get("description", "")
-        category = args.get("category", "默认")
+        category = args.get("category", "default")
         reminder_minutes = args.get("reminder_minutes", 15)
 
-        # 如果没有结束时间，根据分类智能设置默认时长
+        # If there is no end time, the default duration is intelligently set according to the category.
         if not end_time:
             start_dt = datetime.fromisoformat(start_time)
 
-            # 根据分类设置不同的默认时长
-            if category in ["提醒", "休息", "站立"]:
-                # 短时间活动：5分钟
+            # Set different default durations based on categories
+            if category in ["remind", "rest", "stand"]:
+                # Short activity: 5 minutes
                 end_dt = start_dt + timedelta(minutes=5)
-            elif category in ["会议", "工作"]:
-                # 工作相关：1小时
+            elif category in ["Meeting", "Work"]:
+                # Work related: 1 hour
                 end_dt = start_dt + timedelta(hours=1)
             elif (
-                "提醒" in title.lower()
-                or "站立" in title.lower()
-                or "休息" in title.lower()
+                "remind" in title.lower()
+                or "stand" in title.lower()
+                or "rest" in title.lower()
             ):
-                # 根据标题判断：短时间活动
+                # Judging by the title: short-term activities
                 end_dt = start_dt + timedelta(minutes=5)
             else:
-                # 默认情况：30分钟
+                # Default: 30 minutes
                 end_dt = start_dt + timedelta(minutes=30)
 
             end_time = end_dt.isoformat()
 
-        # 验证时间格式
+        # Verify time format
         datetime.fromisoformat(start_time)
         datetime.fromisoformat(end_time)
 
-        # 创建事件
+        # Create event
         event = CalendarEvent(
             title=title,
             start_time=start_time,
@@ -69,7 +65,7 @@ async def create_event(args: Dict[str, Any]) -> str:
             return json.dumps(
                 {
                     "success": True,
-                    "message": "日程创建成功",
+                    "message": "Schedule created successfully",
                     "event_id": event.id,
                     "event": event.to_dict(),
                 },
@@ -77,21 +73,19 @@ async def create_event(args: Dict[str, Any]) -> str:
             )
         else:
             return json.dumps(
-                {"success": False, "message": "日程创建失败，可能存在时间冲突"},
+                {"success": False, "message": "Schedule creation failed, there may be a time conflict"},
                 ensure_ascii=False,
             )
 
     except Exception as e:
-        logger.error(f"创建日程失败: {e}")
+        logger.error(f"Failed to create schedule: {e}")
         return json.dumps(
-            {"success": False, "message": f"创建日程失败: {str(e)}"}, ensure_ascii=False
+            {"success": False, "message": f"Failed to create schedule: {str(e)}"}, ensure_ascii=False
         )
 
 
 async def get_events_by_date(args: Dict[str, Any]) -> str:
-    """
-    按日期查询日程.
-    """
+    """Check schedule by date."""
     try:
         date_type = args.get("date_type", "today")  # today, tomorrow, week, month
         category = args.get("category")
@@ -107,21 +101,21 @@ async def get_events_by_date(args: Dict[str, Any]) -> str:
             )
             end_date = start_date + timedelta(days=1)
         elif date_type == "week":
-            # 本周
+            # this week
             days_since_monday = now.weekday()
             start_date = (now - timedelta(days=days_since_monday)).replace(
                 hour=0, minute=0, second=0, microsecond=0
             )
             end_date = start_date + timedelta(days=7)
         elif date_type == "month":
-            # 本月
+            # this month
             start_date = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
             if now.month == 12:
                 end_date = start_date.replace(year=now.year + 1, month=1)
             else:
                 end_date = start_date.replace(month=now.month + 1)
         else:
-            # 自定义日期范围
+            # Custom date range
             start_date = (
                 datetime.fromisoformat(args["start_date"])
                 if args.get("start_date")
@@ -140,11 +134,11 @@ async def get_events_by_date(args: Dict[str, Any]) -> str:
             category=category,
         )
 
-        # 格式化输出
+        # Formatted output
         events_data = []
         for event in events:
             event_dict = event.to_dict()
-            # 添加人性化时间显示
+            # Add humanized time display
             start_dt = datetime.fromisoformat(event.start_time)
             end_dt = datetime.fromisoformat(event.end_time)
             event_dict["display_time"] = (
@@ -164,20 +158,18 @@ async def get_events_by_date(args: Dict[str, Any]) -> str:
         )
 
     except Exception as e:
-        logger.error(f"查询日程失败: {e}")
+        logger.error(f"Failed to query schedule: {e}")
         return json.dumps(
-            {"success": False, "message": f"查询日程失败: {str(e)}"}, ensure_ascii=False
+            {"success": False, "message": f"Failed to query schedule: {str(e)}"}, ensure_ascii=False
         )
 
 
 async def update_event(args: Dict[str, Any]) -> str:
-    """
-    更新日程事件.
-    """
+    """Update calendar events."""
     try:
         event_id = args["event_id"]
 
-        # 构建更新字段
+        # Build update fields
         update_fields = {}
         for field in [
             "title",
@@ -192,7 +184,7 @@ async def update_event(args: Dict[str, Any]) -> str:
 
         if not update_fields:
             return json.dumps(
-                {"success": False, "message": "没有提供要更新的字段"},
+                {"success": False, "message": "No fields provided to update"},
                 ensure_ascii=False,
             )
 
@@ -201,53 +193,49 @@ async def update_event(args: Dict[str, Any]) -> str:
             return json.dumps(
                 {
                     "success": True,
-                    "message": "日程更新成功",
+                    "message": "Schedule updated successfully",
                     "updated_fields": list(update_fields.keys()),
                 },
                 ensure_ascii=False,
             )
         else:
             return json.dumps(
-                {"success": False, "message": "日程更新失败，事件不存在"},
+                {"success": False, "message": "Schedule update failed, event does not exist"},
                 ensure_ascii=False,
             )
 
     except Exception as e:
-        logger.error(f"更新日程失败: {e}")
+        logger.error(f"Failed to update schedule: {e}")
         return json.dumps(
-            {"success": False, "message": f"更新日程失败: {str(e)}"}, ensure_ascii=False
+            {"success": False, "message": f"Failed to update schedule: {str(e)}"}, ensure_ascii=False
         )
 
 
 async def delete_event(args: Dict[str, Any]) -> str:
-    """
-    删除日程事件.
-    """
+    """Delete calendar event."""
     try:
         event_id = args["event_id"]
 
         manager = get_calendar_manager()
         if manager.delete_event(event_id):
             return json.dumps(
-                {"success": True, "message": "日程删除成功"}, ensure_ascii=False
+                {"success": True, "message": "Schedule deleted successfully"}, ensure_ascii=False
             )
         else:
             return json.dumps(
-                {"success": False, "message": "日程删除失败，事件不存在"},
+                {"success": False, "message": "Schedule deletion failed, the event does not exist"},
                 ensure_ascii=False,
             )
 
     except Exception as e:
-        logger.error(f"删除日程失败: {e}")
+        logger.error(f"Failed to delete schedule: {e}")
         return json.dumps(
-            {"success": False, "message": f"删除日程失败: {str(e)}"}, ensure_ascii=False
+            {"success": False, "message": f"Failed to delete schedule: {str(e)}"}, ensure_ascii=False
         )
 
 
 async def delete_events_batch(args: Dict[str, Any]) -> str:
-    """
-    批量删除日程事件.
-    """
+    """Delete calendar events in batches."""
     try:
         start_date = args.get("start_date")
         end_date = args.get("end_date")
@@ -255,7 +243,7 @@ async def delete_events_batch(args: Dict[str, Any]) -> str:
         delete_all = args.get("delete_all", False)
         date_type = args.get("date_type")
 
-        # 处理date_type参数（类似get_events_by_date）
+        # Handle date_type parameters (similar to get_events_by_date)
         if date_type and not (start_date and end_date):
             now = datetime.now()
 
@@ -268,14 +256,14 @@ async def delete_events_batch(args: Dict[str, Any]) -> str:
                 )
                 end_date = start_date + timedelta(days=1)
             elif date_type == "week":
-                # 本周
+                # this week
                 days_since_monday = now.weekday()
                 start_date = (now - timedelta(days=days_since_monday)).replace(
                     hour=0, minute=0, second=0, microsecond=0
                 )
                 end_date = start_date + timedelta(days=7)
             elif date_type == "month":
-                # 本月
+                # this month
                 start_date = now.replace(
                     day=1, hour=0, minute=0, second=0, microsecond=0
                 )
@@ -284,7 +272,7 @@ async def delete_events_batch(args: Dict[str, Any]) -> str:
                 else:
                     end_date = start_date.replace(month=now.month + 1)
 
-            # 转换为ISO格式字符串
+            # Convert to ISO format string
             if isinstance(start_date, datetime):
                 start_date = start_date.isoformat()
             if isinstance(end_date, datetime):
@@ -301,17 +289,15 @@ async def delete_events_batch(args: Dict[str, Any]) -> str:
         return json.dumps(result, ensure_ascii=False, indent=2)
 
     except Exception as e:
-        logger.error(f"批量删除日程失败: {e}")
+        logger.error(f"Batch deletion of schedules failed: {e}")
         return json.dumps(
-            {"success": False, "message": f"批量删除日程失败: {str(e)}"},
+            {"success": False, "message": f"Batch deletion of schedules failed: {str(e)}"},
             ensure_ascii=False,
         )
 
 
 async def get_categories(args: Dict[str, Any]) -> str:
-    """
-    获取所有日程分类.
-    """
+    """Get all schedule categories."""
     try:
         manager = get_calendar_manager()
         categories = manager.get_categories()
@@ -321,18 +307,16 @@ async def get_categories(args: Dict[str, Any]) -> str:
         )
 
     except Exception as e:
-        logger.error(f"获取分类失败: {e}")
+        logger.error(f"Failed to get category: {e}")
         return json.dumps(
-            {"success": False, "message": f"获取分类失败: {str(e)}"}, ensure_ascii=False
+            {"success": False, "message": f"Failed to obtain classification: {str(e)}"}, ensure_ascii=False
         )
 
 
 async def get_upcoming_events(args: Dict[str, Any]) -> str:
-    """
-    获取即将到来的日程（未来24小时内）
-    """
+    """Get upcoming schedule (within the next 24 hours)"""
     try:
-        hours = args.get("hours", 24)  # 默认查询未来24小时
+        hours = args.get("hours", 24)  # The default query is the next 24 hours
 
         now = datetime.now()
         end_time = now + timedelta(hours=hours)
@@ -342,22 +326,22 @@ async def get_upcoming_events(args: Dict[str, Any]) -> str:
             start_date=now.isoformat(), end_date=end_time.isoformat()
         )
 
-        # 计算提醒时间
+        # Calculate reminder time
         upcoming_events = []
         for event in events:
             event_dict = event.to_dict()
             start_dt = datetime.fromisoformat(event.start_time)
 
-            # 计算距离开始的时间
+            # Calculate time from start
             time_until = start_dt - now
             if time_until.total_seconds() > 0:
                 hours_until = int(time_until.total_seconds() // 3600)
                 minutes_until = int((time_until.total_seconds() % 3600) // 60)
 
                 if hours_until > 0:
-                    time_display = f"{hours_until}小时{minutes_until}分钟后"
+                    time_display = f"{hours_until} hours {minutes_until} minutes later"
                 else:
-                    time_display = f"{minutes_until}分钟后"
+                    time_display = f"{minutes_until} minutes later"
 
                 event_dict["time_until"] = time_display
                 event_dict["time_until_minutes"] = int(time_until.total_seconds() // 60)
@@ -375,8 +359,8 @@ async def get_upcoming_events(args: Dict[str, Any]) -> str:
         )
 
     except Exception as e:
-        logger.error(f"获取即将到来的日程失败: {e}")
+        logger.error(f"Failed to get upcoming schedule: {e}")
         return json.dumps(
-            {"success": False, "message": f"获取即将到来的日程失败: {str(e)}"},
+            {"success": False, "message": f"Failed to get upcoming schedule: {str(e)}"},
             ensure_ascii=False,
         )

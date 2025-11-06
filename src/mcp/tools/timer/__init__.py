@@ -1,7 +1,6 @@
-"""倒计时器MCP工具模块.
+"""Countdown timer MCP tool module.
 
-提供延迟执行命令的倒计时器功能，支持AI模型状态查询和反馈
-"""
+Provides a countdown timer function to delay command execution and supports AI model status query and feedback"""
 
 from .manager import get_timer_manager
 

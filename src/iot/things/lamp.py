@@ -3,24 +3,24 @@ from src.iot.thing import Thing
 
 class Lamp(Thing):
     def __init__(self):
-        super().__init__("Lamp", "一个测试用的灯")
+        super().__init__("Lamp", "a test lamp")
         self.power = False
 
-        # 定义属性 - 使用异步 getter
-        self.add_property("power", "灯是否打开", self.get_power)
+        # Define properties - using asynchronous getters
+        self.add_property("power", "Is the light on?", self.get_power)
 
-        # 定义方法 - 使用异步方法处理器
-        self.add_method("TurnOn", "打开灯", [], self._turn_on)
+        # Define methods - use an asynchronous method handler
+        self.add_method("TurnOn", "turn on the light", [], self._turn_on)
 
-        self.add_method("TurnOff", "关闭灯", [], self._turn_off)
+        self.add_method("TurnOff", "turn off lights", [], self._turn_off)
 
     async def get_power(self):
         return self.power
 
     async def _turn_on(self, params):
         self.power = True
-        return {"status": "success", "message": "灯已打开"}
+        return {"status": "success", "message": "light is on"}
 
     async def _turn_off(self, params):
         self.power = False
-        return {"status": "success", "message": "灯已关闭"}
+        return {"status": "success", "message": "light is off"}

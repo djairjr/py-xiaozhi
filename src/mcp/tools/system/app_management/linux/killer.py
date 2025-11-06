@@ -1,7 +1,6 @@
-"""Linux系统应用程序关闭器.
+"""Linux system application closer.
 
-提供Linux平台下的应用程序关闭功能
-"""
+Provide application shutdown function under Linux platform"""
 
 import subprocess
 from typing import Any, Dict, List
@@ -12,13 +11,11 @@ logger = get_logger(__name__)
 
 
 def list_running_applications(filter_name: str = "") -> List[Dict[str, Any]]:
-    """
-    列出Linux上正在运行的应用程序.
-    """
+    """List running applications on Linux."""
     apps = []
 
     try:
-        # 使用ps命令获取进程信息
+        # Use ps command to get process information
         result = subprocess.run(
             ["ps", "-eo", "pid,ppid,comm,command", "--no-headers"],
             capture_output=True,
@@ -34,18 +31,18 @@ def list_running_applications(filter_name: str = "") -> List[Dict[str, Any]]:
                 if len(parts) >= 4:
                     pid, ppid, comm, command = parts
 
-                    # 过滤GUI应用程序
+                    # Filter GUI applications
                     is_gui_app = (
                         not command.startswith("/usr/bin/")
                         and not command.startswith("/bin/")
-                        and not command.startswith("[")  # 内核线程
+                        and not command.startswith("[")  # kernel thread
                         and len(comm) > 2
                     )
 
                     if is_gui_app:
                         app_name = comm
 
-                        # 应用过滤条件
+                        # Apply filters
                         if not filter_name or filter_name.lower() in app_name.lower():
                             apps.append(
                                 {
@@ -59,27 +56,25 @@ def list_running_applications(filter_name: str = "") -> List[Dict[str, Any]]:
                             )
 
     except (subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
-        logger.warning(f"[LinuxKiller] Linux进程扫描失败: {e}")
+        logger.warning(f"[LinuxKiller] Linux process scan failed: {e}")
 
     return apps
 
 
 def kill_application(pid: int, force: bool) -> bool:
-    """
-    在Linux上关闭应用程序.
-    """
+    """Close application on Linux."""
     try:
         logger.info(
-            f"[LinuxKiller] 尝试关闭Linux应用程序，PID: {pid}, 强制关闭: {force}"
+            f"[LinuxKiller] Try to close Linux application, PID: {pid}, force close: {force}"
         )
 
         if force:
-            # 强制关闭 (SIGKILL)
+            # Force close (SIGKILL)
             result = subprocess.run(
                 ["kill", "-9", str(pid)], capture_output=True, timeout=5
             )
         else:
-            # 正常关闭 (SIGTERM)
+            # Normal shutdown (SIGTERM)
             result = subprocess.run(
                 ["kill", "-15", str(pid)], capture_output=True, timeout=5
             )
@@ -87,12 +82,12 @@ def kill_application(pid: int, force: bool) -> bool:
         success = result.returncode == 0
 
         if success:
-            logger.info(f"[LinuxKiller] 成功关闭应用程序，PID: {pid}")
+            logger.info(f"[LinuxKiller] Successfully closed application, PID: {pid}")
         else:
-            logger.warning(f"[LinuxKiller] 关闭应用程序失败，PID: {pid}")
+            logger.warning(f"[LinuxKiller] Failed to close application, PID: {pid}")
 
         return success
 
     except (subprocess.TimeoutExpired, subprocess.SubprocessError) as e:
-        logger.error(f"[LinuxKiller] Linux关闭应用程序失败: {e}")
+        logger.error(f"[LinuxKiller] Linux failed to close application: {e}")
         return False

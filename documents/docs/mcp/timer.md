@@ -1,168 +1,168 @@
-# 定时器工具 (Timer Tools)
+# Timer Tools
 
-定时器工具是一个功能强大的 MCP 倒计时工具集，提供了定时任务创建、管理、取消等功能，支持延迟执行各种操作。
+The timer tool is a powerful MCP countdown toolset that provides functions such as creation, management, and cancellation of scheduled tasks, and supports delayed execution of various operations.
 
-### 常见使用场景
+### Common usage scenarios
 
-**定时提醒:**
-- "5分钟后提醒我开会"
-- "10分钟后提醒我休息"
-- "半小时后提醒我吃药"
-- "1小时后提醒我关电脑"
+**Regular reminder:**
+- "Remind me to have a meeting in 5 minutes"
+- "Remind me to take a break after 10 minutes"
+- "Remind me to take medicine in half an hour"
+- "Remind me to shut down my computer after 1 hour"
 
-**定时播放:**
-- "5分钟后播放音乐"
-- "10分钟后播放我喜欢的歌"
-- "15分钟后停止播放"
-- "20分钟后播放闹铃"
+**Scheduled playback:**
+- "Play music after 5 minutes"
+- "Play my favorite song in 10 minutes"
+- "Stop playing after 15 minutes"
+- "Play alarm in 20 minutes"
 
-**定时系统操作:**
-- "30分钟后调低音量"
-- "1小时后关闭系统"
-- "10分钟后检查系统状态"
-- "5分钟后查看天气"
+**Timing system operation:**
+- "Turn down the volume after 30 minutes"
+- "Shut down the system after 1 hour"
+- "Check system status after 10 minutes"
+- "Check the weather in 5 minutes"
 
-**定时查询:**
-- "5分钟后查询火车票"
-- "10分钟后搜索新闻"
-- "15分钟后查看日程"
-- "20分钟后查询菜谱"
+**Scheduled query:**
+- "Check train tickets in 5 minutes"
+- "Search news after 10 minutes"
+- "Check schedule in 15 minutes"
+- "Check the recipe in 20 minutes"
 
-**任务管理:**
-- "查看当前有哪些定时任务"
-- "取消刚才设置的定时器"
-- "查看所有活动的定时器"
-- "取消5分钟后的提醒"
+**Task Management:**
+- "View current scheduled tasks"
+- "Cancel the timer just set"
+- "View all active timers"
+- "Cancel reminder after 5 minutes"
 
-### 使用提示
+### Usage tips
 
-1. **时间表达**: 支持多种时间表达方式，如"5分钟后"、"半小时后"、"1小时后"
-2. **任务描述**: 可以添加任务描述帮助识别不同的定时任务
-3. **任务管理**: 可以查看和取消正在运行的定时任务
-4. **灵活设置**: 支持设置各种类型的延迟执行任务
+1. **Time expression**: Supports multiple time expressions, such as "5 minutes later", "half an hour later", "1 hour later"
+2. **Task Description**: You can add a task description to help identify different scheduled tasks.
+3. **Task Management**: You can view and cancel running scheduled tasks
+4. **Flexible Settings**: Supports setting various types of delayed execution tasks
 
-AI 助手会根据您的需求自动调用定时器工具，为您提供便捷的定时任务管理服务。
+The AI ​​assistant will automatically call the timer tool according to your needs to provide you with convenient scheduled task management services.
 
-## 功能概览
+## Function overview
 
-### 倒计时功能
-- **定时执行**: 延迟指定时间后执行任务
-- **任务类型**: 支持各种MCP工具调用
-- **时间设置**: 灵活的时间设置选项
-- **任务描述**: 可添加任务描述便于管理
+### Countdown function
+- **Scheduled execution**: Execute the task after delaying the specified time
+- **Task Type**: Supports various MCP tool calls
+- **Time Setting**: Flexible time setting options
+- **Task Description**: Task description can be added for easy management
 
-### 任务管理功能
-- **任务创建**: 创建新的定时任务
-- **任务取消**: 取消正在运行的定时任务
-- **任务查询**: 查看所有活动的定时任务
-- **状态监控**: 实时监控任务执行状态
+### Task management function
+- **Task Creation**: Create a new scheduled task
+- **Task Cancel**: Cancel the running scheduled task
+- **Task Query**: View all active scheduled tasks
+- **Status Monitoring**: Real-time monitoring of task execution status
 
-### 执行控制功能
-- **延迟控制**: 精确控制执行延迟时间
-- **任务队列**: 管理多个并发定时任务
-- **错误处理**: 完善的错误处理机制
-- **日志记录**: 详细的任务执行日志
+###Execution control function
+- **Delay Control**: Precisely control execution delay time
+- **Task Queue**: Manage multiple concurrent scheduled tasks
+- **Error handling**: Complete error handling mechanism
+- **Logging**: Detailed task execution log
 
-### 系统集成功能
-- **MCP集成**: 与其他MCP工具无缝集成
-- **异步执行**: 支持异步任务执行
-- **资源管理**: 合理管理系统资源
-- **性能优化**: 优化定时任务性能
+### System integration function
+- **MCP Integration**: Seamless integration with other MCP tools
+- **Asynchronous Execution**: Supports asynchronous task execution
+- **Resource Management**: Reasonably manage system resources
+- **Performance Optimization**: Optimize scheduled task performance
 
-## 工具列表
+## Tool list
 
-### 1. 定时任务工具
+### 1. Scheduled task tool
 
-#### start_countdown_timer - 启动倒计时任务
-创建并启动一个倒计时任务，在指定时间后执行指定的操作。
+#### start_countdown_timer - Start countdown task
+Create and start a countdown task to perform the specified operation after the specified time.
 
-**参数:**
-- `command` (必需): 要执行的MCP工具调用，JSON格式字符串
-- `delay` (可选): 延迟时间（秒），默认5秒
-- `description` (可选): 任务描述
+**parameter:**
+- `command` (required): MCP tool call to be executed, JSON format string
+- `delay` (optional): delay time (seconds), default 5 seconds
+- `description` (optional): task description
 
-**使用场景:**
-- 定时提醒
-- 延迟执行任务
-- 定时播放音乐
-- 定时系统操作
+**Usage scenario:**
+- Regular reminder
+- Delay task execution
+- Play music regularly
+- Timing system operation
 
-#### cancel_countdown_timer - 取消倒计时任务
-取消指定的正在运行的倒计时任务。
+#### cancel_countdown_timer - Cancel the countdown task
+Cancels the specified running countdown task.
 
-**参数:**
-- `timer_id` (必需): 要取消的计时器ID
+**parameter:**
+- `timer_id` (required): ID of the timer to be canceled
 
-**使用场景:**
-- 取消不需要的定时任务
-- 修改定时任务设置
-- 清理定时任务
+**Usage scenario:**
+- Cancel unnecessary scheduled tasks
+- Modify scheduled task settings
+- Clean up scheduled tasks
 
-#### get_active_countdown_timers - 获取活动定时器
-获取所有正在运行的倒计时任务状态。
+#### get_active_countdown_timers - Get active timers
+Get the status of all running countdown tasks.
 
-**参数:**
-无
+**parameter:**
+none
 
-**使用场景:**
-- 查看当前定时任务
-- 管理定时任务
-- 监控任务状态
+**Usage scenario:**
+- View current scheduled tasks
+- Manage scheduled tasks
+- Monitor task status
 
-## 使用示例
+## Usage example
 
-### 定时任务创建示例
+### Scheduled task creation example
 
 ```python
-# 创建5分钟后的提醒任务
+# Create a reminder task after 5 minutes
 result = await mcp_server.call_tool("start_countdown_timer", {
-    "command": '{"name": "create_event", "arguments": {"title": "会议提醒", "start_time": "2024-01-15T14:00:00"}}',
+"command": '{"name": "create_event", "arguments": {"title": "Meeting Reminder", "start_time": "2024-01-15T14:00:00"}}',
     "delay": 300,
-    "description": "会议提醒"
+"description": "Meeting Reminder"
 })
 
-# 创建10分钟后播放音乐的任务
+#Create a task to play music after 10 minutes
 result = await mcp_server.call_tool("start_countdown_timer", {
-    "command": '{"name": "search_and_play", "arguments": {"song_name": "轻音乐"}}',
+"command": '{"name": "search_and_play", "arguments": {"song_name": "Light Music"}}',
     "delay": 600,
-    "description": "播放轻音乐"
+"description": "Play light music"
 })
 
-# 创建30分钟后调整音量的任务
+# Create a task to adjust the volume after 30 minutes
 result = await mcp_server.call_tool("start_countdown_timer", {
     "command": '{"name": "set_volume", "arguments": {"volume": 30}}',
     "delay": 1800,
-    "description": "调低音量"
+"description": "Turn down the volume"
 })
 ```
 
-### 任务管理示例
+### Task management example
 
 ```python
-# 查看所有活动的定时任务
+# View all active scheduled tasks
 result = await mcp_server.call_tool("get_active_countdown_timers", {})
 
-# 取消指定的定时任务
+# Cancel the specified scheduled task
 result = await mcp_server.call_tool("cancel_countdown_timer", {
     "timer_id": "timer_123"
 })
 ```
 
-## 数据结构
+## Data structure
 
-### 倒计时任务 (CountdownTimer)
+### Countdown Task (CountdownTimer)
 ```python
 {
     "timer_id": "timer_123",
     "command": {
         "name": "create_event",
         "arguments": {
-            "title": "会议提醒",
+"title": "Meeting Reminder",
             "start_time": "2024-01-15T14:00:00"
         }
     },
     "delay": 300,
-    "description": "会议提醒",
+"description": "Meeting Reminder",
     "created_at": "2024-01-15T10:25:00Z",
     "execute_at": "2024-01-15T10:30:00Z",
     "status": "running",
@@ -170,29 +170,29 @@ result = await mcp_server.call_tool("cancel_countdown_timer", {
 }
 ```
 
-### 任务创建响应 (CreateResponse)
+### Task creation response (CreateResponse)
 ```python
 {
     "success": true,
-    "message": "倒计时任务创建成功",
+"message": "Countdown task created successfully",
     "timer_id": "timer_123",
     "execute_at": "2024-01-15T10:30:00Z",
     "remaining_time": 300,
-    "description": "会议提醒"
+"description": "Meeting Reminder"
 }
 ```
 
-### 任务取消响应 (CancelResponse)
+### Task cancellation response (CancelResponse)
 ```python
 {
     "success": true,
-    "message": "倒计时任务已取消",
+"message": "Countdown task has been cancelled",
     "timer_id": "timer_123",
     "cancelled_at": "2024-01-15T10:27:00Z"
 }
 ```
 
-### 活动任务列表 (ActiveTimers)
+### Active task list (ActiveTimers)
 ```python
 {
     "success": true,
@@ -200,14 +200,14 @@ result = await mcp_server.call_tool("cancel_countdown_timer", {
     "timers": [
         {
             "timer_id": "timer_123",
-            "description": "会议提醒",
+"description": "Meeting Reminder",
             "remaining_time": 240,
             "execute_at": "2024-01-15T10:30:00Z",
             "status": "running"
         },
         {
             "timer_id": "timer_456",
-            "description": "播放音乐",
+"description": "Play music",
             "remaining_time": 480,
             "execute_at": "2024-01-15T10:33:00Z",
             "status": "running"
@@ -216,137 +216,137 @@ result = await mcp_server.call_tool("cancel_countdown_timer", {
 }
 ```
 
-## 任务状态说明
+## Task status description
 
-### 任务状态类型
-- **running**: 正在运行，等待执行
-- **executing**: 正在执行任务
-- **completed**: 已完成执行
-- **cancelled**: 已被取消
-- **failed**: 执行失败
+### Task status type
+- **running**: Running, waiting for execution
+- **executing**: executing the task
+- **completed**: execution completed
+- **cancelled**: has been canceled
+- **failed**: execution failed
 
-### 时间相关字段
-- **created_at**: 任务创建时间
-- **execute_at**: 任务执行时间
-- **remaining_time**: 剩余时间（秒）
-- **cancelled_at**: 任务取消时间
-- **completed_at**: 任务完成时间
+### Time related fields
+- **created_at**: task creation time
+- **execute_at**: task execution time
+- **remaining_time**: remaining time (seconds)
+- **cancelled_at**: task cancellation time
+- **completed_at**: task completion time
 
-## 支持的命令类型
+## Supported command types
 
-### 日程管理命令
-- **create_event**: 创建日程事件
-- **update_event**: 更新日程事件
-- **delete_event**: 删除日程事件
+### Schedule management commands
+- **create_event**: Create a schedule event
+- **update_event**: update schedule event
+- **delete_event**: delete schedule event
 
-### 音乐播放命令
-- **search_and_play**: 搜索并播放音乐
-- **play_pause**: 播放/暂停音乐
-- **stop**: 停止播放
-- **get_status**: 获取播放状态
+### Music playback command
+- **search_and_play**: Search and play music
+- **play_pause**: Play/pause music
+- **stop**: Stop playing
+- **get_status**: Get playback status
 
-### 系统控制命令
-- **set_volume**: 设置音量
-- **get_system_status**: 获取系统状态
+### System control commands
+- **set_volume**: Set volume
+- **get_system_status**: Get system status
 
-### 搜索查询命令
-- **search_bing**: 网络搜索
-- **query_train_tickets**: 查询火车票
-- **get_recipe_by_id**: 获取菜谱
+### Search query command
+- **search_bing**: Internet search
+- **query_train_tickets**: Query train tickets
+- **get_recipe_by_id**: Get the recipe
 
-## 时间设置规范
+## Time setting specifications
 
-### 时间单位
-- **秒**: 最小时间单位
-- **分钟**: 60秒
-- **小时**: 3600秒
-- **天**: 86400秒
+### Time unit
+- **Seconds**: Minimum time unit
+- **Minutes**: 60 seconds
+- **Hours**: 3600 seconds
+- **days**: 86400 seconds
 
-### 常用时间设置
-- **5分钟**: 300秒
-- **10分钟**: 600秒
-- **15分钟**: 900秒
-- **30分钟**: 1800秒
-- **1小时**: 3600秒
-- **2小时**: 7200秒
+### Common time settings
+- **5 minutes**: 300 seconds
+- **10 minutes**: 600 seconds
+- **15 minutes**: 900 seconds
+- **30 minutes**: 1800 seconds
+- **1 hour**: 3600 seconds
+- **2 hours**: 7200 seconds
 
-### 时间限制
-- **最小延迟**: 1秒
-- **最大延迟**: 24小时（86400秒）
-- **推荐范围**: 1秒 - 4小时
+### Time limit
+- **MINIMUM DELAY**: 1 second
+- **Maximum delay**: 24 hours (86400 seconds)
+- **Recommended range**: 1 second - 4 hours
 
-## 最佳实践
+## Best Practices
 
-### 1. 任务设计
-- 使用清晰的任务描述
-- 设置合理的延迟时间
-- 选择适当的执行命令
-- 考虑任务执行的时机
+### 1. Task design
+- Use clear task descriptions
+-Set a reasonable delay time
+- Select the appropriate execution command
+- Consider the timing of task execution
 
-### 2. 任务管理
-- 定期检查活动任务
-- 及时取消不需要的任务
-- 避免创建过多并发任务
-- 合理安排任务时间
+### 2. Task management
+- Regularly check active tasks
+- Cancel unnecessary tasks promptly
+- Avoid creating too many concurrent tasks
+- Arrange task time reasonably
 
-### 3. 错误处理
-- 验证命令格式正确性
-- 处理任务执行失败情况
-- 监控任务执行状态
-- 记录任务执行日志
+### 3. Error handling
+- Verify the correctness of the command format
+- Handle task execution failure
+- Monitor task execution status
+- Record task execution log
 
-### 4. 性能优化
-- 避免创建过短间隔的任务
-- 合理控制并发任务数量
-- 优化任务执行逻辑
-- 定期清理完成的任务
+### 4. Performance optimization
+- Avoid creating tasks with too short intervals
+- Reasonably control the number of concurrent tasks
+- Optimize task execution logic
+- Regularly clean up completed tasks
 
-## 使用场景示例
+## Usage scenario example
 
-### 工作效率场景
-1. **番茄工作法**: 25分钟后提醒休息
-2. **会议提醒**: 会议前5分钟提醒准备
-3. **任务切换**: 1小时后切换到下一个任务
-4. **定时检查**: 每30分钟检查邮件
+### Work efficiency scenario
+1. **Pomodoro Technique**: Reminder to take a break after 25 minutes
+2. **Meeting Reminder**: Reminder preparation 5 minutes before the meeting
+3. **Task switching**: Switch to the next task after 1 hour
+4. **Scheduled Check**: Check emails every 30 minutes
 
-### 生活助手场景
-1. **烹饪定时**: 10分钟后提醒查看炉灶
-2. **服药提醒**: 每8小时提醒服药
-3. **运动提醒**: 每小时提醒起身活动
-4. **睡眠提醒**: 晚上10点提醒准备睡觉
+### Life Assistant Scene
+1. **Cooking timer**: Reminder to check the stove after 10 minutes
+2. **Medication Reminder**: Reminder to take medication every 8 hours
+3. **Exercise Reminder**: Reminder to get up and move every hour
+4. **Sleep Reminder**: Remind you to get ready for bed at 10pm
 
-### 娱乐场景
-1. **音乐播放**: 30分钟后播放睡前音乐
-2. **游戏提醒**: 1小时后提醒休息
-3. **视频定时**: 2小时后暂停视频
-4. **阅读提醒**: 45分钟后提醒休息眼睛
+### Entertainment scene
+1. **Music Play**: Play bedtime music after 30 minutes
+2. **Game Reminder**: Reminder to take a break after 1 hour
+3. **Video Timing**: Pause the video after 2 hours
+4. **Reading Reminder**: Remind to rest your eyes after 45 minutes
 
-## 注意事项
+## Notes
 
-1. **时间准确性**: 定时器基于系统时间，确保系统时间准确
-2. **任务复杂性**: 避免在定时任务中执行过于复杂的操作
-3. **资源管理**: 合理控制并发任务数量，避免资源过度占用
-4. **错误恢复**: 任务执行失败时系统会自动清理
-5. **任务持久性**: 系统重启后定时任务会丢失
+1. **Time Accuracy**: The timer is based on system time to ensure that the system time is accurate
+2. **Task Complexity**: Avoid performing overly complex operations in scheduled tasks
+3. **Resource Management**: Reasonably control the number of concurrent tasks to avoid excessive resource occupation
+4. **Error recovery**: The system will automatically clean up when task execution fails.
+5. **Task Persistence**: Scheduled tasks will be lost after the system is restarted.
 
-## 故障排除
+## troubleshooting
 
-### 常见问题
-1. **任务创建失败**: 检查命令格式和参数
-2. **任务执行失败**: 检查目标工具是否可用
-3. **任务取消失败**: 确认任务ID是否正确
-4. **时间设置错误**: 验证时间参数范围
+### FAQ
+1. **Task creation failed**: Check command format and parameters
+2. **Task execution failed**: Check whether the target tool is available
+3. **Task cancellation failed**: Confirm whether the task ID is correct
+4. **Time setting error**: Verify time parameter range
 
-### 调试方法
-1. 查看任务创建返回的错误信息
-2. 检查活动任务列表确认任务状态
-3. 验证命令格式是否正确
-4. 测试目标工具是否正常工作
+### Debugging method
+1. Check the error information returned by task creation
+2. Check the active task list to confirm task status
+3. Verify whether the command format is correct
+4. Test whether the target tool is working properly
 
-### 性能优化建议
-1. 避免创建过多短时间间隔的任务
-2. 合理设置任务描述便于管理
-3. 定期清理不需要的任务
-4. 监控系统资源使用情况
+### Performance optimization suggestions
+1. Avoid creating too many short-interval tasks
+2. Set task descriptions appropriately to facilitate management
+3. Clean up unnecessary tasks regularly
+4. Monitor system resource usage
 
-通过定时器工具，您可以轻松设置各种定时任务，提高工作效率和生活便利性。
+Through the timer tool, you can easily set various scheduled tasks to improve work efficiency and life convenience.

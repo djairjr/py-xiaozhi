@@ -1,7 +1,6 @@
-"""系统工具包.
+"""System toolkit.
 
-提供完整的系统管理功能，包括设备状态查询、音频控制等操作。
-"""
+Provides complete system management functions, including device status query, audio control and other operations."""
 
 from .device_status import get_device_status
 from .manager import SystemToolsManager, get_system_tools_manager

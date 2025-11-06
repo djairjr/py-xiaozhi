@@ -1,4 +1,4 @@
-// 赞助者数据
+// sponsor_data
 export default {
   sponsors: [
     {
@@ -12,7 +12,7 @@ export default {
       image: "https://tuchuang.junsen.online/i/2025/03/28/2kzeks.jpg",
     },
     {
-      name: "李洪刚",
+      name: "Li Honggang",
       url: "https://github.com/SmartArduino",
       image: "https://tuchuang.junsen.online/i/2025/03/28/2kfo2p.jpg",
     },
@@ -27,32 +27,32 @@ export default {
       image: "https://tuchuang.junsen.online/i/2025/03/28/2km1gm.jpg",
     },
     {
-      name: "吃饭叫我",
+      name: "Call me for dinner",
       url: "",
       image: "https://tuchuang.junsen.online/i/2025/03/28/2k0i12.jpg",
     },
     {
-      name: "留白",
+      name: "Leave blank",
       url: "",
       image: "https://tuchuang.junsen.online/i/2025/03/30/115fqut.jpg",
     },
     {
-      name: "*腾",
+      name: "*Teng",
       url: "",
       image: "https://tuchuang.junsen.online/i/2025/04/03/v259c.png",
     },
     {
-      name: "张海峰",
+      name: "Zhang Haifeng",
       url: "",
       image: "https://tuchuang.junsen.online/i/2025/04/14/mcp32y.jpg",
     },
     {
-      name: "邹一达",
+      name: "Zou Yida",
       url: "https://github.com/zyddsg159357",
       image: "https://tuchuang.junsen.online/i/2025/04/14/mcd4q2.jpg",
     },
     {
-      name: "折木",
+      name: "Oreki",
       url: "",
       image: "https://tuchuang.junsen.online/i/2025/04/17/3qrbs4.jpg",
     },
@@ -72,17 +72,17 @@ export default {
       image: "https://tuchuang.junsen.online/i/2025/04/27/59h2g1.jpg",
     },
     {
-      name: "章振海",
+      name: "Zhang Zhenhai",
       url: "",
       image: "https://tuchuang.junsen.online/i/2025/07/21/mdu5ou.png",
     },
     {
-      name: "汪汪",
+      name: "woof woof",
       url: "",
       image: "https://tuchuang.junsen.online/i/2025/07/21/mckypx.png",
     },
     {
-      name: "万维赛博Ai智能科技",
+      name: "Wanwei Cyber ​​AI Intelligent Technology",
       url: "",
       image: "https://tuchuang.junsen.online/i/2025/08/13/hgsdn8.png",
     },

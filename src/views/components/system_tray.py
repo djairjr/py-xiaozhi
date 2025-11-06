@@ -1,6 +1,4 @@
-"""
-系统托盘组件模块 提供系统托盘图标、菜单和状态指示功能.
-"""
+"""The system tray component module provides system tray icons, menus and status indication functions."""
 
 from typing import Optional
 
@@ -12,11 +10,9 @@ from src.utils.logging_config import get_logger
 
 
 class SystemTray(QObject):
-    """
-    系统托盘组件.
-    """
+    """System tray components."""
 
-    # 定义信号
+    # Define signal
     show_window_requested = pyqtSignal()
     settings_requested = pyqtSignal()
     quit_requested = pyqtSignal()
@@ -27,37 +23,35 @@ class SystemTray(QObject):
         self.logger = get_logger("SystemTray")
         self.parent_widget = parent
 
-        # 托盘相关组件
+        # Pallet related components
         self.tray_icon = None
         self.tray_menu = None
 
-        # 状态相关
+        # Status related
         self.current_status = ""
         self.is_connected = True
 
-        # 初始化托盘
+        # Initialize tray
         self._setup_tray()
 
     def _setup_tray(self):
-        """
-        设置系统托盘图标.
-        """
+        """Set system tray icon."""
         try:
-            # 检查系统是否支持系统托盘
+            # Check if the system supports system tray
             if not QSystemTrayIcon.isSystemTrayAvailable():
-                self.logger.warning("系统不支持系统托盘功能")
+                self.logger.warning("The system does not support the system tray function")
                 return
 
-            # 创建托盘菜单
+            # Create tray menu
             self._create_tray_menu()
 
-            # 创建系统托盘图标（不绑定 QWidget 作为父对象，避免窗口生命周期影响托盘图标，防止 macOS 下隐藏/关闭时崩溃）
+            # Create a system tray icon (do not bind QWidget as the parent object to avoid the window life cycle affecting the tray icon and prevent it from crashing when hiding/closing under macOS)
             self.tray_icon = QSystemTrayIcon()
             self.tray_icon.setContextMenu(self.tray_menu)
 
-            # 在显示前设置一个占位图标，避免 QSystemTrayIcon::setVisible: No Icon set 警告
+            # Set a placeholder icon before display to avoid QSystemTrayIcon::setVisible: No Icon set warning
             try:
-                # 使用一个纯色圆点作为初始占位
+                # Use a solid color dot as the initial placeholder
                 pixmap = QPixmap(16, 16)
                 pixmap.fill(QColor(0, 0, 0, 0))
                 painter = QPainter(pixmap)
@@ -70,83 +64,72 @@ class SystemTray(QObject):
             except Exception:
                 pass
 
-            # 连接托盘图标的事件
+            # Events for connecting tray icons
             self.tray_icon.activated.connect(self._on_tray_activated)
 
-            # 设置初始图标（避免在某些平台第一次绘制引发崩溃，延迟到事件循环空闲时执行）
+            # Set the initial icon (to avoid crashes caused by the first draw on some platforms and delay execution until the event loop is idle)
             try:
                 from PyQt5.QtCore import QTimer
 
-                QTimer.singleShot(0, lambda: self.update_status("待命", connected=True))
+                QTimer.singleShot(0, lambda: self.update_status("Standby", connected=True))
             except Exception:
-                self.update_status("待命", connected=True)
+                self.update_status("Standby", connected=True)
 
-            # 显示系统托盘图标
+            # Show system tray icon
             self.tray_icon.show()
-            self.logger.info("系统托盘图标已初始化")
+            self.logger.info("System tray icon initialized")
 
         except Exception as e:
-            self.logger.error(f"初始化系统托盘图标失败: {e}", exc_info=True)
+            self.logger.error(f"Failed to initialize system tray icon: {e}", exc_info=True)
 
     def _create_tray_menu(self):
-        """
-        创建托盘右键菜单.
-        """
+        """Create tray right-click menu."""
         self.tray_menu = QMenu()
 
-        # 添加显示主窗口菜单项
-        show_action = QAction("显示主窗口", self.parent_widget)
+        # Add show main window menu item
+        show_action = QAction("Show main window", self.parent_widget)
         show_action.triggered.connect(self._on_show_window)
         self.tray_menu.addAction(show_action)
 
-        # 添加分隔线
+        # add divider
         self.tray_menu.addSeparator()
 
-        # 添加设置菜单项
-        settings_action = QAction("参数配置", self.parent_widget)
+        # Add settings menu item
+        settings_action = QAction("Parameter configuration", self.parent_widget)
         settings_action.triggered.connect(self._on_settings)
         self.tray_menu.addAction(settings_action)
 
-        # 添加分隔线
+        # add divider
         self.tray_menu.addSeparator()
 
-        # 添加退出菜单项
-        quit_action = QAction("退出程序", self.parent_widget)
+        # Add exit menu item
+        quit_action = QAction("Exit program", self.parent_widget)
         quit_action.triggered.connect(self._on_quit)
         self.tray_menu.addAction(quit_action)
 
     def _on_tray_activated(self, reason):
-        """
-        处理托盘图标点击事件.
-        """
-        if reason == QSystemTrayIcon.Trigger:  # 单击
+        """Handle tray icon click event."""
+        if reason == QSystemTrayIcon.Trigger:  # click
             self.show_window_requested.emit()
 
     def _on_show_window(self):
-        """
-        处理显示窗口菜单项点击.
-        """
+        """Handles display window menu item clicks."""
         self.show_window_requested.emit()
 
     def _on_settings(self):
-        """
-        处理设置菜单项点击.
-        """
+        """Handles settings menu item clicks."""
         self.settings_requested.emit()
 
     def _on_quit(self):
-        """
-        处理退出菜单项点击.
-        """
+        """Handle exit menu item clicks."""
         self.quit_requested.emit()
 
     def update_status(self, status: str, connected: bool = True):
-        """更新托盘图标状态.
+        """Update tray icon status.
 
         Args:
-            status: 状态文本
-            connected: 连接状态
-        """
+            status: status text
+            connected: connection status"""
         if not self.tray_icon:
             return
 
@@ -156,48 +139,47 @@ class SystemTray(QObject):
         try:
             icon_color = self._get_status_color(status, connected)
 
-            # 创建指定颜色的图标
+            # Create an icon of a specified color
             pixmap = QPixmap(16, 16)
-            pixmap.fill(QColor(0, 0, 0, 0))  # 透明背景
+            pixmap.fill(QColor(0, 0, 0, 0))  # Transparent background
 
             painter = QPainter(pixmap)
             painter.setRenderHint(QPainter.Antialiasing)
             painter.setBrush(QBrush(icon_color))
-            painter.setPen(QColor(0, 0, 0, 0))  # 透明边框
+            painter.setPen(QColor(0, 0, 0, 0))  # transparent border
             painter.drawEllipse(2, 2, 12, 12)
             painter.end()
 
-            # 设置图标
+            # settings icon
             self.tray_icon.setIcon(QIcon(pixmap))
 
-            # 设置提示文本
-            tooltip = f"小智AI助手 - {status}"
+            # Set prompt text
+            tooltip = f"Xiaozhi AI Assistant - {status}"
             self.tray_icon.setToolTip(tooltip)
 
         except Exception as e:
-            self.logger.error(f"更新系统托盘图标失败: {e}")
+            self.logger.error(f"Failed to update system tray icon: {e}")
 
     def _get_status_color(self, status: str, connected: bool) -> QColor:
-        """根据状态返回对应的颜色.
+        """Return the corresponding color according to the status.
 
         Args:
-            status: 状态文本
-            connected: 连接状态
+            status: status text
+            connected: connection status
 
         Returns:
-            QColor: 对应的颜色
-        """
+            QColor: corresponding color"""
         if not connected:
-            return QColor(128, 128, 128)  # 灰色 - 未连接
+            return QColor(128, 128, 128)  # Gray - not connected
 
-        if "错误" in status:
-            return QColor(255, 0, 0)  # 红色 - 错误状态
-        elif "聆听中" in status:
-            return QColor(255, 200, 0)  # 黄色 - 聆听中状态
-        elif "说话中" in status:
-            return QColor(0, 120, 255)  # 蓝色 - 说话中状态
+        if "mistake" in status:
+            return QColor(255, 0, 0)  # Red - error status
+        elif "Listening" in status:
+            return QColor(255, 200, 0)  # Yellow - listening status
+        elif "Talking" in status:
+            return QColor(0, 120, 255)  # Blue - talking status
         else:
-            return QColor(0, 180, 0)  # 绿色 - 待命/已启动状态
+            return QColor(0, 180, 0)  # Green - Standby/Activated status
 
     def show_message(
         self,
@@ -206,32 +188,25 @@ class SystemTray(QObject):
         icon_type=QSystemTrayIcon.Information,
         duration: int = 2000,
     ):
-        """显示托盘通知消息.
+        """Display tray notification messages.
 
         Args:
-            title: 通知标题
-            message: 通知内容
-            icon_type: 图标类型
-            duration: 显示时间(毫秒)
-        """
+            title: notification title
+            message: notification content
+            icon_type: icon type
+            duration: display time (milliseconds)"""
         if self.tray_icon and self.tray_icon.isVisible():
             self.tray_icon.showMessage(title, message, icon_type, duration)
 
     def hide(self):
-        """
-        隐藏托盘图标.
-        """
+        """Hide tray icon."""
         if self.tray_icon:
             self.tray_icon.hide()
 
     def is_visible(self) -> bool:
-        """
-        检查托盘图标是否可见.
-        """
+        """Check if the tray icon is visible."""
         return self.tray_icon and self.tray_icon.isVisible()
 
     def is_available(self) -> bool:
-        """
-        检查系统托盘是否可用.
-        """
+        """Check if the system tray is available."""
         return QSystemTrayIcon.isSystemTrayAvailable()

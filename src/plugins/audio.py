@@ -30,9 +30,9 @@ class AudioPlugin(Plugin):
         try:
             self.codec = AudioCodec()
             await self.codec.initialize()
-            # 录音编码后的回调（来自音频线程）
+            # Callback after recording encoding (from audio thread)
             self.codec.set_encoded_audio_callback(self._on_encoded_audio)
-            # 暴露给应用，便于唤醒词插件使用
+            # Exposed to applications for easy use by wake word plug-ins
             try:
                 setattr(self.app, "audio_codec", self.codec)
             except Exception:
@@ -48,7 +48,7 @@ class AudioPlugin(Plugin):
                 pass
 
     async def on_protocol_connected(self, protocol: Any) -> None:
-        # 协议连上时确保音频流已启动
+        # Make sure the audio stream is started when the protocol is connected
         if self.codec:
             try:
                 await self.codec.start_streams()
@@ -56,7 +56,7 @@ class AudioPlugin(Plugin):
                 pass
 
     async def on_incoming_json(self, message: Any) -> None:
-        # 示例：不处理
+        # Example: Do not process
         await asyncio.sleep(0)
 
     async def on_incoming_audio(self, data: bytes) -> None:
@@ -67,9 +67,7 @@ class AudioPlugin(Plugin):
                 pass
 
     async def stop(self) -> None:
-        """
-        停止音频流（保留 codec 实例）
-        """
+        """Stop audio streaming (leave codec instance)"""
         if self.codec:
             try:
                 await self.codec.stop_streams()
@@ -77,27 +75,25 @@ class AudioPlugin(Plugin):
                 pass
 
     async def shutdown(self) -> None:
-        """
-        完全关闭并释放音频资源.
-        """
+        """Completely closes and releases audio resources."""
         if self.codec:
             try:
-                # 确保先停止流，再关闭（避免回调还在执行）
+                # Make sure to stop the stream first and then close it (to prevent the callback from still executing)
                 try:
                     await self.codec.stop_streams()
                 except Exception:
                     pass
 
-                # 关闭并释放所有音频资源
+                # Close and release all audio resources
                 await self.codec.close()
             except Exception:
-                # 日志已在 codec.close() 中记录
+                # Logged in codec.close()
                 pass
             finally:
-                # 清空引用，帮助 GC
+                # Clear references to help GC
                 self.codec = None
 
-        # 清空应用引用，打破潜在循环引用
+        # Clear application references to break potential circular references
         if self.app and hasattr(self.app, "audio_codec"):
             try:
                 self.app.audio_codec = None
@@ -105,10 +101,10 @@ class AudioPlugin(Plugin):
                 pass
 
     # -------------------------
-    # 内部：发送麦克风音频
+    # Internal: Send microphone audio
     # -------------------------
     def _on_encoded_audio(self, encoded_data: bytes) -> None:
-        # 音频线程回调 -> 切回主loop
+        # Audio thread callback -> switch back to main loop
         try:
             if not self.app or not self._loop or not self.app.running:
                 return
@@ -124,7 +120,7 @@ class AudioPlugin(Plugin):
 
         async def _send():
             async with self._send_sem:
-                # 仅在允许的设备状态下发送麦克风音频
+                # Send microphone audio only in allowed device states
                 try:
                     if not (
                         self.app.protocol
@@ -136,15 +132,14 @@ class AudioPlugin(Plugin):
                 except Exception:
                     pass
 
-        # 交给应用的任务管理
+        # Task management handed over to application
         self.app.spawn(_send(), name="audio:send")
 
     def _should_send_microphone_audio(self) -> bool:
-        """与应用状态机对齐：
+        """Aligned with the application state machine:
 
-        - LISTENING 时发送
-        - SPEAKING 且 AEC 开启 且 keep_listening 且 REALTIME 模式 时发送
-        """
+        - Sent when LISTENING
+        - Sent when SPEAKING and AEC are on and keep_listening and REALTIME mode"""
         try:
             if not self.app:
                 return False

@@ -1,6 +1,4 @@
-"""
-音频设备设置组件.
-"""
+"""Audio device settings component."""
 
 from .audio_widget import AudioWidget
 

@@ -1,7 +1,6 @@
-"""日程管理工具包.
+"""Schedule management toolkit.
 
-提供完整的日程管理功能，包括事件创建、查询、更新、删除等操作。
-"""
+Provides complete schedule management functions, including event creation, query, update, delete and other operations."""
 
 from .database import CalendarDatabase, get_calendar_database
 from .manager import CalendarManager, get_calendar_manager

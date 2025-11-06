@@ -1,6 +1,6 @@
 ---
 title: open-xiaoai
-description: 让小爱音箱「听见你的声音」，解锁无限可能的开源项目
+description: Let Xiaoai Speaker "hear your voice" and unlock unlimited possibilities for open source projects
 ---
 
 # open-xiaoai
@@ -10,83 +10,83 @@ description: 让小爱音箱「听见你的声音」，解锁无限可能的开�
     <img src="https://avatars.githubusercontent.com/u/35302658?s=48&v=4" alt="open-xiaoai Logo">
   </div>
   <div class="project-badges">
-    <span class="badge platform">跨平台</span>
+<span class="badge platform">Cross-platform</span>
     <span class="badge language">Rust/Python/Node.js</span>
-    <span class="badge status">实验性</span>
+<span class="badge status">Experimental</span>
   </div>
 </div>
 
 <div class="project-banner">
-  <img src="./images/logo.png" alt="Open-XiaoAI 项目封面">
+<img src="./images/logo.png" alt="Open-XiaoAI project cover">
 </div>
 
-## 项目简介
+## Project Introduction
 
-Open-XiaoAI 是一个让小爱音箱"听见你的声音"的开源项目，将小爱音箱与小智AI生态系统无缝集成。该项目直接接管小爱音箱的"耳朵"和"嘴巴"，通过多模态大模型和AI Agent技术，将小爱音箱的潜力完全释放，解锁无限可能。
+Open-XiaoAI is an open source project that allows Xiaoai speakers to "hear your voice" and seamlessly integrates Xiaoai speakers with the Xiaozhi AI ecosystem. This project directly takes over the "ears" and "mouth" of Xiaoai speakers, and uses multi-modal large models and AI Agent technology to fully unleash the potential of Xiaoai speakers and unlock unlimited possibilities.
 
-2017年，当全球首款千万级销量的智能音箱诞生时，我们以为触摸到了未来。但很快发现，这些设备被困在「指令-响应」的牢笼里：
+In 2017, when the world's first smart speaker with a sales volume of tens of millions was born, we thought we had touched the future. But it was quickly discovered that these devices were trapped in a "command-response" cage:
 
-- 它听得见分贝，却听不懂情感
-- 它能执行命令，却不会主动思考
-- 它有千万用户，却只有一套思维
+- It can hear decibels, but it cannot understand emotions
+- It can execute commands but does not think actively
+- It has millions of users, but only one set of thinking
 
-我们曾幻想中的"贾维斯"级人工智能，在现实场景中沦为"闹钟+音乐播放器"。
+The "Jarvis" level artificial intelligence we once imagined has been reduced to an "alarm clock + music player" in real scenarios.
 
-**真正的智能不应被预设的代码逻辑所束缚，而应像生命体般在交互中进化。**
+**True intelligence should not be bound by preset code logic, but should evolve through interaction like a living organism. **
 
-在上一个 [MiGPT](https://github.com/idootop/mi-gpt) 项目的基础上，Open-XiaoAI再次进化，为小智生态系统提供了与小爱音箱交互的新方式。
+Based on the previous [MiGPT](https://github.com/idootop/mi-gpt) project, Open-XiaoAI has evolved again, providing the Xiaozhi ecosystem with a new way to interact with Xiaoai speakers.
 
-## 核心功能
+## Core functions
 
 <div class="features-grid">
   <div class="feature-card">
     <div class="feature-icon">🎤</div>
-    <h3>语音输入接管</h3>
-    <p>直接捕获小爱音箱的麦克风输入，绕过原有语音识别限制</p>
+<h3>Voice input takeover</h3>
+<p>Directly capture the microphone input of Xiaoai speakers, bypassing the original speech recognition limitations</p>
   </div>
   
   <div class="feature-card">
     <div class="feature-icon">🔊</div>
-    <h3>声音输出控制</h3>
-    <p>完全接管小爱音箱的扬声器，可以播放自定义音频和TTS内容</p>
+<h3>Sound output control</h3>
+<p>Completely takes over the speaker of Xiaoai Speaker and can play customized audio and TTS content</p>
   </div>
   
   <div class="feature-card">
     <div class="feature-icon">🧠</div>
-    <h3>AI模型整合</h3>
-    <p>支持接入小智AI、ChatGPT等多种大模型，实现自然对话体验</p>
+<h3>AI model integration</h3>
+<p>Supports access to multiple large models such as Xiaozhi AI and ChatGPT to achieve a natural conversation experience</p>
   </div>
   
   <div class="feature-card">
     <div class="feature-icon">🌐</div>
-    <h3>跨平台支持</h3>
-    <p>Client端使用Rust开发，Server端支持Python和Node.js实现</p>
+<h3>Cross-platform support</h3>
+<p>The client is developed using Rust, and the server supports Python and Node.js</p>
   </div>
   
   <div class="feature-card">
     <div class="feature-icon">🛠️</div>
-    <h3>可扩展架构</h3>
-    <p>模块化设计，方便开发者添加自定义功能和集成其他服务</p>
+<h3>Scalable architecture</h3>
+<p>Modular design makes it easy for developers to add custom functions and integrate other services</p>
   </div>
   
   <div class="feature-card">
     <div class="feature-icon">🎮</div>
-    <h3>开发者友好</h3>
-    <p>详细的文档和教程，帮助开发者快速上手并定制自己的功能</p>
+<h3>Developer friendly</h3>
+<p>Detailed documentation and tutorials help developers quickly get started and customize their own functions</p>
   </div>
 </div>
 
-## 演示视频
+## Demo video
 
 <div class="demo-videos">
   <div class="video-item">
     <a href="https://www.bilibili.com/video/BV1NBXWYSEvX" target="_blank" class="video-link">
       <div class="video-thumbnail">
-        <img src="https://raw.githubusercontent.com/idootop/open-xiaoai/main/docs/images/xiaozhi.jpg" alt="小爱音箱接入小智AI">
+<img src="https://raw.githubusercontent.com/idootop/open-xiaoai/main/docs/images/xiaozhi.jpg" alt="Xiaozhi Speaker is connected to Xiaozhi AI">
       </div>
       <div class="video-title">
         <span class="video-icon">▶️</span>
-        <span>小爱音箱接入小智AI演示</span>
+<span>Demonstration of connecting Xiaoai speakers to Xiaozhi AI</span>
       </div>
     </a>
   </div>
@@ -94,106 +94,106 @@ Open-XiaoAI 是一个让小爱音箱"听见你的声音"的开源项目，将小
   <div class="video-item">
     <a href="https://www.bilibili.com/video/BV1N1421y7qn" target="_blank" class="video-link">
       <div class="video-thumbnail">
-        <img src="https://github.com/idootop/open-xiaoai/raw/main/docs/images/migpt.jpg" alt="小爱音箱接入MiGPT">
+<img src="https://github.com/idootop/open-xiaoai/raw/main/docs/images/migpt.jpg" alt="Xiaoai speakers are connected to MiGPT">
       </div>
       <div class="video-title">
         <span class="video-icon">▶️</span>
-        <span>小爱音箱接入MiGPT演示</span>
+<span>Demonstration of connecting Xiaoai speakers to MiGPT</span>
       </div>
     </a>
   </div>
 </div>
 
-## 快速开始
+## Quick start
 
 <div class="important-notice">
   <div class="notice-icon">⚠️</div>
   <div class="notice-content">
-    <strong>重要提示</strong>
-    <p>本教程仅适用于 <strong>小爱音箱 Pro（LX06）</strong> 和 <strong>Xiaomi 智能音箱 Pro（OH2P）</strong> 这两款机型，<strong>其他型号</strong>的小爱音箱请勿直接使用！</p>
+<strong>Important Tip</strong>
+<p>This tutorial is only applicable to <strong>Xiaomi Smart Speaker Pro (LX06)</strong> and <strong>Xiaomi Smart Speaker Pro (OH2P)</strong>. Please do not use <strong>Other models</strong> of Xiaoai speakers directly! </p>
   </div>
 </div>
 
-Open-XiaoAI项目由Client端和Server端两部分组成，您可以按照以下步骤快速开始：
+The Open-XiaoAI project consists of two parts: Client and Server. You can start quickly by following the steps below:
 
-### 安装步骤
+### Installation steps
 
 <div class="steps">
   <div class="step">
     <div class="step-number">1</div>
     <div class="step-content">
-      <h4>小爱音箱固件更新</h4>
-      <p>刷机更新小爱音箱补丁固件，开启并SSH连接到小爱音箱</p>
-      <a href="https://github.com/idootop/open-xiaoai/blob/main/docs/flash.md" target="_blank" class="step-link">查看详细教程</a>
+<h4>Xiaoai speaker firmware update</h4>
+<p>Update the Xiaoai Speaker patch firmware by flashing it, open it and connect to Xiaoai Speaker via SSH</p>
+<a href="https://github.com/idootop/open-xiaoai/blob/main/docs/flash.md" target="_blank" class="step-link">View detailed tutorial</a>
     </div>
   </div>
   
   <div class="step">
     <div class="step-number">2</div>
     <div class="step-content">
-      <h4>客户端部署</h4>
-      <p>在电脑上编译Client端补丁程序，然后复制到小爱音箱上运行</p>
-      <a href="https://github.com/idootop/open-xiaoai/blob/main/packages/client-rust/README.md" target="_blank" class="step-link">查看详细教程</a>
+<h4>Client deployment</h4>
+<p>Compile the client patch program on your computer, then copy it to the Xiaoai speaker and run it</p>
+<a href="https://github.com/idootop/open-xiaoai/blob/main/packages/client-rust/README.md" target="_blank" class="step-link">View detailed tutorial</a>
     </div>
   </div>
   
   <div class="step">
     <div class="step-number">3</div>
     <div class="step-content">
-      <h4>服务端部署</h4>
-      <p>在电脑上运行Server端演示程序，体验小爱音箱的全新能力</p>
+<h4>Server-side deployment</h4>
+<p>Run the server-side demo program on your computer to experience the new capabilities of Xiaoai speakers</p>
       <ul class="step-options">
-        <li><a href="https://github.com/idootop/open-xiaoai/blob/main/packages/server-python/README.md" target="_blank">Python Server - 小爱音箱接入小智AI</a></li>
-        <li><a href="https://github.com/idootop/open-xiaoai/blob/main/packages/server-node/README.md" target="_blank">Node.js Server - 小爱音箱接入MiGPT-Next</a></li>
+<li><a href="https://github.com/idootop/open-xiaoai/blob/main/packages/server-python/README.md" target="_blank">Python Server - Xiaoai Speaker is connected to Xiaozhi AI</a></li>
+<li><a href="https://github.com/idootop/open-xiaoai/blob/main/packages/server-node/README.md" target="_blank">Node.js Server - Xiaoai Speaker connected to MiGPT-Next</a></li>
       </ul>
     </div>
   </div>
 </div>
 
-## 工作原理
+## Working principle
 
-Open-XiaoAI通过以下方式工作：
+Open-XiaoAI works in the following ways:
 
-1. **固件补丁**: 修改小爱音箱的固件，允许SSH访问和底层系统控制
-2. **音频流劫持**: 客户端程序直接捕获麦克风输入和控制扬声器输出
-3. **网络通信**: 客户端与服务端之间建立WebSocket连接进行实时通信
-4. **AI处理**: 服务端接收语音输入，交由AI模型处理后返回响应
-5. **自定义功能**: 开发者可以在服务端实现各种自定义功能和集成
+1. **Firmware patch**: Modify the firmware of Xiaoai speakers to allow SSH access and underlying system control
+2. **Audio Stream Hijacking**: Client program directly captures microphone input and controls speaker output
+3. **Network Communication**: Establish a WebSocket connection between the client and the server for real-time communication
+4. **AI processing**: The server receives the voice input, processes it by the AI ​​model and returns a response.
+5. **Custom functions**: Developers can implement various custom functions and integrations on the server side
 
-## 相关项目
+## Related projects
 
-如果您不想刷机，或者不是小爱音箱Pro，以下项目可能对您有用：
+If you don’t want to flash your phone, or it’s not Xiaoai Speaker Pro, the following items may be useful to you:
 
-- [MiGPT](https://github.com/idootop/mi-gpt) - 将ChatGPT接入小爱音箱的原始项目
-- [MiGPT-Next](https://github.com/idootop/migpt-next) - MiGPT的下一代版本
-- [XiaoGPT](https://github.com/yihong0618/xiaogpt) - 另一个小爱音箱ChatGPT接入方案
-- [XiaoMusic](https://github.com/hanxi/xiaomusic) - 小爱音箱音乐播放增强
+- [MiGPT](https://github.com/idootop/mi-gpt) - The original project of connecting ChatGPT to Xiaoai Speaker
+- [MiGPT-Next](https://github.com/idootop/migpt-next) - The next generation version of MiGPT
+- [XiaoGPT](https://github.com/yihong0618/xiaogpt) - Another Xiaoai speaker ChatGPT access solution
+- [XiaoMusic](https://github.com/hanxi/xiaomusic) - Xiaoai speaker music playback enhancement
 
-## 技术参考
+## Technical Reference
 
-如果您想了解更多技术细节，以下链接可能对您有帮助：
+If you want more technical details, the following links may be helpful:
 
-- [xiaoai-patch](https://github.com/duhow/xiaoai-patch) - 小爱音箱固件补丁
-- [open-lx01](https://github.com/jialeicui/open-lx01) - 小爱音箱LX01开源项目
-- [小爱FM研究](https://javabin.cn/2021/xiaoai_fm.html) - 小爱音箱FM功能研究
-- [小米设备安全研究](https://github.com/yihong0618/gitblog/issues/258) - 小米IoT设备安全分析
-- [小爱音箱探索](https://xuanxuanblingbling.github.io/iot/2022/09/16/mi/) - 小爱音箱技术探索
+- [xiaoai-patch](https://github.com/duhow/xiaoai-patch) - Xiaoai speaker firmware patch
+- [open-lx01](https://github.com/jialeicui/open-lx01) - Xiaoai Speaker LX01 open source project
+- [Xiaoai FM Research](https://javabin.cn/2021/xiaoai_fm.html) - Xiaoai Speaker FM Function Research
+- [Xiaomi device security research](https://github.com/yihong0618/gitblog/issues/258) - Xiaomi IoT device security analysis
+- [Exploration of Xiaoai Speaker](https://xuanxuanblingbling.github.io/iot/2022/09/16/mi/) - Exploration of Xiaoai Speaker Technology
 
-## 免责声明
+## Disclaimer
 
 <div class="disclaimer">
-  <h4>适用范围</h4>
-  <p>本项目为非盈利开源项目，仅限于技术原理研究、安全漏洞验证及非营利性个人使用。严禁用于商业服务、网络攻击、数据窃取、系统破坏等违反《网络安全法》及使用者所在地司法管辖区的法律规定的场景。</p>
+<h4>Scope of application</h4>
+<p>This project is a non-profit open source project, limited to technical principle research, security vulnerability verification and non-profit personal use. It is strictly prohibited to use it in scenarios such as commercial services, network attacks, data theft, system damage, etc. that violate the Cybersecurity Law and the legal provisions of the jurisdiction where the user is located. </p>
   
-  <h4>非官方声明</h4>
-  <p>本项目由第三方开发者独立开发，与小米集团及其关联方（下称"权利方"）无任何隶属/合作关系，未获其官方授权/认可或技术支持。项目中涉及的商标、固件、云服务的所有权利归属小米集团。若权利方主张权益，使用者应立即主动停止使用并删除本项目。</p>
+<h4>Unofficial statement</h4>
+<p>This project was independently developed by a third-party developer and has no affiliation/cooperation relationship with Xiaomi Group and its affiliates (hereinafter referred to as "rights parties"), and has not received official authorization/recognition or technical support from them. All rights to the trademarks, firmware, and cloud services involved in the project belong to Xiaomi Group. If the right party claims rights, the user should immediately stop using and delete this item. </p>
   
-  <p>继续使用本项目，即表示您已完整阅读并同意<a href="https://github.com/idootop/open-xiaoai/blob/main/agreement.md" target="_blank">用户协议</a>，否则请立即终止使用并彻底删除本项目。</p>
+<p>Continuing to use this project means that you have fully read and agreed to the <a href="https://github.com/idootop/open-xiaoai/blob/main/agreement.md" target="_blank">User Agreement</a>. Otherwise, please terminate use immediately and completely delete this project. </p>
 </div>
 
-## 许可证
+## License
 
-本项目使用 [MIT](https://github.com/idootop/open-xiaoai/blob/main/LICENSE) 许可证 © 2024-PRESENT Del Wang
+This project uses the [MIT](https://github.com/idootop/open-xiaoai/blob/main/LICENSE) license © 2024-PRESENT Del Wang
 
 <style>
 .project-header {

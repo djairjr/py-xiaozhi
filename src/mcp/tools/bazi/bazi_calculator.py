@@ -1,6 +1,4 @@
-"""
-八字命理分析核心算法.
-"""
+"""The core algorithm of horoscope numerology analysis."""
 
 from typing import Any, Dict, List, Optional
 
@@ -10,9 +8,7 @@ from .professional_analyzer import get_professional_analyzer
 
 
 class BaziCalculator:
-    """
-    八字分析计算器.
-    """
+    """Bazi analysis calculator."""
 
     def __init__(self):
         self.engine = get_bazi_engine()
@@ -21,29 +17,23 @@ class BaziCalculator:
     def build_hide_heaven_object(
         self, heaven_stem: Optional[str], day_master: str
     ) -> Optional[Dict[str, str]]:
-        """
-        构建藏干对象.
-        """
+        """Construct the Tibetan stem object."""
         if not heaven_stem:
             return None
 
         return {
-            "天干": heaven_stem,
-            "十神": self._get_ten_star(day_master, heaven_stem),
+            "Heavenly stem": heaven_stem,
+            "ten gods": self._get_ten_star(day_master, heaven_stem),
         }
 
     def _get_ten_star(self, day_master: str, other_stem: str) -> str:
-        """
-        计算十神关系.
-        """
+        """Calculate the relationship between the ten gods."""
         return self.professional_analyzer.get_ten_gods_analysis(day_master, other_stem)
 
     def build_sixty_cycle_object(
         self, sixty_cycle, day_master: Optional[str] = None
     ) -> Dict[str, Any]:
-        """
-        构建干支对象.
-        """
+        """Construct stem and branch objects."""
         heaven_stem = sixty_cycle.get_heaven_stem()
         earth_branch = sixty_cycle.get_earth_branch()
 
@@ -51,43 +41,41 @@ class BaziCalculator:
             day_master = heaven_stem.name
 
         return {
-            "天干": {
-                "天干": heaven_stem.name,
-                "五行": heaven_stem.element,
-                "阴阳": "阳" if heaven_stem.yin_yang == 1 else "阴",
-                "十神": (
+            "Heavenly stem": {
+                "Heavenly stem": heaven_stem.name,
+                "five elements": heaven_stem.element,
+                "yin and yang": "Positive" if heaven_stem.yin_yang == 1 else "Negative",
+                "ten gods": (
                     None
                     if day_master == heaven_stem.name
                     else self._get_ten_star(day_master, heaven_stem.name)
                 ),
             },
-            "地支": {
-                "地支": earth_branch.name,
-                "五行": earth_branch.element,
-                "阴阳": "阳" if earth_branch.yin_yang == 1 else "阴",
-                "藏干": {
-                    "主气": self.build_hide_heaven_object(
+            "Earthly Branches": {
+                "Earthly Branches": earth_branch.name,
+                "five elements": earth_branch.element,
+                "yin and yang": "Positive" if earth_branch.yin_yang == 1 else "Negative",
+                "Tibetan stems": {
+                    "dominant": self.build_hide_heaven_object(
                         earth_branch.hide_heaven_main, day_master
                     ),
-                    "中气": self.build_hide_heaven_object(
+                    "Middle Qi": self.build_hide_heaven_object(
                         earth_branch.hide_heaven_middle, day_master
                     ),
-                    "余气": self.build_hide_heaven_object(
+                    "Remaining energy": self.build_hide_heaven_object(
                         earth_branch.hide_heaven_residual, day_master
                     ),
                 },
             },
-            "纳音": sixty_cycle.sound,
-            "旬": sixty_cycle.ten,
-            "空亡": "".join(sixty_cycle.extra_earth_branches),
-            "星运": self._get_terrain(day_master, earth_branch.name),
-            "自坐": self._get_terrain(heaven_stem.name, earth_branch.name),
+            "Nayin": sixty_cycle.sound,
+            "ten days": sixty_cycle.ten,
+            "Empty": "".join(sixty_cycle.extra_earth_branches),
+            "star luck": self._get_terrain(day_master, earth_branch.name),
+            "sit on one's own": self._get_terrain(heaven_stem.name, earth_branch.name),
         }
 
     def _get_terrain(self, stem: str, branch: str) -> str:
-        """
-        计算十二长生.
-        """
+        """Calculate the twelve immortals."""
         from .professional_data import get_changsheng_state
 
         return get_changsheng_state(stem, branch)
@@ -95,12 +83,10 @@ class BaziCalculator:
     def build_gods_object(
         self, eight_char: EightChar, gender: int
     ) -> Dict[str, List[str]]:
-        """
-        构建神煞对象.
-        """
+        """Construct the Shensha object."""
         from .professional_data import get_shensha
 
-        # 获取八字干支
+        # Get the horoscope stems and branches
         eight_char.year.heaven_stem.name
         eight_char.month.heaven_stem.name
         day_gan = eight_char.day.heaven_stem.name
@@ -111,113 +97,111 @@ class BaziCalculator:
         day_zhi = eight_char.day.earth_branch.name
         hour_zhi = eight_char.hour.earth_branch.name
 
-        # 各柱神煞
-        result = {"年柱": [], "月柱": [], "日柱": [], "时柱": []}
+        # The gods of each pillar
+        result = {"year pillar": [], "moon pillar": [], "sun pillar": [], "hour column": []}
 
-        # 天乙贵人（以日干为主）
+        # Tianyi noble people (mainly Rigan)
         tianyi = get_shensha(day_gan, "tianyi")
         if tianyi:
             for zhi in [year_zhi, month_zhi, day_zhi, hour_zhi]:
                 if zhi in tianyi:
                     if zhi == year_zhi:
-                        result["年柱"].append("天乙贵人")
+                        result["year pillar"].append("Tianyi noble man")
                     if zhi == month_zhi:
-                        result["月柱"].append("天乙贵人")
+                        result["moon pillar"].append("Tianyi noble man")
                     if zhi == day_zhi:
-                        result["日柱"].append("天乙贵人")
+                        result["sun pillar"].append("Tianyi noble man")
                     if zhi == hour_zhi:
-                        result["时柱"].append("天乙贵人")
+                        result["hour column"].append("Tianyi noble man")
 
-        # 文昌贵人（以日干为主）
+        # Wenchang nobles (mainly Rigan)
         wenchang = get_shensha(day_gan, "wenchang")
         if wenchang:
             for zhi in [year_zhi, month_zhi, day_zhi, hour_zhi]:
                 if zhi == wenchang:
                     if zhi == year_zhi:
-                        result["年柱"].append("文昌贵人")
+                        result["year pillar"].append("Wenchang nobleman")
                     if zhi == month_zhi:
-                        result["月柱"].append("文昌贵人")
+                        result["moon pillar"].append("Wenchang nobleman")
                     if zhi == day_zhi:
-                        result["日柱"].append("文昌贵人")
+                        result["sun pillar"].append("Wenchang nobleman")
                     if zhi == hour_zhi:
-                        result["时柱"].append("文昌贵人")
+                        result["hour column"].append("Wenchang nobleman")
 
-        # 驿马星（以日支为主）
+        # Yima star (mainly the sun branch)
         yima = get_shensha(day_zhi, "yima")
         if yima:
             for zhi in [year_zhi, month_zhi, day_zhi, hour_zhi]:
                 if zhi == yima:
                     if zhi == year_zhi:
-                        result["年柱"].append("驿马星")
+                        result["year pillar"].append("Yima")
                     if zhi == month_zhi:
-                        result["月柱"].append("驿马星")
+                        result["moon pillar"].append("Yima")
                     if zhi == day_zhi:
-                        result["日柱"].append("驿马星")
+                        result["sun pillar"].append("Yima")
                     if zhi == hour_zhi:
-                        result["时柱"].append("驿马星")
+                        result["hour column"].append("Yima")
 
-        # 桃花星（以日支为主）
+        # Peach blossom star (mainly day branch)
         taohua = get_shensha(day_zhi, "taohua")
         if taohua:
             for zhi in [year_zhi, month_zhi, day_zhi, hour_zhi]:
                 if zhi == taohua:
                     if zhi == year_zhi:
-                        result["年柱"].append("桃花星")
+                        result["year pillar"].append("peach blossom star")
                     if zhi == month_zhi:
-                        result["月柱"].append("桃花星")
+                        result["moon pillar"].append("peach blossom star")
                     if zhi == day_zhi:
-                        result["日柱"].append("桃花星")
+                        result["sun pillar"].append("peach blossom star")
                     if zhi == hour_zhi:
-                        result["时柱"].append("桃花星")
+                        result["hour column"].append("peach blossom star")
 
-        # 华盖星（以日支为主）
+        # Huagai Star (mainly the sun branch)
         huagai = get_shensha(day_zhi, "huagai")
         if huagai:
             for zhi in [year_zhi, month_zhi, day_zhi, hour_zhi]:
                 if zhi == huagai:
                     if zhi == year_zhi:
-                        result["年柱"].append("华盖星")
+                        result["year pillar"].append("Huagai Star")
                     if zhi == month_zhi:
-                        result["月柱"].append("华盖星")
+                        result["moon pillar"].append("Huagai Star")
                     if zhi == day_zhi:
-                        result["日柱"].append("华盖星")
+                        result["sun pillar"].append("Huagai Star")
                     if zhi == hour_zhi:
-                        result["时柱"].append("华盖星")
+                        result["hour column"].append("Huagai Star")
 
         return result
 
     def build_decade_fortune_object(
         self, solar_time: SolarTime, eight_char: EightChar, gender: int, day_master: str
     ) -> Dict[str, Any]:
-        """
-        构建大运对象.
-        """
-        # 获取年柱阴阳性
+        """Construct a Universiade object."""
+        # Get the yin and yang of the year column
         year_yin_yang = eight_char.year.heaven_stem.yin_yang
         month_gan = eight_char.month.heaven_stem.name
         month_zhi = eight_char.month.earth_branch.name
 
         fortune_list = []
 
-        # 使用专业起运年龄计算
+        # Use professional starting age calculations
         start_age = self._calculate_start_age(solar_time, eight_char, gender)
 
-        for i in range(10):  # 计算10步大运
+        for i in range(10):  # Calculate your luck in 10 steps
             age_start = start_age + i * 10
             age_end = age_start + 9
             year_start = solar_time.year + age_start
             year_end = solar_time.year + age_end
 
-            # 使用专业算法计算大运干支
+            # Use professional algorithms to calculate the Universiade stems and branches
             fortune_gz = self._calculate_fortune_ganzhi(
                 month_gan, month_zhi, i + 1, gender, year_yin_yang
             )
 
-            # 分离大运天干和地支
+            # Separate the Heavenly Stems and Earthly Branches of Universiade
             fortune_gan = fortune_gz[0]
             fortune_zhi = fortune_gz[1]
 
-            # 计算地支藏干的十神关系
+            # Calculate the relationship between the ten gods of the Earthly Branches and Tibetan Stems
             from .professional_data import ZHI_CANG_GAN
 
             zhi_ten_gods = []
@@ -232,48 +216,46 @@ class BaziCalculator:
 
             fortune_list.append(
                 {
-                    "干支": fortune_gz,
-                    "开始年份": year_start,
-                    "结束": year_end,
-                    "天干十神": self._get_ten_star(day_master, fortune_gan),
-                    "地支十神": (
-                        zhi_ten_gods if zhi_ten_gods else [f"地支{fortune_zhi}"]
+                    "stems and branches": fortune_gz,
+                    "start year": year_start,
+                    "Finish": year_end,
+                    "Ten Gods of Heaven": self._get_ten_star(day_master, fortune_gan),
+                    "Earthly Branches and Ten Gods": (
+                        zhi_ten_gods if zhi_ten_gods else [f"Earthly Branches {fortune_zhi}"]
                     ),
-                    "地支藏干": zhi_canggan if zhi_canggan else [fortune_zhi],
-                    "开始年龄": age_start,
-                    "结束年龄": age_end,
+                    "Earthly Branches and Tibetan Stems": zhi_canggan if zhi_canggan else [fortune_zhi],
+                    "Starting age": age_start,
+                    "end age": age_end,
                 }
             )
 
         return {
-            "起运日期": f"{solar_time.year + start_age}-{solar_time.month}-{solar_time.day}",
-            "起运年龄": start_age,
-            "大运": fortune_list,
+            "Departure date": f"{solar_time.year + start_age}-{solar_time.month}-{solar_time.day}",
+            "Starting age": start_age,
+            "Universiade": fortune_list,
         }
 
     def _calculate_fortune_ganzhi(
         self, month_gan: str, month_zhi: str, step: int, gender: int, year_yin_yang: int
     ) -> str:
-        """
-        计算大运干支.
-        """
+        """Calculate the Universiade stems and branches."""
         from .professional_data import GAN, ZHI
 
-        # 确定大运方向：阳男阴女顺行，阴男阳女逆行
+        # Determine the direction of the Universiade: masculine yang and masculine go forward, masculine and masculine go retrograde.
         if (gender == 1 and year_yin_yang == 1) or (
             gender == 0 and year_yin_yang == -1
         ):
-            # 顺行
+            # anterograde
             direction = 1
         else:
-            # 逆行
+            # Retrograde
             direction = -1
 
-        # 从月柱开始计算大运
+        # Calculate fortune from the moon pillar
         month_gan_idx = GAN.index(month_gan)
         month_zhi_idx = ZHI.index(month_zhi)
 
-        # 计算当前大运的干支索引
+        # Calculate the stem and branch index of the current Universiade
         fortune_gan_idx = (month_gan_idx + step * direction) % 10
         fortune_zhi_idx = (month_zhi_idx + step * direction) % 12
 
@@ -286,32 +268,30 @@ class BaziCalculator:
         gender: int = 1,
         eight_char_provider_sect: int = 2,
     ) -> BaziAnalysis:
-        """
-        构建八字分析.
-        """
+        """Construct a horoscope analysis."""
 
         if not solar_datetime and not lunar_datetime:
-            raise ValueError("solarDatetime和lunarDatetime必须传且只传其中一个")
+            raise ValueError("solarDatetime and lunarDatetime must be passed and only one of them must be passed.")
 
         if solar_datetime:
             solar_time = self.engine.parse_solar_time(solar_datetime)
             lunar_time = self.engine.solar_to_lunar(solar_time)
         else:
-            # 处理农历时间
+            # Handle lunar time
             lunar_dt = self._parse_lunar_datetime(lunar_datetime)
             lunar_time = lunar_dt
             solar_time = self._lunar_to_solar(lunar_dt)
 
-        # 构建八字
+        # Build horoscopes
         eight_char = self.engine.build_eight_char(solar_time)
         day_master = eight_char.day.heaven_stem.name
 
-        # 生肖应该使用农历年份计算，而不是八字年柱（因为立春和春节时间不同）
+        # The zodiac should be calculated using the lunar year, not the eight-character year column (because the Beginning of Spring and the Spring Festival are at different times)
         zodiac = self._get_zodiac_by_lunar_year(solar_time)
 
-        # 构建分析结果
+        # Build analysis results
         analysis = BaziAnalysis(
-            gender=["女", "男"][gender],
+            gender=["female", "male"][gender],
             solar_time=self.engine.format_solar_time(solar_time),
             lunar_time=str(lunar_time),
             bazi=str(eight_char),
@@ -332,9 +312,9 @@ class BaziCalculator:
             relations=self._build_relations_object(eight_char),
         )
 
-        # 使用专业分析器增强结果
+        # Enhance results with professional analyzers
         try:
-            # 直接使用八字数据进行专业分析
+            # Directly use horoscope data for professional analysis
             eight_char_dict = eight_char.to_dict()
             detailed_analysis = self.professional_analyzer.analyze_eight_char_structure(
                 eight_char_dict
@@ -343,38 +323,36 @@ class BaziCalculator:
                 eight_char_dict
             )
 
-            # 将专业分析结果添加到返回对象
+            # Add professional analysis results to the returned object
             analysis._professional_analysis = detailed_analysis
             analysis._detailed_fortune_text = detailed_text
         except Exception as e:
-            # 如果专业分析失败，记录错误但不影响基础功能
-            analysis._professional_analysis = {"error": f"专业分析失败: {e}"}
-            analysis._detailed_fortune_text = f"专业分析模块暂时不可用: {e}"
+            # If professional analysis fails, errors are logged but basic functionality is not affected
+            analysis._professional_analysis = {"error": f"Professional analysis failed: {e}"}
+            analysis._detailed_fortune_text = f"Professional analysis module is temporarily unavailable: {e}"
 
         return analysis
 
     def _parse_lunar_datetime(self, lunar_datetime: str) -> LunarTime:
-        """
-        解析农历时间字符串 - 支持多种格式.
-        """
+        """Parse lunar time string - supports multiple formats."""
         import re
         from datetime import datetime
 
-        # 支持中文农历格式：农历2024年三月初八 [时间]
+        # Support Chinese lunar calendar format: Lunar calendar 2024 March 8th [time]
         chinese_match = re.match(
-            r"农历(\d{4})年(\S+)月(\S+)(?:\s+(.+))?", lunar_datetime
+            r"Lunar calendar (\d{4}) year (\S+) month (\S+)(?:\s+(.+))?", lunar_datetime
         )
         if chinese_match:
             year = int(chinese_match.group(1))
             month_str = chinese_match.group(2)
             day_str = chinese_match.group(3)
-            time_str = chinese_match.group(4)  # 可能的时间部分
+            time_str = chinese_match.group(4)  # possible time part
 
-            # 转换中文月份和日期
+            # Convert Chinese month and date
             month = self._chinese_month_to_number(month_str)
             day = self._chinese_day_to_number(day_str)
 
-            # 解析时间部分
+            # parse time part
             hour, minute, second = self._parse_time_part(time_str)
 
             return LunarTime(
@@ -386,12 +364,12 @@ class BaziCalculator:
                 second=second,
             )
 
-        # 支持标准格式
+        # Support standard formats
         try:
-            # 尝试ISO格式
+            # Try ISO format
             dt = datetime.fromisoformat(lunar_datetime)
         except ValueError:
-            # 尝试其他常见格式
+            # Try other common formats
             formats = [
                 "%Y-%m-%d %H:%M:%S",
                 "%Y-%m-%d %H:%M",
@@ -410,7 +388,7 @@ class BaziCalculator:
                     continue
 
             if dt is None:
-                raise ValueError(f"无法解析农历时间格式: {lunar_datetime}")
+                raise ValueError(f"Unable to parse lunar time format: {lunar_datetime}")
 
         return LunarTime(
             year=dt.year,
@@ -422,11 +400,9 @@ class BaziCalculator:
         )
 
     def _lunar_to_solar(self, lunar_time: LunarTime) -> SolarTime:
-        """
-        农历转公历.
-        """
+        """Convert lunar calendar to Gregorian calendar."""
         try:
-            # 使用lunar-python进行真正的农历公历转换
+            # Real lunar to Gregorian calendar conversion using lunar-python
             from lunar_python import Lunar
 
             lunar = Lunar.fromYmdHms(
@@ -448,104 +424,94 @@ class BaziCalculator:
                 second=solar.getSecond(),
             )
         except Exception as e:
-            raise ValueError(f"农历转公历失败: {e}")
+            raise ValueError(f"Failed to convert lunar calendar to Gregorian calendar: {e}")
 
     def _calculate_fetal_origin(self, eight_char: EightChar) -> str:
-        """
-        计算胎元.
-        """
+        """Calculate the fetus."""
         from .professional_data import GAN, ZHI
 
-        # 胎元 = 月柱天干进一位 + 月柱地支进三位
+        # Fei Yuan = Moon Pillar and Heavenly Stem advance to one digit + Moon Pillar and Earthly Branch advance to three digits
         month_gan = eight_char.month.heaven_stem.name
         month_zhi = eight_char.month.earth_branch.name
 
-        # 天干进一位
+        # Tianqian enters one
         gan_idx = GAN.index(month_gan)
         fetal_gan = GAN[(gan_idx + 1) % 10]
 
-        # 地支进三位
+        # Earthly branch advances to third place
         zhi_idx = ZHI.index(month_zhi)
         fetal_zhi = ZHI[(zhi_idx + 3) % 12]
 
         return f"{fetal_gan}{fetal_zhi}"
 
     def _calculate_fetal_breath(self, eight_char: EightChar) -> str:
-        """
-        计算胎息.
-        """
+        """Calculate fetal interest rate."""
         from .professional_data import GAN, ZHI
 
-        # 胎息 = 日柱干支阴阳相配
+        # Fetal breath = the matching of yin and yang between the sun pillar, stems and branches
         day_gan = eight_char.day.heaven_stem.name
         day_zhi = eight_char.day.earth_branch.name
 
-        # 取对应阴阳干支
+        # Get the corresponding yin and yang stems and branches
         gan_idx = GAN.index(day_gan)
         zhi_idx = ZHI.index(day_zhi)
 
-        # 阴阳转换（奇偶相转）
+        # Yin and Yang conversion (odd and even phase conversion)
         breath_gan = GAN[(gan_idx + 1) % 10 if gan_idx % 2 == 0 else (gan_idx - 1) % 10]
-        breath_zhi = ZHI[(zhi_idx + 6) % 12]  # 对冲地支
+        breath_zhi = ZHI[(zhi_idx + 6) % 12]  # Hedge Earthly Branches
 
         return f"{breath_gan}{breath_zhi}"
 
     def _calculate_own_sign(self, eight_char: EightChar) -> str:
-        """
-        计算命宫.
-        """
+        """Calculate the fortune palace."""
         from .professional_data import GAN, ZHI
 
-        # 命宫计算：寅宫起正月，顺数至本生月，再从卯时起逆数本生时，所得即命宫
+        # Calculation of the Life Palace: Start from the first month of the Yin Palace, count forward to the birth month, and then count backwards from the Mao hour to the birth month. The result is the Life Palace.
         month_zhi = eight_char.month.earth_branch.name
         hour_zhi = eight_char.hour.earth_branch.name
 
         month_idx = ZHI.index(month_zhi)
         hour_idx = ZHI.index(hour_zhi)
 
-        # 寅宫起正月，顺数到本生月
-        ming_gong_num = (month_idx - 2) % 12  # 寅=0，卯=1...
+        # Starting from the first month of the Yin Palace, count to the birth month
+        ming_gong_num = (month_idx - 2) % 12  # Yin=0, Mao=1...
 
-        # 从卯时起逆数本生时
-        hour_offset = (hour_idx - 3) % 12  # 卯=0，辰=1...
+        # Count backwards from Mao hour
+        hour_offset = (hour_idx - 3) % 12  # Mao=0, Chen=1...
         ming_gong_num = (ming_gong_num - hour_offset) % 12
 
-        ming_gong_zhi = ZHI[(ming_gong_num + 2) % 12]  # 转换回实际地支
+        ming_gong_zhi = ZHI[(ming_gong_num + 2) % 12]  # Convert back to actual Earthly Branches
 
-        # 配上相应天干（简化：取子年对应的天干）
+        # Match it with the corresponding Heavenly Stem (simplification: take the Heavenly Stem corresponding to the child year)
         ming_gong_gan = GAN[ming_gong_num % 10]
 
         return f"{ming_gong_gan}{ming_gong_zhi}"
 
     def _calculate_body_sign(self, eight_char: EightChar) -> str:
-        """
-        计算身宫.
-        """
+        """Calculate the body palace."""
         from .professional_data import GAN, ZHI
 
-        # 身宫计算：从月支顺数到时支
+        # Body Palace Calculation: Counting from the Moon Branch to the Hour Branch
         month_zhi = eight_char.month.earth_branch.name
         hour_zhi = eight_char.hour.earth_branch.name
 
         month_idx = ZHI.index(month_zhi)
         hour_idx = ZHI.index(hour_zhi)
 
-        # 从月支顺数到时支的地支数
+        # The number of earthly branches counting from the monthly branch to the hourly branch
         shen_gong_idx = (month_idx + hour_idx) % 12
         shen_gong_zhi = ZHI[shen_gong_idx]
 
-        # 配上相应天干
+        # Served with corresponding heavenly stems
         shen_gong_gan = GAN[shen_gong_idx % 10]
 
         return f"{shen_gong_gan}{shen_gong_zhi}"
 
     def _build_relations_object(self, eight_char: EightChar) -> Dict[str, Any]:
-        """
-        构建刑冲合会关系.
-        """
+        """Build a relationship between punishment and conflict."""
         from .professional_data import analyze_zhi_combinations
 
-        # 提取四柱地支
+        # Extract the four earthly branches
         zhi_list = [
             eight_char.year.earth_branch.name,
             eight_char.month.earth_branch.name,
@@ -553,36 +519,34 @@ class BaziCalculator:
             eight_char.hour.earth_branch.name,
         ]
 
-        # 使用专业函数分析地支关系
+        # Use professional functions to analyze earthly branch relationships
         relations = analyze_zhi_combinations(zhi_list)
 
         return {
-            "三合": relations.get("sanhe", []),
-            "六合": relations.get("liuhe", []),
-            "三会": relations.get("sanhui", []),
-            "相冲": relations.get("chong", []),
-            "相刑": relations.get("xing", []),
-            "相害": relations.get("hai", []),
+            "Sanhe": relations.get("sanhe", []),
+            "Liuhe": relations.get("liuhe", []),
+            "three meetings": relations.get("sanhui", []),
+            "conflict": relations.get("chong", []),
+            "torture": relations.get("xing", []),
+            "Harm each other": relations.get("hai", []),
         }
 
     def get_solar_times(self, bazi: str) -> List[str]:
-        """
-        根据八字获取可能的公历时间.
-        """
+        """Get the possible Gregorian calendar time based on the horoscope."""
         pillars = bazi.split(" ")
         if len(pillars) != 4:
-            raise ValueError("八字格式错误")
+            raise ValueError("Eight character format error")
 
         year_pillar, month_pillar, day_pillar, hour_pillar = pillars
 
-        # 解析八字柱
+        # Analyzing the Eight-Character Pillar
         if (
             len(year_pillar) != 2
             or len(month_pillar) != 2
             or len(day_pillar) != 2
             or len(hour_pillar) != 2
         ):
-            raise ValueError("八字格式错误，每柱应为两个字符")
+            raise ValueError("The eight-character format is wrong. Each bar should be two characters.")
 
         year_gan, year_zhi = year_pillar[0], year_pillar[1]
         month_gan, month_zhi = month_pillar[0], month_pillar[1]
@@ -591,15 +555,15 @@ class BaziCalculator:
 
         result_times = []
 
-        # 扩大搜索范围：1900-2100年，并优化搜索策略
+        # Expand the search scope: 1900-2100 and optimize the search strategy
         for year in range(1900, 2100):
             try:
-                # 尝试匹配年柱
+                # Try to match the year column
                 if self._match_year_pillar(year, year_gan, year_zhi):
-                    # 遍历月份
+                    # Traverse months
                     for month in range(1, 13):
                         if self._match_month_pillar(year, month, month_gan, month_zhi):
-                            # 遍历日期，使用更精确的日期范围
+                            # Loop through dates, using a more precise date range
                             import calendar
 
                             max_day = calendar.monthrange(year, month)[1]
@@ -609,7 +573,7 @@ class BaziCalculator:
                                     if self._match_day_pillar(
                                         year, month, day, day_gan, day_zhi
                                     ):
-                                        # 遍历时辰，使用每个时辰的中心点
+                                        # Traverse the hours, using the center point of each hour
                                         for hour in [
                                             0,
                                             2,
@@ -623,7 +587,7 @@ class BaziCalculator:
                                             18,
                                             20,
                                             22,
-                                        ]:  # 12个时辰的中心点
+                                        ]:  # The center point of the 12 hours
                                             if self._match_hour_pillar(
                                                 hour,
                                                 hour_gan,
@@ -635,32 +599,30 @@ class BaziCalculator:
                                                 solar_time = f"{year}-{month:02d}-{day:02d} {hour:02d}:00:00"
                                                 result_times.append(solar_time)
 
-                                                # 适当增加返回数量限制
+                                                # Increase the return quantity limit appropriately
                                                 if len(result_times) >= 20:
                                                     return result_times
                                 except ValueError:
-                                    continue  # 无效日期跳过
+                                    continue  # Invalid date skipped
             except Exception:
                 continue
 
-        return result_times[:20]  # 返回前20个匹配结果
+        return result_times[:20]  # Returns the first 20 matching results
 
     def _calculate_start_age(
         self, solar_time: SolarTime, eight_char: EightChar, gender: int
     ) -> int:
-        """
-        计算起运年龄.
-        """
+        """Calculate starting age."""
         from lunar_python import Solar
 
         from .professional_data import GAN_YINYANG
 
-        # 获取年柱干支阴阳
+        # Get the yin and yang of the year pillar, stems and branches
         year_gan = eight_char.year.heaven_stem.name
         year_gan_yinyang = GAN_YINYANG.get(year_gan, 1)
 
         try:
-            # 创建出生时间的Solar对象
+            # Create a Solar object of birth time
             birth_solar = Solar.fromYmdHms(
                 solar_time.year,
                 solar_time.month,
@@ -670,47 +632,47 @@ class BaziCalculator:
                 solar_time.second,
             )
 
-            # 起运规则：阳男阴女顺行，阴男阳女逆行
+            # Rules of fortune: masculine masculine and feminine masculine go direct, masculine masculine and feminine yang retrograde
             if (gender == 1 and year_gan_yinyang == 1) or (
                 gender == 0 and year_gan_yinyang == -1
             ):
-                # 顺行：计算出生到下一个节气的天数
+                # Direct motion: Calculate the number of days from birth to the next solar term
                 lunar = birth_solar.getLunar()
                 next_jieqi = lunar.getNextJieQi()
 
                 if next_jieqi:
-                    # 获取下一个节气的公历时间
+                    # Get the Gregorian calendar time of the next solar term
                     next_jieqi_solar = next_jieqi.getSolar()
 
-                    # 计算天数差
+                    # Calculate the difference in days
                     days_diff = self._calculate_days_diff(birth_solar, next_jieqi_solar)
 
-                    # 起运年龄 = 天数差 / 3（传统算法）
+                    # Starting age = difference in days / 3 (traditional algorithm)
                     start_age = max(1, days_diff // 3)
                 else:
-                    start_age = 3  # 默认值
+                    start_age = 3  # default value
             else:
-                # 逆行：计算上一个节气到出生的天数
+                # Retrograde: Calculate the number of days from the last solar term to birth
                 lunar = birth_solar.getLunar()
                 prev_jieqi = lunar.getPrevJieQi()
 
                 if prev_jieqi:
-                    # 获取上一个节气的公历时间
+                    # Get the Gregorian calendar time of the last solar term
                     prev_jieqi_solar = prev_jieqi.getSolar()
 
-                    # 计算天数差
+                    # Calculate the difference in days
                     days_diff = self._calculate_days_diff(prev_jieqi_solar, birth_solar)
 
-                    # 起运年龄 = 天数差 / 3（传统算法）
+                    # Starting age = difference in days / 3 (traditional algorithm)
                     start_age = max(1, days_diff // 3)
                 else:
-                    start_age = 5  # 默认值
+                    start_age = 5  # default value
 
-            # 限制起运年龄在合理范围内
+            # Limit the departure age to a reasonable range
             return max(1, min(start_age, 10))
 
         except Exception:
-            # 如果节气计算失败，使用简化算法
+            # If the solar term calculation fails, use the simplified algorithm
             if (gender == 1 and year_gan_yinyang == 1) or (
                 gender == 0 and year_gan_yinyang == -1
             ):
@@ -718,7 +680,7 @@ class BaziCalculator:
             else:
                 base_age = 5
 
-            # 根据月份微调
+            # Fine-tune according to the month
             month_adjustment = {
                 1: 0,
                 2: 1,
@@ -738,57 +700,54 @@ class BaziCalculator:
             return max(1, min(final_age, 8))
 
     def _parse_time_part(self, time_str: str) -> tuple:
-        """
-        解析时间部分，返回(hour, minute, second)
-        """
+        """Parse the time part and return (hour, minute, second)"""
         if not time_str:
             return (0, 0, 0)
 
         time_str = time_str.strip()
 
-        # 支持时辰格式：子时、丑时、寅时等
+        # Support time format: Zi hour, Chou hour, Yin hour, etc.
         shichen_map = {
-            "子时": 0,
-            "子": 0,
-            "丑时": 1,
-            "丑": 1,
-            "寅时": 3,
-            "寅": 3,
-            "卯时": 5,
-            "卯": 5,
-            "辰时": 7,
-            "辰": 7,
-            "巳时": 9,
-            "巳": 9,
-            "午时": 11,
-            "午": 11,
-            "未时": 13,
-            "未": 13,
-            "申时": 15,
-            "申": 15,
-            "酉时": 17,
-            "酉": 17,
-            "戌时": 19,
-            "戌": 19,
-            "亥时": 21,
-            "亥": 21,
+            "Zishi": 0,
+            "son": 0,
+            "ugly time": 1,
+            "ugly": 1,
+            "Yinshi": 3,
+            "Yin": 3,
+            "Mao Shi": 5,
+            "Mao": 5,
+            "Tatsuki": 7,
+            "Chen": 7,
+            "Sishi": 9,
+            "Si": 9,
+            "noon": 11,
+            "noon": 11,
+            "Not yet": 13,
+            "not yet": 13,
+            "Shen Shi": 15,
+            "state": 15,
+            "Youshi": 17,
+            "unitary": 17,
+            "Xu Shi": 19,
+            "Xu": 19,
+            "Haishi": 21,
+            "Hai": 21,
         }
 
         if time_str in shichen_map:
             return (shichen_map[time_str], 0, 0)
 
-        # 支持数字时间格式：10时、10:30等
+        # Support digital time format: 10 o'clock, 10:30, etc.
         import re
 
-        # 匹配 "10时30分20秒" 格式
-        chinese_time_match = re.match(r"(\d+)时(?:(\d+)分)?(?:(\d+)秒)?", time_str)
+        # Matches the format "10 hours 30 minutes 20 seconds"        chinese_time_match = re.match(r"(\d+)hour(?:(\d+)minute)?(?:(\d+)second)?", time_str)
         if chinese_time_match:
             hour = int(chinese_time_match.group(1))
             minute = int(chinese_time_match.group(2) or 0)
             second = int(chinese_time_match.group(3) or 0)
             return (hour, minute, second)
 
-        # 匹配 "10:30:20" 或 "10:30" 格式
+        # Match "10:30:20" or "10:30" format
         colon_time_match = re.match(r"(\d+):(\d+)(?::(\d+))?", time_str)
         if colon_time_match:
             hour = int(colon_time_match.group(1))
@@ -796,85 +755,81 @@ class BaziCalculator:
             second = int(colon_time_match.group(3) or 0)
             return (hour, minute, second)
 
-        # 纯数字时间（小时）
+        # Pure numerical time (hours)
         if time_str.isdigit():
             hour = int(time_str)
             return (hour, 0, 0)
 
-        # 默认返回0时
+        # Returns to 0 by default
         return (0, 0, 0)
 
     def _chinese_month_to_number(self, month_str: str) -> int:
-        """
-        转换中文月份为数字.
-        """
+        """Convert Chinese months to numbers."""
         month_map = {
-            "正": 1,
-            "一": 1,
-            "二": 2,
-            "三": 3,
-            "四": 4,
-            "五": 5,
-            "六": 6,
-            "七": 7,
-            "八": 8,
-            "九": 9,
-            "十": 10,
-            "冬": 11,
-            "腊": 12,
+            "just": 1,
+            "one": 1,
+            "two": 2,
+            "three": 3,
+            "Four": 4,
+            "five": 5,
+            "six": 6,
+            "seven": 7,
+            "eight": 8,
+            "Nine": 9,
+            "ten": 10,
+            "winter": 11,
+            "wax": 12,
         }
         return month_map.get(month_str, 1)
 
     def _chinese_day_to_number(self, day_str: str) -> int:
-        """
-        转换中文日期为数字.
-        """
-        # 数字映射表
+        """Convert Chinese date to number."""
+        # Number mapping table
         chinese_numbers = {
-            "一": 1,
-            "二": 2,
-            "三": 3,
-            "四": 4,
-            "五": 5,
-            "六": 6,
-            "七": 7,
-            "八": 8,
-            "九": 9,
-            "十": 10,
-            "廿": 20,
-            "卅": 30,
+            "one": 1,
+            "two": 2,
+            "three": 3,
+            "Four": 4,
+            "five": 5,
+            "six": 6,
+            "seven": 7,
+            "eight": 8,
+            "Nine": 9,
+            "ten": 10,
+            "twenty": 20,
+            "thirty": 30,
         }
 
-        if "初" in day_str:
-            day_num = day_str.replace("初", "")
+        if "early" in day_str:
+            day_num = day_str.replace("early", "")
             if day_num in chinese_numbers:
                 return chinese_numbers[day_num]
             else:
                 return int(day_num) if day_num.isdigit() else 1
-        elif "十" in day_str:
-            if day_str == "十":
+        elif "ten" in day_str:
+            if day_str == "ten":
                 return 10
-            elif day_str.startswith("十"):
+            elif day_str.startswith("ten"):
                 remaining = day_str[1:]
                 return 10 + chinese_numbers.get(
                     remaining, int(remaining) if remaining.isdigit() else 0
                 )
-            elif day_str.endswith("十"):
+            elif day_str.endswith("ten"):
                 prefix = day_str[:-1]
                 return (
                     chinese_numbers.get(prefix, int(prefix) if prefix.isdigit() else 1)
                     * 10
                 )
-        elif "廿" in day_str:
-            remaining = day_str.replace("廿", "")
+        elif "twenty" in day_str:
+            remaining = day_str.replace("twenty", "")
             if remaining in chinese_numbers:
                 return 20 + chinese_numbers[remaining]
             else:
                 return 20 + (int(remaining) if remaining.isdigit() else 0)
-        elif "卅" in day_str:
+        elif "thirty" in day_str:
             return 30
         else:
-            # 尝试直接转换数字
+            # Try converting the number directly
             if day_str in chinese_numbers:
                 return chinese_numbers[day_str]
             try:
@@ -883,9 +838,7 @@ class BaziCalculator:
                 return 1
 
     def _calculate_days_diff(self, solar1, solar2) -> int:
-        """
-        计算两个Solar对象之间的天数差.
-        """
+        """Calculate the difference in days between two Solar objects."""
         try:
             from datetime import datetime
 
@@ -894,30 +847,30 @@ class BaziCalculator:
 
             return abs((dt2 - dt1).days)
         except Exception:
-            return 3  # 默认值
+            return 3  # default value
 
     def _match_year_pillar(self, year: int, gan: str, zhi: str) -> bool:
-        """匹配年柱 - 修复版本，考虑立春节气"""
+        """Matching the Year Pillar - Repaired version, taking into account the Beginning of Spring solar term"""
         try:
             from lunar_python import Solar
 
-            # 年柱以立春为界，需要检查立春前后的年柱
-            # 检查年初（立春前）
+            # The Nian Pillar is bounded by the Beginning of Spring. It is necessary to check the Nian Pillar before and after the Beginning of Spring.
+            # Check the beginning of the year (before the beginning of spring)
             solar_start = Solar.fromYmdHms(year, 1, 1, 0, 0, 0)
             lunar_start = solar_start.getLunar()
             bazi_start = lunar_start.getEightChar()
 
-            # 检查年中（立春后）
+            # Check mid-year (after the beginning of spring)
             solar_mid = Solar.fromYmdHms(year, 6, 1, 0, 0, 0)
             lunar_mid = solar_mid.getLunar()
             bazi_mid = lunar_mid.getEightChar()
 
-            # 检查年末
+            # Check year end
             solar_end = Solar.fromYmdHms(year, 12, 31, 23, 59, 59)
             lunar_end = solar_end.getLunar()
             bazi_end = lunar_end.getEightChar()
 
-            # 如果年中任何一个时间点的年柱匹配，就认为匹配
+            # If the year bar matches at any point in the year, it is considered a match.
             year_gans = [
                 bazi_start.getYearGan(),
                 bazi_mid.getYearGan(),
@@ -938,18 +891,18 @@ class BaziCalculator:
             return False
 
     def _match_month_pillar(self, year: int, month: int, gan: str, zhi: str) -> bool:
-        """匹配月柱 - 修复版本，考虑节气边界"""
+        """Matching moon pillars - fixed version, taking solar term boundaries into account"""
         try:
             from lunar_python import Solar
 
-            # 月柱以节气为界，检查月中几个时间点
-            # 月初、月中、月末的月柱可能不同，需要都检查
-            test_days = [1, 8, 15, 22, 28]  # 检查多个日期
+            # The moon pillar is bounded by solar terms, check several time points in the month
+            # The monthly pillars at the beginning, middle and end of the month may be different, so you need to check them all.
+            test_days = [1, 8, 15, 22, 28]  # Check multiple dates
 
             month_pillars = set()
             for day in test_days:
                 try:
-                    # 确保日期有效
+                    # Make sure the date is valid
                     import calendar
 
                     max_day = calendar.monthrange(year, month)[1]
@@ -966,7 +919,7 @@ class BaziCalculator:
                 except Exception:
                     continue
 
-            # 如果月中任何一天的月柱匹配，就认为匹配
+            # A match is considered if the monthly bars match on any day of the month
             target_pillar = f"{gan}{zhi}"
             return target_pillar in month_pillars
 
@@ -976,9 +929,7 @@ class BaziCalculator:
     def _match_day_pillar(
         self, year: int, month: int, day: int, gan: str, zhi: str
     ) -> bool:
-        """
-        匹配日柱.
-        """
+        """Match daily bars."""
         try:
             from lunar_python import Solar
 
@@ -1002,11 +953,11 @@ class BaziCalculator:
         month: int = None,
         day: int = None,
     ) -> bool:
-        """匹配时柱 - 修复版本，使用实际日期"""
+        """Match hour bars - fixed version, use actual dates"""
         try:
             from lunar_python import Solar
 
-            # 使用实际日期或默认日期配合时辰
+            # Use actual date or default date with time
             use_year = year if year else 2024
             use_month = month if month else 1
             use_day = day if day else 1
@@ -1023,9 +974,7 @@ class BaziCalculator:
             return False
 
     def _get_zodiac_by_lunar_year(self, solar_time: SolarTime) -> str:
-        """
-        根据农历年份获取生肖（以春节为界，不是立春）
-        """
+        """Get the zodiac sign according to the lunar year (taking the Spring Festival as the boundary, not the beginning of spring)"""
         try:
             from lunar_python import Solar
 
@@ -1039,23 +988,21 @@ class BaziCalculator:
             )
             lunar = solar.getLunar()
 
-            # 使用lunar-python直接获取农历生肖（以春节为界）
+            # Use lunar-python to directly obtain the lunar zodiac (with the Spring Festival as the boundary)
             return lunar.getYearShengXiao()
         except Exception as e:
-            # 如果失败，使用八字年柱的生肖作为备选
-            print(f"获取农历生肖失败，使用八字年柱生肖: {e}")
+            # If that fails, use the zodiac sign of the year pillar as an alternative
+            print(f"Failed to obtain the lunar zodiac, use the eight-character year column zodiac: {e}")
             eight_char = self.engine.build_eight_char(solar_time)
             return eight_char.year.earth_branch.zodiac
 
 
-# 全局计算器实例
+# global calculator instance
 _bazi_calculator = None
 
 
 def get_bazi_calculator() -> BaziCalculator:
-    """
-    获取八字计算器单例.
-    """
+    """Get the horoscope calculator singleton instance."""
     global _bazi_calculator
     if _bazi_calculator is None:
         _bazi_calculator = BaziCalculator()

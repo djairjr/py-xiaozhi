@@ -7,16 +7,14 @@ logger = get_logger(__name__)
 
 
 class _AppAdapter:
-    """
-    为日程提醒服务提供 _send_text_tts 的适配器.
-    """
+    """Provides an adapter for _send_text_tts for the calendar reminder service."""
 
     def __init__(self, app: Any) -> None:
         self._app = app
 
     async def _send_text_tts(self, text: str):
         try:
-            # 通过协议触发TTS（与 ApplicationMain 的行为对齐）
+            # Triggering TTS via protocol (aligned with ApplicationMain's behavior)
             if not getattr(self._app, "protocol", None):
                 return
             try:
@@ -26,7 +24,7 @@ class _AppAdapter:
                 pass
             await self._app.protocol.send_wake_word_detected(text)
         except Exception:
-            # 兜底：无法TTS时，回退到UI文本
+            # Bottom line: fall back to UI text when TTS is not possible
             try:
                 if hasattr(self._app, "set_chat_message"):
                     self._app.set_chat_message("assistant", text)
@@ -50,13 +48,13 @@ class CalendarPlugin(Plugin):
             from src.mcp.tools.calendar import get_reminder_service
 
             self._service = get_reminder_service()
-            # 覆盖其应用获取函数，返回适配器对象
+            # Override its application acquisition function and return the adapter object
             try:
                 setattr(self._service, "_get_application", lambda: self._adapter)
             except Exception:
                 pass
         except Exception as e:
-            logger.error(f"初始化日程提醒服务失败: {e}")
+            logger.error(f"Failed to initialize schedule reminder service: {e}")
             self._service = None
 
     async def start(self) -> None:
@@ -64,13 +62,13 @@ class CalendarPlugin(Plugin):
             return
         try:
             await self._service.start()
-            # 可选：启动时检查今日日程
+            # Optional: Check today's schedule on startup
             try:
                 await self._service.check_daily_events()
             except Exception:
                 pass
         except Exception as e:
-            logger.error(f"启动日程提醒服务失败: {e}")
+            logger.error(f"Failed to start schedule reminder service: {e}")
 
     async def stop(self) -> None:
         try:

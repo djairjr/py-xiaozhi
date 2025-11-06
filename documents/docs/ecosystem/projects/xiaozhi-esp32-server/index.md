@@ -1,6 +1,6 @@
 ---
 title: xiaozhi-esp32-server
-description: 基于ESP32的小智开源服务端，轻量级且高效的语音交互服务
+description: Xiaozhi open source server based on ESP32, lightweight and efficient voice interaction service
 ---
 
 # xiaozhi-esp32-server
@@ -12,165 +12,165 @@ description: 基于ESP32的小智开源服务端，轻量级且高效的语音�
   <div class="project-badges">
     <span class="badge platform">ESP32</span>
     <span class="badge language">Python</span>
-    <span class="badge status">活跃开发中</span>
+<span class="badge status">Active development</span>
   </div>
 </div>
 
 <div class="project-intro">
-  <p>xiaozhi-esp32-server是为开源智能硬件项目<a href="https://github.com/78/xiaozhi-esp32" target="_blank">xiaozhi-esp32</a>提供的后端服务，根据<a href="https://ccnphfhqs21z.feishu.cn/wiki/M0XiwldO9iJwHikpXD5cEx71nKh" target="_blank">小智通信协议</a>使用Python实现，帮助您快速搭建小智服务器。</p>
+<p>xiaozhi-esp32-server is a back-end service provided for the open source smart hardware project <a href="https://github.com/78/xiaozhi-esp32" target="_blank">xiaozhi-esp32</a>, according to <a href="https://ccnphfhqs21z.feishu.cn/wiki/M0XiwldO9iJwHikpXD5cEx71nKh" target="_blank">Xiaozhi Communication Protocol</a> is implemented in Python to help you quickly build a Xiaozhi server. </p>
 </div>
 
-## 适用人群
+## Applicable people
 
-本项目需要配合ESP32硬件设备使用。如果您已经购买了ESP32相关硬件，且成功对接过虾哥部署的后端服务，并希望独立搭建自己的`xiaozhi-esp32`后端服务，那么本项目非常适合您。
+This project needs to be used with ESP32 hardware equipment. If you have purchased ESP32 related hardware, successfully connected the backend service deployed by Brother Xiazhi, and want to independently build your own `xiaozhi-esp32` backend service, then this project is very suitable for you.
 
 <div class="warning-box">
-  <h3>⚠️ 重要提示</h3>
+<h3>⚠️ IMPORTANT NOTICE</h3>
   <ol>
-    <li>本项目为开源软件，与对接的任何第三方API服务商（包括但不限于语音识别、大模型、语音合成等平台）均不存在商业合作关系，不为其服务质量及资金安全提供任何形式的担保。建议使用者优先选择持有相关业务牌照的服务商，并仔细阅读其服务协议及隐私政策。本软件不托管任何账户密钥、不参与资金流转、不承担充值资金损失风险。</li>
-    <li>本项目成立时间较短，还未通过网络安全测评，请勿在生产环境中使用。如果您在公网环境中部署学习本项目，请务必在配置文件<code>config.yaml</code>中开启防护。</li>
+<li>This project is open source software and does not have any commercial partnership with any third-party API service provider (including but not limited to speech recognition, large model, speech synthesis and other platforms), and does not provide any form of guarantee for its service quality and financial security. Users are advised to give priority to service providers that hold relevant business licenses and read their service agreements and privacy policies carefully. This software does not host any account keys, does not participate in fund flows, and does not bear the risk of loss of recharge funds. </li>
+<li>This project has been established for a short period of time and has not passed the network security evaluation. Please do not use it in a production environment. If you deploy and study this project in a public network environment, be sure to enable protection in the configuration file <code>config.yaml</code>. </li>
   </ol>
 </div>
 
-## 核心特性
+## Core Features
 
 <div class="features-container">
   <div class="feature-item">
     <div class="feature-icon">🔄</div>
-    <h3>通信协议</h3>
-    <p>基于<code>xiaozhi-esp32</code>协议，通过WebSocket实现数据交互</p>
+<h3>Communication protocol</h3>
+<p>Based on the <code>xiaozhi-esp32</code> protocol, data interaction is realized through WebSocket</p>
   </div>
   
   <div class="feature-item">
     <div class="feature-icon">💬</div>
-    <h3>对话交互</h3>
-    <p>支持唤醒对话、手动对话及实时打断，长时间无对话时自动休眠</p>
+<h3>Dialogue interaction</h3>
+<p>Supports wake-up dialogue, manual dialogue and real-time interruption, and automatically sleeps when there is no dialogue for a long time</p>
   </div>
   
   <div class="feature-item">
     <div class="feature-icon">🧠</div>
-    <h3>意图识别</h3>
-    <p>支持使用LLM意图识别、function call函数调用，减少硬编码意图判断</p>
+<h3>Intent recognition</h3>
+<p>Supports the use of LLM intent recognition and function call function calls to reduce hard-coded intent judgment</p>
   </div>
   
   <div class="feature-item">
     <div class="feature-icon">🌐</div>
-    <h3>多语言识别</h3>
-    <p>支持国语、粤语、英语、日语、韩语（默认使用FunASR）</p>
+<h3>Multi-language recognition</h3>
+<p>Supports Mandarin, Cantonese, English, Japanese, and Korean (FunASR is used by default)</p>
   </div>
   
   <div class="feature-item">
     <div class="feature-icon">🤖</div>
-    <h3>LLM模块</h3>
-    <p>支持灵活切换LLM模块，默认使用ChatGLMLLM，也可选用阿里百炼、DeepSeek、Ollama等</p>
+<h3>LLM module</h3>
+<p>Supports flexible switching of LLM modules. ChatGLMLLM is used by default, and Alibaba Bailian, DeepSeek, Ollama, etc. can also be used</p>
   </div>
   
   <div class="feature-item">
     <div class="feature-icon">🔊</div>
-    <h3>TTS模块</h3>
-    <p>支持EdgeTTS（默认）、火山引擎豆包TTS等多种TTS接口，满足语音合成需求</p>
+<h3>TTS module</h3>
+<p>Supports EdgeTTS (default), Volcano Engine Beanbag TTS and other TTS interfaces to meet speech synthesis needs</p>
   </div>
   
   <div class="feature-item">
     <div class="feature-icon">📝</div>
-    <h3>记忆功能</h3>
-    <p>支持超长记忆、本地总结记忆、无记忆三种模式，满足不同场景需求</p>
+<h3>Memory function</h3>
+<p>Supports three modes: ultra-long memory, local summary memory, and no memory to meet the needs of different scenarios</p>
   </div>
   
   <div class="feature-item">
     <div class="feature-icon">🏠</div>
-    <h3>IOT功能</h3>
-    <p>支持管理注册设备IOT功能，支持基于对话上下文语境下的智能物联网控制</p>
+<h3>IOT function</h3>
+<p>Support management and registration of device IOT functions, and support intelligent IoT control based on conversation context</p>
   </div>
   
   <div class="feature-item">
     <div class="feature-icon">🖥️</div>
-    <h3>智控台</h3>
-    <p>提供Web管理界面，支持智能体管理、用户管理、系统配置等功能</p>
+<h3>Smart console</h3>
+<p>Provides a Web management interface that supports agent management, user management, system configuration and other functions</p>
   </div>
 </div>
 
-## 部署方式
+## Deployment method
 
-本项目提供两种部署方式，请根据您的具体需求选择：
+This project provides two deployment methods, please choose according to your specific needs:
 
 <div class="deployment-table">
   <table>
     <thead>
       <tr>
-        <th>部署方式</th>
-        <th>特点</th>
-        <th>适用场景</th>
+<th>Deployment method</th>
+<th>Features</th>
+<th>Applicable scenarios</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <td><strong>最简化安装</strong></td>
-        <td>智能对话、IOT功能，数据存储在配置文件</td>
-        <td>低配置环境，无需数据库</td>
+<td><strong>Easiest installation</strong></td>
+<td>Intelligent dialogue, IOT function, data stored in configuration file</td>
+<td>Low configuration environment, no database required</td>
       </tr>
       <tr>
-        <td><strong>全模块安装</strong></td>
-        <td>智能对话、IOT、OTA、智控台，数据存储在数据库</td>
-        <td>完整功能体验</td>
+<td><strong>Full module installation</strong></td>
+<td>Intelligent dialogue, IOT, OTA, intelligent console, data is stored in the database</td>
+<td>Full functional experience</td>
       </tr>
     </tbody>
   </table>
 </div>
 
-详细部署文档请参考：
-- [Docker部署文档](https://github.com/xinnan-tech/xiaozhi-esp32-server/blob/main/docs/Deployment.md)
-- [源码部署文档](https://github.com/xinnan-tech/xiaozhi-esp32-server/blob/main/docs/Deployment_all.md)
+For detailed deployment documentation, please refer to:
+- [Docker Deployment Document](https://github.com/xinnan-tech/xiaozhi-esp32-server/blob/main/docs/Deployment.md)
+- [Source code deployment documentation](https://github.com/xinnan-tech/xiaozhi-esp32-server/blob/main/docs/Deployment_all.md)
 
-## 支持平台列表
+## Supported platform list
 
-xiaozhi-esp32-server支持丰富的第三方平台和组件：
+xiaozhi-esp32-server supports a variety of third-party platforms and components:
 
-### LLM 语言模型
+### LLM language model
 
 <div class="platform-item">
-  <h4>接口调用</h4>
-  <p><strong>支持平台：</strong>阿里百炼、火山引擎豆包、深度求索、智谱ChatGLM、Gemini、Ollama、Dify、Fastgpt、Coze</p>
-  <p><strong>免费平台：</strong>智谱ChatGLM、Gemini</p>
-  <p><em>实际上，任何支持openai接口调用的LLM均可接入使用</em></p>
+<h4>Interface call</h4>
+<p><strong>Supported platforms:</strong>Alibaba Bailian, Volcano Engine Doubao, Deep Search, Zhipu ChatGLM, Gemini, Ollama, Dify, Fastgpt, Coze</p>
+<p><strong>Free platforms:</strong>ChatGLM, Gemini</p>
+<p><em>In fact, any LLM that supports openai interface calls can be accessed and used</em></p>
 </div>
 
-### TTS 语音合成
+### TTS speech synthesis
 
 <div class="platform-item">
-  <h4>接口调用</h4>
-  <p><strong>支持平台：</strong>EdgeTTS、火山引擎豆包TTS、腾讯云、阿里云TTS、CosyVoiceSiliconflow、TTS302AI、CozeCnTTS、GizwitsTTS、ACGNTTS、OpenAITTS</p>
-  <p><strong>免费平台：</strong>EdgeTTS、CosyVoiceSiliconflow(部分)</p>
+<h4>Interface call</h4>
+<p><strong>Supported platforms:</strong>EdgeTTS, Volcano Engine Doubao TTS, Tencent Cloud, Alibaba Cloud TTS, CosyVoiceSiliconflow, TTS302AI, CozeCnTTS, GizwitsTTS, ACGNTTS, OpenAITTS</p>
+<p><strong>Free platforms:</strong>EdgeTTS, CosyVoiceSiliconflow (part)</p>
   
-  <h4>本地服务</h4>
-  <p><strong>支持平台：</strong>FishSpeech、GPT_SOVITS_V2、GPT_SOVITS_V3、MinimaxTTS</p>
-  <p><strong>免费平台：</strong>FishSpeech、GPT_SOVITS_V2、GPT_SOVITS_V3、MinimaxTTS</p>
+<h4>Local services</h4>
+<p><strong>Supported platforms:</strong>FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3, MinimaxTTS</p>
+<p><strong>Free platforms:</strong>FishSpeech, GPT_SOVITS_V2, GPT_SOVITS_V3, MinimaxTTS</p>
 </div>
 
-### ASR 语音识别
+### ASR Speech Recognition
 
 <div class="platform-item">
-  <h4>接口调用</h4>
-  <p><strong>支持平台：</strong>DoubaoASR</p>
+<h4>Interface call</h4>
+<p><strong>Supported platform: </strong>DoubaoASR</p>
   
-  <h4>本地服务</h4>
-  <p><strong>支持平台：</strong>FunASR、SherpaASR</p>
-  <p><strong>免费平台：</strong>FunASR、SherpaASR</p>
+<h4>Local services</h4>
+<p><strong>Supported platforms:</strong>FunASR, SherpaASR</p>
+<p><strong>Free platforms:</strong>FunASR, SherpaASR</p>
 </div>
 
-### 更多组件
+### More components
 
-- **VAD语音活动检测**：支持SileroVAD（本地免费使用）
-- **记忆存储**：支持mem0ai（1000次/月额度）、mem_local_short（本地总结，免费）
-- **意图识别**：支持intent_llm（通过大模型识别意图）、function_call（通过大模型函数调用完成意图）
+- **VAD Voice Activity Detection**: Supports SileroVAD (free for local use)
+- **Memory Storage**: Supports mem0ai (1000 times/month quota), mem_local_short (local summary, free)
+- **Intent recognition**: Supports intent_llm (identifying intentions through large models), function_call (completes intentions through large model function calls)
 
-## 参与贡献
+## Participate and contribute
 
-xiaozhi-esp32-server是一个活跃的开源项目，欢迎贡献代码或提交问题反馈：
+xiaozhi-esp32-server is an active open source project. You are welcome to contribute code or submit feedback:
 
-- [GitHub仓库](https://github.com/xinnan-tech/xiaozhi-esp32-server)
-- [问题反馈](https://github.com/xinnan-tech/xiaozhi-esp32-server/issues)
-- [致开发者的公开信](https://github.com/xinnan-tech/xiaozhi-esp32-server/blob/main/docs/contributor_open_letter.md)
+- [GitHub repository](https://github.com/xinnan-tech/xiaozhi-esp32-server)
+- [Problem Feedback](https://github.com/xinnan-tech/xiaozhi-esp32-server/issues)
+- [Open letter to developers](https://github.com/xinnan-tech/xiaozhi-esp32-server/blob/main/docs/contributor_open_letter.md)
 
 <style>
 .project-header {

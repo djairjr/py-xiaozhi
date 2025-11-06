@@ -1,6 +1,4 @@
-"""
-八字命理分析工具模块。
-"""
+"""Eight-character numerology analysis tool module."""
 
 from .manager import get_bazi_manager
 
